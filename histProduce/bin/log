@@ -1,0 +1,7 @@
+Type                                 Module                   Label             Process         
+------------------------------------------------------------------------------------------------
+vector<pat::CompositeCandidate>      "lbWriteSpecificDecay"   "Lam0Cand"        "bphAnalysis"   
+vector<pat::CompositeCandidate>      "lbWriteSpecificDecay"   "LbToLam0Fitted"   "bphAnalysis"   
+vector<pat::CompositeCandidate>      "lbWriteSpecificDecay"   "LbToTkTkFitted"   "bphAnalysis"   
+vector<pat::CompositeCandidate>      "lbWriteSpecificDecay"   "TkTkFitted"      "bphAnalysis"   
+vector<pat::CompositeCandidate>      "lbWriteSpecificDecay"   "oniaFitted"      "bphAnalysis"   
