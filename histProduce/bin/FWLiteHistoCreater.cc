@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
     {
         inputFiles_.push_back( parser.stringValue("testFile") );
         if ( !parser.stringValue("outputFile").empty() )
-            outputFile_ = parser.string("outputFile");
+            outputFile_ = parser.stringValue("outputFile");
     }
         
 

@@ -37,10 +37,9 @@ public:
     fwlite::Handle< std::vector<pat::CompositeCandidate> > _handle;
     TFileDirectory* dir;
     Label _label;
-    static std::vector<myCut::generalCutList*>* _cutLists;
 private:
     std::vector<std::string> _refitName;
-    //static std::vector<myCut::generalCutList*>* _cutLists;
+    static std::vector<myCut::generalCutList*>* _cutLists;
     static std::map< std::string, TH1D* > hMap;
 };
 
