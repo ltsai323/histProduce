@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     int maxEvents_ = parser.integerValue("maxEvents");
     unsigned int outputEvery_ = parser.integerValue("outputEvery");
     std::string outputFile_ = parser.stringValue("outputFile");
-    std::vector<std::string> inputFiles_ = parser.stringVector("inputFiles");
+    const std::vector<std::string>& inputFiles_ = parser.stringVector("inputFiles");
 
     // book a set of histograms
     fwlite::TFileService fs = fwlite::TFileService(outputFile_.c_str());

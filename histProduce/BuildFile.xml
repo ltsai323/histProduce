@@ -3,7 +3,12 @@
 <use   name="roothistmatrix"/>
 <use   name="CommonTools/Utils"/>
 <use   name="DataFormats/FWLite"/>
+<use   name="DataFormats/GeometryVector"/>
 <use   name="DataFormats/MuonReco"/>
+<use   name="DataFormats/PatCandidates"/>
+<use   name="DataFormats/VertexReco"/>
+<use   name="PhysicsTools/FWLite"/>
+
 <export>
   <lib   name="1"/>
 </export>
