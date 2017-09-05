@@ -25,6 +25,8 @@
 #include "histProduce/histProduce/interface/generalCutList.h"
 #include "histProduce/histProduce/interface/hMain.h"
 #include "histProduce/histProduce/interface/hMainLbL0.h"
+#include "histProduce/histProduce/interface/hMainLbTk.h"
+#include "histProduce/histProduce/interface/hMainBs.h"
 
 // initialize static member
 //std::vector<generalCutList*>* histMain::_cutLists = NULL;
@@ -124,8 +126,11 @@ int main(int argc, char* argv[])
 
     // set main code.
     std::vector<histMain*> mainCode;
-    mainCode.push_back( new histMain_LbL0(&dir) );
+    //mainCode.push_back( new histMain_LbL0(&dir) );
+    mainCode.push_back( new histMain_Bs(&dir) );
+    //mainCode.push_back( new histMain_LbTk(&dir) );
 
+    int ievt=0;
     for ( const auto& file : inputFiles_ )
     {
         TFile* inFile = TFile::Open( ("file://"+file).c_str() );
@@ -139,17 +144,24 @@ int main(int argc, char* argv[])
         //  * after the loop close the input file
         // ----------------------------------------------------------------------
         fwlite::Event ev(inFile);
-        int ievt=0;
         for(ev.toBegin(); !ev.atEnd(); ++ev, ++ievt)
         {
 	        edm::EventBase const & event = ev;
 	        // break loop if maximal number of events is reached 
 	        if(maxEvents_>0 ? ievt+1>maxEvents_ : false) break;
 	        // simple event counter
-            if ( ievt > 0 && ievt%outputEvery_ == 0 ) printf( "  processing event: %i \n", ievt );
+            if ( ievt > 0 && ievt%outputEvery_ == 0 ) 
+            {
+                printf( "\r  processing event: %i", ievt );
+                fflush( stdout );
+            }
 
+
+            try {
             for ( const auto& _main : mainCode )
                 _main->Process( &ev );
+            } catch ( ... ) {}
+
 
             // close input file
             if(maxEvents_>0 ? ievt+1>maxEvents_ : false) break;
@@ -167,5 +179,6 @@ int main(int argc, char* argv[])
     // there is no need to delete histogram in TDirectory
     // histMain::clearHisto;
 
+    printf("\n");
     return 0;
 }
