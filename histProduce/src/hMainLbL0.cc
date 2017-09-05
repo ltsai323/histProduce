@@ -4,7 +4,7 @@
 
 
 histMain_LbL0::histMain_LbL0( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis") )
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToLam0Fitted", "bphAnalysis") )
 {
     setRefitName( "JPsi/MuPos" );
     setRefitName( "JPsi/MuNeg" );
@@ -12,7 +12,6 @@ histMain_LbL0::histMain_LbL0( TFileDirectory* d ) :
     setRefitName( "Lam0/Pion" );
 
     createHisto( "massLb", 50, 5.0, 6.0 );
-    //createHisto( "massLam0", 25, 1.10, 1.20 );
     createHisto( "ptProton",  20, 0., 20. );
 
 }
@@ -27,7 +26,6 @@ void histMain_LbL0::Process( fwlite::Event* ev )
         const pat::CompositeCandidate& cand = *iter++;
         bool cutTag = false;
         const std::vector<myCut::generalCutList*>* generalCut = getCutList();
-        //const std::vector<myCut::generalCutList*>* generalCut = _cutLists;
         std::vector<myCut::generalCutList*>::const_iterator iter = generalCut->begin();
         std::vector<myCut::generalCutList*>::const_iterator iend = generalCut->end  ();
         while ( iter != iend )
