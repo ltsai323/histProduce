@@ -8,58 +8,114 @@ histMain_LbTk::histMain_LbTk( TFileDirectory* d ) :
     histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis") )
 {
     createHisto( "massLbTk", 50, 5.0, 6.0 );
+    createHisto( "massFakeBd", 50, 5.0, 6.0 );
+    createHisto( "massFakeBd_withCuts", 50, 5.0, 6.0 );
     createHisto( "massFakeBs", 50, 5.0, 6.0 );
+    createHisto( "massFakeBs_withCuts", 50, 5.0, 6.0 );
+    createHisto( "massTkTk", 50, 1., 1.5 );
     createHisto( "ptLbTk",  60, 8., 20. );
     createHisto( "ptPTk",  60, 0., 6. );
+    createHisto( "massFakePhi1020", 80, 0.9, 1.3 );
+    createHisto( "massFakeK892", 80, 0.7, 1.1 );
+    createHisto( "massFakePiPi",180, 0.3, 1.2 );
 }
 void histMain_LbTk::Process( fwlite::Event* ev )
 {
-    _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
-
-    std::vector<pat::CompositeCandidate>::const_iterator iter = _handle->begin();
-    std::vector<pat::CompositeCandidate>::const_iterator iend = _handle->end  ();
-    while ( iter != iend )
+    try 
     {
-        const pat::CompositeCandidate& cand = *iter++;
-        bool cutTag = false;
-        const std::vector<myCut::generalCutList*>* generalCut = getCutList();
-        std::vector<myCut::generalCutList*>::const_iterator iter = generalCut->begin();
-        std::vector<myCut::generalCutList*>::const_iterator iend = generalCut->end  ();
+        if ( ev->isValid() )
+        {
+        _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
+    
+        std::vector<pat::CompositeCandidate>::const_iterator iter = _handle->begin();
+        std::vector<pat::CompositeCandidate>::const_iterator iend = _handle->end  ();
         while ( iter != iend )
-            if ( (*iter++)->accept( cand ) )
-            { cutTag = true; break; }
-        if ( cutTag ) continue;
-
-        if ( cand.hasUserFloat("fitMass") )
-            fillHisto( "massLbTk", cand.userFloat("fitMass") );
-        if ( cand.hasUserData("fitMomentum") )
-            fillHisto( "ptLbTk", cand.userData<GlobalVector>("fitMomentum")->transverse() );
-
-        if ( cand.hasUserData("TkTk/Proton.fitMom") && cand.hasUserData("TkTk/Kaon.fitMom") )
-            if ( cand.hasUserData("JPsi/MuPos.fitMom") && cand.hasUserData("JPsi/MuNeg.fitMom") )
+        {
+            const pat::CompositeCandidate& cand = *iter++;
+            if ( cand.hasUserFloat("fitMass") ) std::cout << "has fitMass\n"; else std::cout << "NO fitMass\n";
+            if ( cand.hasUserData("fitMomentum") ) std::cout << "has fitMomentum\n"; else std::cout << "NO fitMomentum\n";
+            if ( cand.hasUserData("fitVertex") ) std::cout << "has fitVertex\n"; else std::cout << "NO fitVertex\n";
+            if ( cand.hasUserData("primaryVertex") ) std::cout << "has pv \n"; else std::cout << "NO PV\n";
+            bool cutTag = false;
+            const std::vector<myCut::generalCutList*>* generalCut = getCutList();
+            std::vector<myCut::generalCutList*>::const_iterator iter = generalCut->begin();
+            std::vector<myCut::generalCutList*>::const_iterator iend = generalCut->end  ();
+            while ( iter != iend )
             {
-                const GlobalVector* pTkMom = cand.userData<GlobalVector>("TkTk/Proton.fitMom");
-                const GlobalVector* nTkMom = cand.userData<GlobalVector>("TkTk/Kaon.fitMom");
-                const GlobalVector* pmuMom = cand.userData<GlobalVector>("JPsi/MuPos.fitMom");
-                const GlobalVector* nmuMom = cand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
-                fillHisto( "ptPTk", pTkMom->transverse() );
-                fillHisto( "ptPTk", nTkMom->transverse() );
-
-                fourMom pTk( pTkMom->x(), pTkMom->y(), pTkMom->z() );
-                fourMom nTk( nTkMom->x(), nTkMom->y(), nTkMom->z() );
-                fourMom pmu( pmuMom->x(), pmuMom->y(), pmuMom->z() );
-                fourMom nmu( nmuMom->x(), nmuMom->y(), nmuMom->z() );
-                pTk.setMass( 0.493667 );
-                nTk.setMass( 0.493667 );
-                pmu.setMass( 0.1056583715 );
-                nmu.setMass( 0.1056583715 );
-
-                fourMom bs = pTk + nTk + pmu + nmu;
-
-                fillHisto( "massFakeBs", bs.Mag() );
+                myCut::generalCutList* gCut = *iter++;
+                if ( !gCut->accept(cand) )
+                { cutTag = true; break; }
             }
+            //if ( cutTag ) continue;
+            if ( cutTag ) cutTag = false;
 
+            if ( cand.hasUserFloat("fitMass") )
+                fillHisto( "massLbTk", cand.userFloat("fitMass") );
+            if ( cand.hasUserData("fitMomentum") )
+                fillHisto( "ptLbTk", cand.userData<GlobalVector>("fitMomentum")->transverse() );
+    
+            if ( cand.hasUserData("TkTk/Proton.fitMom") && cand.hasUserData("TkTk/Kaon.fitMom") )
+                if ( cand.hasUserData("JPsi/MuPos.fitMom") && cand.hasUserData("JPsi/MuNeg.fitMom") )
+                {
+                    const GlobalVector* pTkMom = cand.userData<GlobalVector>("TkTk/Proton.fitMom");
+                    const GlobalVector* nTkMom = cand.userData<GlobalVector>("TkTk/Kaon.fitMom");
+                    const GlobalVector* pmuMom = cand.userData<GlobalVector>("JPsi/MuPos.fitMom");
+                    const GlobalVector* nmuMom = cand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
+                    fillHisto( "ptPTk", pTkMom->transverse() );
+                    fillHisto( "ptPTk", nTkMom->transverse() );
+    
+                    fourMom pTk( pTkMom->x(), pTkMom->y(), pTkMom->z() );
+                    fourMom nTk( nTkMom->x(), nTkMom->y(), nTkMom->z() );
+                    fourMom pmu( pmuMom->x(), pmuMom->y(), pmuMom->z() );
+                    fourMom nmu( nmuMom->x(), nmuMom->y(), nmuMom->z() );
+    
+                    nTk.setMass( 0.493667 );
+                    pTk.setMass( 0.9382720813 );
+                    nTk.setMass( 0.13957061 );
+                    pmu.setMass( 0.1056583715 );
+                    nmu.setMass( 0.1056583715 );
+    
+                    fourMom fourTk = pTk + nTk + pmu + nmu;
+                    fourMom twoTk = pTk + nTk;
+                    fillHisto( "massTkTk", twoTk.Mag() );
 
-    }
+                    //pTk.setMass( 0.9382720813 );
+                    pTk.setMass( 0.493667 );
+                    nTk.setMass( 0.13957061 );
+                    fourTk = pTk + nTk + pmu + nmu;
+                    twoTk = pTk + nTk;
+    
+                    fillHisto( "massFakeBd", fourTk.Mag() );
+                    //fillHisto( "massTkTk", twoTk.Mag() );
+                    if ( twoTk.Mag() > 0.870 && twoTk.Mag() < 0.930 )
+                        fillHisto( "massFakeBd_withCuts", fourTk.Mag() );
+                    if ( fourTk.Mag() > 5.279-0.02 && fourTk.Mag() < 5.279+0.02 )
+                        fillHisto( "massFakeK892", twoTk.Mag() );
+
+                    //pTk.setMass( 0.9382720813 );
+                    pTk.setMass( 0.493667 );
+                    nTk.setMass( 0.493667 );
+                    fourTk = pTk + nTk + pmu + nmu;
+                    twoTk = pTk + nTk;
+    
+                    fillHisto( "massFakeBs", fourTk.Mag() );
+                    //fillHisto( "massTkTk", twoTk.Mag() );
+                    if ( twoTk.Mag() > 1.019460-0.001 && twoTk.Mag() < 1.019460+0.001 )
+                        fillHisto( "massFakeBs_withCuts", fourTk.Mag() );
+                    if ( fourTk.Mag() > 5.36689-0.002 && fourTk.Mag() < 5.36689+0.002 )
+                        fillHisto( "massFakePhi1020", twoTk.Mag() );
+
+                    pTk.setMass( 0.13957061 );
+                    nTk.setMass( 0.13957061 );
+                    twoTk = pTk + nTk;
+                    fillHisto( "massFakePiPi", twoTk.Mag() );
+                }
+    
+        }
+        }
+    } catch (...) {}
 }
 
+void histMain_LbTk::Clear()
+{
+}

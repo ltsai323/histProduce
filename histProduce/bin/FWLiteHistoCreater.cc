@@ -27,6 +27,7 @@
 #include "histProduce/histProduce/interface/hMainLbL0.h"
 #include "histProduce/histProduce/interface/hMainLbTk.h"
 #include "histProduce/histProduce/interface/hMainBs.h"
+#include "histProduce/histProduce/interface/hMainLb_findParDiff.h"
 
 // initialize static member
 //std::vector<generalCutList*>* histMain::_cutLists = NULL;
@@ -67,10 +68,10 @@ int main(int argc, char* argv[])
     parser.addOption("testFile",optutl::CommandLineParser::kString,"test input file, recommend to use fileList_cfi.py to put files","");
     parser.addOption("fileList",optutl::CommandLineParser::kString,"input the python file records file list.","fileList");
     parser.addOption("configFile",optutl::CommandLineParser::kString,"the plot options recorded in python file","histogramPlotParameter");
-    // set defaults
-    parser.integerValue ("maxEvents"  ) = 1000;
-    parser.integerValue ("outputEvery") =  100;
-    parser.stringValue  ("outputFile" ) = "";
+    // set defaults for testFile is assigned
+    parser.integerValue ("maxEvents"  ) = -1;
+    parser.integerValue ("outputEvery") = 1000;
+    parser.stringValue  ("outputFile" ) = "histoTestOutput.root";
 
     // parse arguments
     parser.parseArguments (argc, argv);
@@ -103,11 +104,12 @@ int main(int argc, char* argv[])
         inputFiles_ = fileNames;
     else
     {
+        // only if testFile is set, parameters from parser valid
         inputFiles_.push_back( parser.stringValue("testFile") );
-        if ( !parser.stringValue("outputFile").empty() )
-            outputFile_ = parser.stringValue("outputFile");
+        outputFile_ = parser.stringValue("outputFile");
+        maxEvents_ = parser.integerValue("maxEvents");
+        outputEvery_ = parser.integerValue("outputEvery");
     }
-        
 
     // book a set of histograms
     fwlite::TFileService fs = fwlite::TFileService(outputFile_.c_str());
@@ -117,7 +119,7 @@ int main(int argc, char* argv[])
     using namespace myCut;
     // general cut applied
     std::vector<generalCutList*> cutLists;
-    cutLists.push_back( new      vtxprobCut(0.15,-99. ) );
+    //cutLists.push_back( new      vtxprobCut(0.15,-99. ) );
     cutLists.push_back( new         massCut(5.0 ,  6.0) );
     cutLists.push_back( new       cosa2dCut(0.99      ) );
     cutLists.push_back( new           ptCut(15  ,-99. ) );
@@ -127,12 +129,14 @@ int main(int argc, char* argv[])
     // set main code.
     std::vector<histMain*> mainCode;
     //mainCode.push_back( new histMain_LbL0(&dir) );
-    mainCode.push_back( new histMain_Bs(&dir) );
-    //mainCode.push_back( new histMain_LbTk(&dir) );
+    //mainCode.push_back( new histMain_Bs(&dir) );
+    mainCode.push_back( new histMain_LbTk(&dir) );
+    //mainCode.push_back( new histMain_Lb_findParDiff(&dir) );
 
     int ievt=0;
     for ( const auto& file : inputFiles_ )
     {
+        bool terminateLoop = false;
         TFile* inFile = TFile::Open( ("file://"+file).c_str() );
         if( !inFile ) continue;
         // ----------------------------------------------------------------------
@@ -148,7 +152,8 @@ int main(int argc, char* argv[])
         {
 	        edm::EventBase const & event = ev;
 	        // break loop if maximal number of events is reached 
-	        if(maxEvents_>0 ? ievt+1>maxEvents_ : false) break;
+	        if(maxEvents_>0 ? ievt+1>maxEvents_ : false) 
+            { terminateLoop = true; break; }
 	        // simple event counter
             if ( ievt > 0 && ievt%outputEvery_ == 0 ) 
             {
@@ -157,16 +162,13 @@ int main(int argc, char* argv[])
             }
 
 
-            try {
             for ( const auto& _main : mainCode )
                 _main->Process( &ev );
-            } catch ( ... ) {}
 
 
-            // close input file
-            if(maxEvents_>0 ? ievt+1>maxEvents_ : false) break;
         }
         inFile->Close();
+        if ( terminateLoop ) break;
         // break loop if maximal number of events is reached:
         // this has to be done twice to stop the file loop as well
     }
@@ -174,7 +176,10 @@ int main(int argc, char* argv[])
     for ( auto& cut : cutLists )
         delete cut;
     for ( auto& _main : mainCode )
+    {
+        _main->Clear();
         delete _main;
+    }
 
     // there is no need to delete histogram in TDirectory
     // histMain::clearHisto;

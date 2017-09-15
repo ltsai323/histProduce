@@ -26,6 +26,7 @@ namespace myCut
         {
             if ( !cand.hasUserData( "fitVertex" ) ) return false;
             const reco::Vertex* _vtx = cand.userData<reco::Vertex>( "fitVertex" );
+            std::cout << "vtxprob cut, has fitVertex\n";
             return ( TMath::Prob( _vtx->chi2(), _vtx->ndof() ) > dmin );
         }
     }; // }}}
@@ -37,6 +38,7 @@ namespace myCut
         virtual bool accept( const pat::CompositeCandidate& cand ) const override
         {
             if ( !cand.hasUserData( "fitMomentum" ) ) return false;
+            std::cout << "pt cut, has fitMomentum\n";
             const GlobalVector* _mom = cand.userData<GlobalVector>("fitMomentum");
             double _pt = _mom->transverse();
             if ( _pt < dmin ) return false;
@@ -51,7 +53,7 @@ namespace myCut
         massCut( const double m, const double M=-1. ) : generalCutList( m, M ) {}
         virtual bool accept( const pat::CompositeCandidate& cand ) const override
         {
-            if ( !cand.hasUserData( "fitMass" ) ) return false;
+            if ( !cand.hasUserFloat( "fitMass" ) ) return false;
             const float _mass = cand.userFloat("fitMass");
             if ( _mass < dmin ) return false;
             if ( _mass > dmax ) return false;
@@ -67,6 +69,7 @@ namespace myCut
         {
             if ( !cand.hasUserData( "primaryVertex" ) ) return false;
             if ( !cand.hasUserData( "fitVertex" ) ) return false;
+            std::cout << "fd2D cut, has primaryVertex and fitVertex\n";
             const reco::Vertex* _pvx = cand.userData<reco::Vertex>( "primaryVertex" );
             const reco::Vertex* _vtx = cand.userData<reco::Vertex>( "fitVertex" );
             double _x = _pvx->x() - _vtx->x();
@@ -84,6 +87,7 @@ namespace myCut
             if ( !cand.hasUserData( "primaryVertex" ) ) return false;
             if ( !cand.hasUserData( "fitVertex" ) )     return false;
             if ( !cand.hasUserData( "fitMomentum" ) )   return false;
+            std::cout << "cosa2d cut aaaa\n";
             const reco::Vertex* _pvx = cand.userData<reco::Vertex>( "primaryVertex" );
             const reco::Vertex* _vtx = cand.userData<reco::Vertex>( "fitVertex" );
             const GlobalVector* _mom = cand.userData<GlobalVector>( "fitMomentum" );
@@ -92,7 +96,7 @@ namespace myCut
             double _r = sqrt( _x*_x+_y*_y );
             double mx = _mom->x();
             double my = _mom->y();
-            return ( mx*_x+my*_y ) / ( _mom->transverse()*_r );
+            return (( mx*_x+my*_y ) / ( _mom->transverse()*_r ) > dmin);
         }
     }; // }}}
 }

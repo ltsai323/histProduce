@@ -24,11 +24,12 @@ public:
     histMain( TFileDirectory* d, Label l ) : dir( d ), _label( l ) {}
     virtual ~histMain() {}
     virtual void Process( fwlite::Event* ev ) = 0;
+    virtual void Clear() = 0;
     void setRefitName( const std::string& name )
     { _refitName.emplace_back( name ); return; }
 
-           virtual void createHisto( const std::string& name, int nbin, double min, double max ) final;
-           virtual void fillHisto( const std::string& name, double value ) final;
+    virtual void createHisto( const std::string& name, int nbin, double min, double max ) final;
+    virtual void fillHisto( const std::string& name, double value ) final;
     static void clearHisto();
     static void setCutList( std::vector<myCut::generalCutList*>* in ) { _cutLists = in; }
     std::vector<myCut::generalCutList*>* getCutList()  { return _cutLists; }

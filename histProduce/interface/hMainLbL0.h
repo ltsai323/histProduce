@@ -6,7 +6,8 @@ class histMain_LbL0 : public histMain
 {
 public:
     histMain_LbL0 ( TFileDirectory* d);
-    virtual void Process( fwlite::Event* ev );
+    virtual void Process( fwlite::Event* ev ) override;
+    virtual void Clear() override;
 };
 #endif
 
