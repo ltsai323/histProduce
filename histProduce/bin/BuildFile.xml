@@ -13,4 +13,5 @@
   <bin name="testLite"       file="FWLiteWithPythonConfig.cc"></bin>
   <bin name="hCreate"        file="FWLiteHistoCreater.cc"></bin>
   <bin name="histoProducer"  file="FWLiteMyCustomTest.cc"></bin>
+  <bin name="hMerge"         file="FWLiteMergePlots.cc"></bin>
 </environment>
