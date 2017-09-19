@@ -32,10 +32,6 @@ void histMain_LbTk::Process( fwlite::Event* ev )
         while ( iter != iend )
         {
             const pat::CompositeCandidate& cand = *iter++;
-            if ( cand.hasUserFloat("fitMass") ) std::cout << "has fitMass\n"; else std::cout << "NO fitMass\n";
-            if ( cand.hasUserData("fitMomentum") ) std::cout << "has fitMomentum\n"; else std::cout << "NO fitMomentum\n";
-            if ( cand.hasUserData("fitVertex") ) std::cout << "has fitVertex\n"; else std::cout << "NO fitVertex\n";
-            if ( cand.hasUserData("primaryVertex") ) std::cout << "has pv \n"; else std::cout << "NO PV\n";
             bool cutTag = false;
             const std::vector<myCut::generalCutList*>* generalCut = getCutList();
             std::vector<myCut::generalCutList*>::const_iterator iter = generalCut->begin();
@@ -46,8 +42,7 @@ void histMain_LbTk::Process( fwlite::Event* ev )
                 if ( !gCut->accept(cand) )
                 { cutTag = true; break; }
             }
-            //if ( cutTag ) continue;
-            if ( cutTag ) cutTag = false;
+            if ( cutTag ) continue;
 
             if ( cand.hasUserFloat("fitMass") )
                 fillHisto( "massLbTk", cand.userFloat("fitMass") );
@@ -87,9 +82,9 @@ void histMain_LbTk::Process( fwlite::Event* ev )
     
                     fillHisto( "massFakeBd", fourTk.Mag() );
                     //fillHisto( "massTkTk", twoTk.Mag() );
-                    if ( twoTk.Mag() > 0.870 && twoTk.Mag() < 0.930 )
+                    if ( twoTk.Mag() > 0.850 && twoTk.Mag() < 0.950 )
                         fillHisto( "massFakeBd_withCuts", fourTk.Mag() );
-                    if ( fourTk.Mag() > 5.279-0.02 && fourTk.Mag() < 5.279+0.02 )
+                    if ( fourTk.Mag() > 5.2 && fourTk.Mag() < 5.35 )
                         fillHisto( "massFakeK892", twoTk.Mag() );
 
                     //pTk.setMass( 0.9382720813 );
@@ -100,9 +95,9 @@ void histMain_LbTk::Process( fwlite::Event* ev )
     
                     fillHisto( "massFakeBs", fourTk.Mag() );
                     //fillHisto( "massTkTk", twoTk.Mag() );
-                    if ( twoTk.Mag() > 1.019460-0.001 && twoTk.Mag() < 1.019460+0.001 )
+                    if ( twoTk.Mag() > 1.0 && twoTk.Mag() < 1.05 )
                         fillHisto( "massFakeBs_withCuts", fourTk.Mag() );
-                    if ( fourTk.Mag() > 5.36689-0.002 && fourTk.Mag() < 5.36689+0.002 )
+                    if ( fourTk.Mag() > 5.3 && fourTk.Mag() < 5.5 )
                         fillHisto( "massFakePhi1020", twoTk.Mag() );
 
                     pTk.setMass( 0.13957061 );

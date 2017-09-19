@@ -84,16 +84,13 @@ namespace myCut
         flightDist2DCut( const double m, const double M=-1. ) : generalCutList( m, M ) {}
         virtual bool accept( const pat::CompositeCandidate& cand ) const override
         {
+            if ( !cand.hasUserData( "primaryVertex" ) ) return false;
             if ( !cand.hasUserData( "fitVertex" ) ) return false;
             const reco::Vertex* _vtx = get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) return false;
-            const pat::CompositeCandidate* _jpsi = getByRef<pat::CompositeCandidate>( cand, "refToJPsi" );
+            const pat::CompositeCandiate* _jpsi = getByRef<pat::CompositeCandidate>( cand, "RefToJPsi" );
             //if the particle doesn't contain JPsi, give up this cut?
-            if ( _jpsi == nullptr ) 
-            {
-                std::cout << "jpsi not found! cannot find pv\n";
-                return true; // return false;
-            }
+            if ( _jpsi == nullptr ) return true; // return false;
             const reco::Vertex* _pvx = getByRef<reco::Vertex>( *_jpsi, "primaryVertex" );
             if ( _pvx == nullptr ) return false;
 
@@ -109,25 +106,18 @@ namespace myCut
         cosa2dCut( const double m, const double M=-1. ) : generalCutList( m, M ) {}
         virtual bool accept( const pat::CompositeCandidate& cand ) const override
         {
-            const GlobalVector* _mom = get<GlobalVector>( cand, "fitMomentum" );
-            if ( _mom == nullptr ) return false;
-            const reco::Vertex* _vtx = get<reco::Vertex>( cand, "fitVertex" );
-            if ( _vtx == nullptr ) return false;
-            const pat::CompositeCandidate* _jpsi = getByRef<pat::CompositeCandidate>( cand, "refToJPsi" );
-            if ( _jpsi == nullptr )
-            {
-                printf("jpsi not found, cannot find PV\n");
-                return true;
-            }
-            const reco::Vertex* _pvx = getByRef<reco::Vertex>( *_jpsi, "primaryVertex" );
-            if ( _pvx == nullptr ) return false;
-            double _x = _vtx->x() - _pvx->x();
-            double _y = _vtx->y() - _pvx->y();
+            if ( !cand.hasUserData( "primaryVertex" ) ) return false;
+            if ( !cand.hasUserData( "fitVertex" ) )     return false;
+            if ( !cand.hasUserData( "fitMomentum" ) )   return false;
+            const reco::Vertex* _pvx = cand.userData<reco::Vertex>( "primaryVertex" );
+            const reco::Vertex* _vtx = cand.userData<reco::Vertex>( "fitVertex" );
+            const GlobalVector* _mom = cand.userData<GlobalVector>( "fitMomentum" );
+            double _x = _pvx->x() - _vtx->x();
+            double _y = _pvx->y() - _vtx->y();
             double _r = sqrt( _x*_x+_y*_y );
             double mx = _mom->x();
             double my = _mom->y();
-            double cosa2d = (mx*_x + my*_y) / (_mom->transverse()*_r);
-            return (cosa2d > dmin);
+            return (( mx*_x+my*_y ) / ( _mom->transverse()*_r ) > dmin);
         }
     }; // }}}
 }

@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
     using namespace myCut;
     // general cut applied
     std::vector<generalCutList*> cutLists;
-    //cutLists.push_back( new      vtxprobCut(0.15,-99. ) );
+    cutLists.push_back( new      vtxprobCut(0.15,-99. ) );
     cutLists.push_back( new         massCut(5.0 ,  6.0) );
     cutLists.push_back( new       cosa2dCut(0.99      ) );
     cutLists.push_back( new           ptCut(15  ,-99. ) );
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new histMain_LbL0(&dir) );
     //mainCode.push_back( new histMain_Bs(&dir) );
     mainCode.push_back( new histMain_LbTk(&dir) );
-    //mainCode.push_back( new histMain_Lb_findParDiff(&dir) );
+    mainCode.push_back( new histMain_Lb_findParDiff(&dir) );
 
     int ievt=0;
     for ( const auto& file : inputFiles_ )

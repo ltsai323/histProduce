@@ -3267,13 +3267,9 @@ files.extend( [
 process = cms.PSet()
 
 process.runSetting = cms.PSet(
-        #maxEvents = cms.int32(20000000),
-        maxEvents = cms.int32(200000),
+        maxEvents = cms.int32(2000000),
+        #maxEvents = cms.int32(200000),
         outEvery  = cms.uint32(5000),
         outName   = cms.string('histogram_2016RunB_18Apr2017ReReco.root'),
-        useLbTk   = cms.bool(True),
-        useLbL0   = cms.bool(False),
-        useBs     = cms.bool(False),
-        useParPlot= cms.bool(False)
         )
 process.inputFiles = cms.PSet( fileNames  = files )
