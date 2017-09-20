@@ -92,8 +92,8 @@ int main(int argc, char* argv[])
     std::string outputFile_ = runSetting.getParameter<std::string>("outName");
 
     // load cut configuration from python file. default is histogramCutParameter_cfi.py
-    const edm::ParameterSet& cutOption = edm::readPSetsFrom(confPython.c_str())->getParameter<edm::ParameterSet>("process");
-    const std::vector<edm::ParameterSet>& runSetting_ = cutOption.getParameter< std::vector<edm::ParameterSet> >("cutSet");
+    //const edm::ParameterSet& cutOption = edm::readPSetsFrom(confPython.c_str())->getParameter<edm::ParameterSet>("process");
+    //const std::vector<edm::ParameterSet>& runSetting_ = cutOption.getParameter< std::vector<edm::ParameterSet> >("cutSet");
     // parser setting end }}}
 
     // input files

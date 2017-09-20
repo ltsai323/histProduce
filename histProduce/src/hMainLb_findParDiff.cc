@@ -2,6 +2,7 @@
 #include "histProduce/histProduce/interface/generalCutList.h"
 #include "histProduce/histProduce/interface/fourMom.h"
 #include "DataFormats/GeometryVector/interface/GlobalVector.h"
+#include "histProduce/histProduce/interface/usefulFuncs.h"
 
 
 histMain_Lb_findParDiff::histMain_Lb_findParDiff( TFileDirectory* d ) :
@@ -33,6 +34,20 @@ histMain_Lb_findParDiff::histMain_Lb_findParDiff( TFileDirectory* d ) :
         createHisto( name+"massFakeK892", 80, 0.7, 1.1 );
         createHisto( name+"massFakePiPi",180, 0.3, 1.2 );
     }
+    createHisto( "distPVx", 100, 0, 0.15 );
+    createHisto( "distPVy", 100, 0, 0.15 );
+    createHisto( "distVtxx", 100, 0, 1.0 );
+    createHisto( "distVtxy", 100, 0, 1.0 );
+    createHisto( "errPVx", 100, 0, 0.01 );
+    createHisto( "errPVy", 100, 0, 0.01 );
+    createHisto( "errVtxx", 100, 0, 0.02 );
+    createHisto( "errVtxy", 100, 0, 0.02 );
+    createHisto( "errFD2D", 100, 0, 0.15 );
+    createHisto( "fd1SmassLbTk", 50, 5.0, 6.0 );
+    createHisto( "fd2SmassLbTk", 50, 5.0, 6.0 );
+    createHisto( "fd3SmassLbTk", 50, 5.0, 6.0 );
+    createHisto( "fd4SmassLbTk", 50, 5.0, 6.0 );
+    createHisto( "fd5SmassLbTk", 50, 5.0, 6.0 );
     myCutLists.push_back( new      vtxprobCut(0.15,-99. ) );
     myCutLists.push_back( new         massCut(5.0 ,  6.0) );
     myCutLists.push_back( new       cosa2dCut(0.99      ) );
@@ -62,6 +77,44 @@ void histMain_Lb_findParDiff::Process( fwlite::Event* ev )
                 }
                 if ( cutTag ) continue;
    
+
+            const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+            if ( _vtx == nullptr ) continue;
+            const pat::CompositeCandidate* _jpsi = usefulFuncs::getByRef<pat::CompositeCandidate>( cand, "refToJPsi" );
+            if ( _jpsi == nullptr ) continue;
+            const reco::Vertex* _pvx = usefulFuncs::getByRef<reco::Vertex>( *_jpsi, "primaryVertex" );
+            if ( _pvx == nullptr ) continue;
+            fillHisto( "errPVx",  _pvx->xError() );
+            fillHisto( "errPVy",  _pvx->yError() );
+            fillHisto( "errVtxx", _vtx->xError() );
+            fillHisto( "errVtxy", _vtx->yError() );
+            fillHisto( "distPVx", fabs(_pvx->x()) );
+            fillHisto( "distPVy", fabs(_pvx->y()) );
+            fillHisto( "distVtxx", fabs(_vtx->x()) );
+            fillHisto( "distVtxy", fabs(_vtx->y()) );
+            double denumerator=   ( _vtx->xError()*_vtx->xError()*_vtx->x()*_vtx->x() + 
+                                    _vtx->yError()*_vtx->yError()*_vtx->y()*_vtx->y() + 
+                                    _pvx->xError()*_pvx->xError()*_pvx->x()*_pvx->x() +
+                                    _pvx->yError()*_pvx->yError()*_pvx->y()*_pvx->y() +
+                                    _vtx->xError()*_vtx->yError()*_vtx->x()*_vtx->y() +
+                                    _pvx->xError()*_pvx->yError()*_pvx->x()*_pvx->y() ) ;
+            double   numerator=   ( (_vtx->x()-_pvx->x())*(_vtx->x()*_pvx->x()) +
+                                    (_vtx->y()-_pvx->y())*(_vtx->y()*_pvx->y()) ) ;
+            double err = denumerator/numerator;
+            double dist= (_vtx->x()-_pvx->x())*(_vtx->x()-_pvx->x())+(_vtx->y()-_pvx->y())*(_vtx->y()-_pvx->y());
+                                  
+            fillHisto( "errFD2D", sqrt(denumerator/numerator)  );
+            if ( dist > 5*5*err )
+                fillHisto( "fd5SmassLbTk", cand.userFloat("fitMass") );
+            if ( dist > 4*4*err )
+                fillHisto( "fd4SmassLbTk", cand.userFloat("fitMass") );
+            if ( dist > 3*3*err )
+                fillHisto( "fd3SmassLbTk", cand.userFloat("fitMass") );
+            if ( dist > 2*2*err )
+                fillHisto( "fd2SmassLbTk", cand.userFloat("fitMass") );
+            if ( dist > 1*1*err )
+                fillHisto( "fd1SmassLbTk", cand.userFloat("fitMass") );
+
 
                 for ( auto& name : _nMap )
                 {
