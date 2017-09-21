@@ -27,7 +27,7 @@
 #include "histProduce/histProduce/interface/hMainLbL0.h"
 #include "histProduce/histProduce/interface/hMainLbTk.h"
 #include "histProduce/histProduce/interface/hMainBs.h"
-#include "histProduce/histProduce/interface/hMainLb_findParDiff.h"
+#include "histProduce/histProduce/interface/hMainfindParDiff.h"
 
 // initialize static member
 //std::vector<generalCutList*>* histMain::_cutLists = NULL;
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new histMain_LbL0(&dir) );
     //mainCode.push_back( new histMain_Bs(&dir) );
     mainCode.push_back( new histMain_LbTk(&dir) );
-    mainCode.push_back( new histMain_Lb_findParDiff(&dir) );
+    mainCode.push_back( new histMain_findParDiff(&dir) );
 
     int ievt=0;
     for ( const auto& file : inputFiles_ )
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
         fwlite::Event ev(inFile);
         for(ev.toBegin(); !ev.atEnd(); ++ev, ++ievt)
         {
-	        edm::EventBase const & event = ev;
+	        //edm::EventBase const & event = ev;
 	        // break loop if maximal number of events is reached 
 	        if(maxEvents_>0 ? ievt+1>maxEvents_ : false) 
             { terminateLoop = true; break; }

@@ -30,40 +30,40 @@ process.LegendSet = cms.PSet(
         )
 
 process.plotSet = cms.VPSet(
-    cms.PSet( PreName   = cms.string( 'fd020' ),
-              TitleName = cms.string( 'fd > 0.2  mm' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'fd1S' ),
+              TitleName = cms.string( 'fd > 1 #sigma' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 1 ),
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'fd025' ),
-              TitleName = cms.string( 'fd > 0.25 mm' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'fd2S' ),
+              TitleName = cms.string( 'fd > 2 #sigma' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 2 ),
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'fd030' ),
-              TitleName = cms.string( 'fd > 0.3  mm' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'fd3S' ),
+              TitleName = cms.string( 'fd > 3 #sigma' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 3 ),
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'fd035' ),
-              TitleName = cms.string( 'fd > 0.35 mm' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'fd4S' ),
+              TitleName = cms.string( 'fd > 4 #sigma' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 4 ),
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'fd040' ),
-              TitleName = cms.string( 'fd > #sigma ' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'fd5S' ),
+              TitleName = cms.string( 'fd > 5 #sigma' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 6 ),

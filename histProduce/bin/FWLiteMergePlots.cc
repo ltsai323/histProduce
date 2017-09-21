@@ -27,15 +27,7 @@
 #include "PhysicsTools/FWLite/interface/CommandLineParser.h"
 #include "histProduce/histProduce/interface/histoMAP.h"
 #include "histProduce/histProduce/interface/generalCutList.h"
-#include "histProduce/histProduce/interface/hMain.h"
-#include "histProduce/histProduce/interface/hMainLbL0.h"
-#include "histProduce/histProduce/interface/hMainLbTk.h"
-#include "histProduce/histProduce/interface/hMainBs.h"
-#include "histProduce/histProduce/interface/hMainLb_findParDiff.h"
 
-// initialize static member
-//std::vector<generalCutList*>* histMain::_cutLists = NULL;
-//std::map<std::string, TH1D*> histMain::hMap;
 
 struct plotPrivateSet
 {
@@ -83,7 +75,7 @@ int main(int argc, char* argv[])
     // initialize command line parser
     optutl::CommandLineParser parser ("Analyze FWLite Histograms");
 
-    parser.addOption("testFile",optutl::CommandLineParser::kString,"test input file, recommend to use fileList_cfi.py to put files","");
+    parser.addOption("testFile",optutl::CommandLineParser::kString,"test input file","");
     parser.addOption("plotSet",optutl::CommandLineParser::kString,"input the python file records parameter to plot","histoMergePar");
 
     // parse arguments
