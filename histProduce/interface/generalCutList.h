@@ -4,6 +4,7 @@
 #include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/GeometryVector/interface/GlobalVector.h"
+#include "histProduce/histProduce/interface/usefulFuncs.h"
 #include "TMath.h"
 
 namespace myCut
@@ -16,25 +17,6 @@ namespace myCut
         virtual ~generalCutList() {}
     protected:
         const double dmin, dmax;
-        template< typename T >
-            static const T* get( const pat::CompositeCandidate& cand, const std::string& name )
-            {
-                if ( cand.hasUserData(name) ) return cand.userData<T>( name );
-                return nullptr;
-            }
-        template< typename T >
-            static const T* getByRef( const pat::CompositeCandidate& cand, const std::string& name )
-            {
-                if ( cand.hasUserData(name) )
-                {
-                    typedef edm::Ref< std::vector<T> > objRef;
-                    const objRef* ref = cand.userData<objRef>( name );
-                    if ( ref ==      0 ) return nullptr;
-                    if ( ref->isNull() ) return nullptr;
-                    return ref->get();
-                }
-                return nullptr;
-            }
     };
 
     class vtxprobCut : public generalCutList // {{{
@@ -43,7 +25,7 @@ namespace myCut
         vtxprobCut( const double m, const double M=-1. ) : generalCutList( m, M ) {}
         bool accept( const pat::CompositeCandidate& cand ) const override 
         {
-            const reco::Vertex* _vtx = get<reco::Vertex>( cand, "fitVertex" );
+            const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) return false;
             return ( TMath::Prob( _vtx->chi2(), _vtx->ndof() ) > dmin );
         }
@@ -55,7 +37,7 @@ namespace myCut
         ptCut( const double m, const double M=-1. ) : generalCutList( m, M ) {}
         virtual bool accept( const pat::CompositeCandidate& cand ) const override
         {
-            const GlobalVector* _mom = get<GlobalVector>( cand, "fitMomentum" );
+            const GlobalVector* _mom = usefulFuncs::get<GlobalVector>( cand, "fitMomentum" );
             if ( _mom == nullptr ) return false;
             double _pt = _mom->transverse();
             if ( _pt < dmin ) return false;
@@ -85,16 +67,16 @@ namespace myCut
         virtual bool accept( const pat::CompositeCandidate& cand ) const override
         {
             if ( !cand.hasUserData( "fitVertex" ) ) return false;
-            const reco::Vertex* _vtx = get<reco::Vertex>( cand, "fitVertex" );
+            const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) return false;
-            const pat::CompositeCandidate* _jpsi = getByRef<pat::CompositeCandidate>( cand, "refToJPsi" );
+            const pat::CompositeCandidate* _jpsi = usefulFuncs::getByRef<pat::CompositeCandidate>( cand, "refToJPsi" );
             //if the particle doesn't contain JPsi, give up this cut?
             if ( _jpsi == nullptr ) 
             {
                 std::cout << "jpsi not found! cannot find pv\n";
                 return true; // return false;
             }
-            const reco::Vertex* _pvx = getByRef<reco::Vertex>( *_jpsi, "primaryVertex" );
+            const reco::Vertex* _pvx = usefulFuncs::getByRef<reco::Vertex>( *_jpsi, "primaryVertex" );
             if ( _pvx == nullptr ) return false;
 
             double _x = _pvx->x() - _vtx->x();
@@ -109,17 +91,17 @@ namespace myCut
         cosa2dCut( const double m, const double M=-1. ) : generalCutList( m, M ) {}
         virtual bool accept( const pat::CompositeCandidate& cand ) const override
         {
-            const GlobalVector* _mom = get<GlobalVector>( cand, "fitMomentum" );
+            const GlobalVector* _mom = usefulFuncs::get<GlobalVector>( cand, "fitMomentum" );
             if ( _mom == nullptr ) return false;
-            const reco::Vertex* _vtx = get<reco::Vertex>( cand, "fitVertex" );
+            const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) return false;
-            const pat::CompositeCandidate* _jpsi = getByRef<pat::CompositeCandidate>( cand, "refToJPsi" );
+            const pat::CompositeCandidate* _jpsi = usefulFuncs::getByRef<pat::CompositeCandidate>( cand, "refToJPsi" );
             if ( _jpsi == nullptr )
             {
                 printf("jpsi not found, cannot find PV\n");
                 return true;
             }
-            const reco::Vertex* _pvx = getByRef<reco::Vertex>( *_jpsi, "primaryVertex" );
+            const reco::Vertex* _pvx = usefulFuncs::getByRef<reco::Vertex>( *_jpsi, "primaryVertex" );
             if ( _pvx == nullptr ) return false;
             double _x = _vtx->x() - _pvx->x();
             double _y = _vtx->y() - _pvx->y();

@@ -1,13 +1,16 @@
 #include "histProduce/histProduce/interface/hMainLbTk.h"
 #include "histProduce/histProduce/interface/generalCutList.h"
 #include "histProduce/histProduce/interface/fourMom.h"
+#include "histProduce/histProduce/interface/usefulFuncs.h"
 #include "DataFormats/GeometryVector/interface/GlobalVector.h"
+#include "math.h"
 
 
 histMain_LbTk::histMain_LbTk( TFileDirectory* d ) :
     histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis") )
 {
     createHisto( "massLbTk", 50, 5.0, 6.0 );
+    createHisto( "massLbTk_withCuts", 50, 5.0, 6.0 );
     createHisto( "massFakeBd", 50, 5.0, 6.0 );
     createHisto( "massFakeBd_withCuts", 50, 5.0, 6.0 );
     createHisto( "massFakeBs", 50, 5.0, 6.0 );
@@ -44,6 +47,7 @@ void histMain_LbTk::Process( fwlite::Event* ev )
             }
             if ( cutTag ) continue;
 
+            bool cutLabel_LbTk = false;
             if ( cand.hasUserFloat("fitMass") )
                 fillHisto( "massLbTk", cand.userFloat("fitMass") );
             if ( cand.hasUserData("fitMomentum") )
@@ -86,6 +90,9 @@ void histMain_LbTk::Process( fwlite::Event* ev )
                         fillHisto( "massFakeBd_withCuts", fourTk.Mag() );
                     if ( fourTk.Mag() > 5.2 && fourTk.Mag() < 5.35 )
                         fillHisto( "massFakeK892", twoTk.Mag() );
+                    if ( !( twoTk.Mag() > 0.850 && twoTk.Mag() < 0.950 && fourTk.Mag() > 5.2 && fourTk.Mag() < 5.35 ) )
+                        cutLabel_LbTk = true;
+                    else cutLabel_LbTk = false;
 
                     //pTk.setMass( 0.9382720813 );
                     pTk.setMass( 0.493667 );
@@ -99,14 +106,24 @@ void histMain_LbTk::Process( fwlite::Event* ev )
                         fillHisto( "massFakeBs_withCuts", fourTk.Mag() );
                     if ( fourTk.Mag() > 5.3 && fourTk.Mag() < 5.5 )
                         fillHisto( "massFakePhi1020", twoTk.Mag() );
+                    if ( cutLabel_LbTk && !( twoTk.Mag() > 1.0 && twoTk.Mag() < 1.05 && fourTk.Mag() > 5.3 && fourTk.Mag() < 5.5 ) )
+                        cutLabel_LbTk = true;
+                    else cutLabel_LbTk = false;
 
                     pTk.setMass( 0.13957061 );
                     nTk.setMass( 0.13957061 );
                     twoTk = pTk + nTk;
                     fillHisto( "massFakePiPi", twoTk.Mag() );
                 }
+
+
+            if ( cutLabel_LbTk )
+                fillHisto( "massLbTk_withCuts", cand.userFloat("fitMass") );
+                                
+
+
     
-        }
+            }
         }
     } catch (...) {}
 }
