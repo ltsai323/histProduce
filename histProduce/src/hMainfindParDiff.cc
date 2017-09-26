@@ -65,17 +65,19 @@ void histMain_findParDiff::Process( fwlite::Event* ev )
             if ( _jpsi == nullptr ) continue;
             const reco::Vertex* _pvx = usefulFuncs::getByRef<reco::Vertex>( *_jpsi, "primaryVertex" );
             if ( _pvx == nullptr ) continue;
-            double denumerator=   ( _vtx->xError()*_vtx->xError()*_vtx->x()*_vtx->x() + 
-                                    _vtx->yError()*_vtx->yError()*_vtx->y()*_vtx->y() + 
-                                    _pvx->xError()*_pvx->xError()*_pvx->x()*_pvx->x() +
-                                    _pvx->yError()*_pvx->yError()*_pvx->y()*_pvx->y() +
-                                    _vtx->xError()*_vtx->yError()*_vtx->x()*_vtx->y() +
-                                    _pvx->xError()*_pvx->yError()*_pvx->x()*_pvx->y() ) ;
-            double   numerator=   ( (_vtx->x()-_pvx->x())*(_vtx->x()*_pvx->x()) +
-                                    (_vtx->y()-_pvx->y())*(_vtx->y()*_pvx->y()) ) ;
-            double err = denumerator/numerator;
-            double dist= (_vtx->x()-_pvx->x())*(_vtx->x()-_pvx->x())+(_vtx->y()-_pvx->y())*(_vtx->y()-_pvx->y());
                                   
+            double _x ( _vtx->x() ); double _y ( _vtx->y() );
+            double _px( _pvx->x() ); double _py( _pvx->y() );
+            double _xE ( _vtx->xError() ); double _yE ( _vtx->yError() );
+            double _pxE( _pvx->xError() ); double _pyE( _pvx->yError() );
+            double numerator  ( _xE*_xE*_x*_x + _yE*_yE*_y*_y +
+                                _pxE*_pxE*_px*_px + _pyE*_pyE*_py*_py +
+                                _xE*_yE*_x*_y + _pxE*_pyE*_px*_py );
+            double denumerator ( (_x-_px)*(_x-_px) + (_y-_py)*(_y-_py) );
+            double dist ( denumerator );
+
+            double err = numerator/denumerator;
+
             fillHisto( "errFD2D", sqrt(err) );
 
 

@@ -7,6 +7,8 @@ process.generalSet = cms.PSet(
     mergedPlots= cms.vstring(
         'massLbTk',
         'massTkTk',
+        'massFakeBd',
+        'massFakeBs',
         'massFakeBd_withCuts',
         'massFakeBs_withCuts',
         'massFakePhi1020',
@@ -31,40 +33,40 @@ process.LegendSet = cms.PSet(
         )
 
 process.plotSet = cms.VPSet(
-    cms.PSet( PreName   = cms.string( 'fd1S' ),
-              TitleName = cms.string( 'fd > 1 #sigma' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'IPt0S_ptk_' ),
+              TitleName = cms.string( 'IP > 0 #sigma' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 1 ),
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'fd2S' ),
-              TitleName = cms.string( 'fd > 2 #sigma' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'IPt1S_ptk_' ),
+              TitleName = cms.string( 'IP > 1 #sigma' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 2 ),
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'fd3S' ),
-              TitleName = cms.string( 'fd > 3 #sigma' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'IPt2S_ptk_' ),
+              TitleName = cms.string( 'IP > 2 #sigma' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 3 ),
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'fd4S' ),
-              TitleName = cms.string( 'fd > 4 #sigma' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'IPt3S_ptk_' ),
+              TitleName = cms.string( 'IP > 3 #sigma' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 4 ),
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'fd5S' ),
-              TitleName = cms.string( 'fd > 5 #sigma' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'IPt4S_ptk_' ),
+              TitleName = cms.string( 'IP > 4 #sigma' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 6 ),

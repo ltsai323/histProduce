@@ -10,8 +10,9 @@
 <use   name="PhysicsTools/SelectorUtils"/>
 <use   name="histProduce/histProduce"/>
 <environment>
-  <bin name="testLite"       file="FWLiteWithPythonConfig.cc"></bin>
   <bin name="hCreate"        file="FWLiteHistoCreater.cc"></bin>
-  <bin name="histoProducer"  file="FWLiteMyCustomTest.cc"></bin>
   <bin name="hMerge"         file="FWLiteMergePlots.cc"></bin>
+  <bin name="hSingle"        file="FWLiteSinglePicture.cc"></bin>
+  <bin name="testLite"       file="FWLiteWithPythonConfig.cc"></bin>
+  <bin name="histoProducer"  file="FWLiteMyCustomTest.cc"></bin>
 </environment>

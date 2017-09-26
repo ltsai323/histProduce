@@ -21,6 +21,7 @@ histMain_LbTk::histMain_LbTk( TFileDirectory* d ) :
     createHisto( "massFakePhi1020", 80, 0.9, 1.3 );
     createHisto( "massFakeK892", 80, 0.7, 1.1 );
     createHisto( "massFakePiPi",180, 0.3, 1.2 );
+    createHisto( "parIPtransverse", 200, 0., 0.4 );
 }
 void histMain_LbTk::Process( fwlite::Event* ev )
 {
@@ -120,6 +121,8 @@ void histMain_LbTk::Process( fwlite::Event* ev )
             if ( cutLabel_LbTk )
                 fillHisto( "massLbTk_withCuts", cand.userFloat("fitMass") );
                                 
+            if ( cand.hasUserFloat( "TkTk/Proton.IPt" ) )
+                fillHisto( "parIPtransverse", cand.userFloat("TkTk/Proton.IPt") );
 
 
     

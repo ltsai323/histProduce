@@ -84,6 +84,40 @@ namespace myCut
             return ( (_x*_x+_y*_y) > (dmin*dmin) );
         }
     }; // }}}
+    
+    class flightDist2DSigmaCut : public generalCutList // {{{
+    { // use error to cut flight distance, use error to check the particle not coming from PV
+    public:
+        flightDist2DSigmaCut( const double m, const double M=-1. ) : generalCutList( m, M ) {}
+        virtual bool accept( const pat::CompositeCandidate& cand ) const override
+        {
+            if ( !cand.hasUserData( "fitVertex" ) ) return false;
+            const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+            if ( _vtx == nullptr ) return false;
+            const pat::CompositeCandidate* _jpsi = usefulFuncs::getByRef<pat::CompositeCandidate>( cand, "refToJPsi" );
+            //if the particle doesn't contain JPsi, give up this cut?
+            if ( _jpsi == nullptr ) 
+            {
+                std::cout << "jpsi not found! cannot find pv\n";
+                return true; // return false;
+            }
+            const reco::Vertex* _pvx = usefulFuncs::getByRef<reco::Vertex>( *_jpsi, "primaryVertex" );
+            if ( _pvx == nullptr ) return false;
+
+            double _x ( _vtx->x() ); double _y ( _vtx->y() );
+            double _px( _pvx->x() ); double _py( _pvx->y() );
+            double _xE ( _vtx->xError() ); double _yE ( _vtx->yError() );
+            double _pxE( _pvx->xError() ); double _pyE( _pvx->yError() );
+            double numerator  ( _xE*_xE*_x*_x + _yE*_yE*_y*_y +
+                                _pxE*_pxE*_px*_px + _pyE*_pyE*_py*_py +
+                                _xE*_yE*_x*_y + _pxE*_pyE*_px*_py );
+            double denumerator ( (_x-_px)*(_x-_px) + (_y-_py)*(_y-_py) );
+            double dist ( denumerator );
+
+            double err = numerator/denumerator;
+            return (dist > dmin*dmin*err);
+        }
+    }; // }}}
 
     class cosa2dCut : public generalCutList // {{{
     {
