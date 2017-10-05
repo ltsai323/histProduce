@@ -30,6 +30,21 @@
 #include "histProduce/histProduce/interface/hMainfindParDiff.h"
 #include "histProduce/histProduce/interface/hMainfindIPdiff.h"
 #include "histProduce/histProduce/interface/hMainParPlot.h"
+#include "histProduce/histProduce/interface/hMainfindVtxprobDiff.h"
+
+// create histograms from CMSSW based data.
+// use FWLIte to load data.
+// this file just write down:
+// 1. the argument you should or can input.
+// 2. apply general cuts known.
+// 3. loop the event.
+//
+// And the content in the loop is written in histProduce/histProduce/src/hMain????.cc
+// every hMain??? decides what to do in each event.
+// Normally, create a histogram and fill it. Save it into root file to be ploted.
+//
+// usage: 
+//     hCreate filelist=fileList
 
 // initialize static member
 //std::vector<generalCutList*>* histMain::_cutLists = NULL;
@@ -121,7 +136,7 @@ int main(int argc, char* argv[])
     using namespace myCut;
     // general cut applied
     std::vector<generalCutList*> cutLists;
-    cutLists.push_back( new           vtxprobCut(0.15,-99. ) );
+    //cutLists.push_back( new           vtxprobCut(0.15,-99. ) );
     cutLists.push_back( new              massCut(5.0 ,  6.0) );
     cutLists.push_back( new            cosa2dCut(0.99      ) );
     cutLists.push_back( new                ptCut(15  ,-99. ) );
@@ -135,7 +150,8 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new histMain_Bs(&dir) );
     mainCode.push_back( new histMain_LbTk(&dir) );
     //mainCode.push_back( new histMain_findParDiff(&dir) );
-    mainCode.push_back( new histMain_findIPdiff(&dir) );
+    //mainCode.push_back( new histMain_findIPdiff(&dir) );
+    mainCode.push_back( new histMain_findVtxprobDiff(&dir) );
     mainCode.push_back( new histMain_ParPlot(&dir) );
 
     int ievt=0;

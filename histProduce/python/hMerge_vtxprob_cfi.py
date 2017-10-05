@@ -18,6 +18,7 @@ process.generalSet = cms.PSet(
     XaxisName  = cms.string( 'GeV' ),
     XaxisMin   = cms.double( 5.0 ),
     XaxisMax   = cms.double( 6.0 ),
+    YaxisName  = cms.string( 'number' ),
     YaxisMin   = cms.int32( 0 ), # if -1 is set, find the value automatically.
     YaxisMax   = cms.int32( -1 ), # if -1 is set, find the value automatically.
     isSideBand = cms.bool(False),
@@ -30,11 +31,12 @@ process.LegendSet = cms.PSet(
         xRight= cms.double( 0.88 ),
         yLeft = cms.double( 0.65 ),
         yRight= cms.double( 0.85 ),
+        FontSize= cms.int32( 18 ),
 )
 
 process.plotSet = cms.VPSet(
-    cms.PSet( PreName   = cms.string( 'IPt0S_both_' ),
-              TitleName = cms.string( 'IP > 0 #sigma' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'vtxprobFirst1' ),
+              TitleName = cms.string( 'event choose 1 event' ), # used in TLegend
               SetNormalize= cms.bool( False ),
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
@@ -42,8 +44,8 @@ process.plotSet = cms.VPSet(
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'IPt1S_both_' ),
-              TitleName = cms.string( 'IP > 1 #sigma' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'vtxprobFirst2' ),
+              TitleName = cms.string( 'event choose 2 event' ), # used in TLegend
               SetNormalize= cms.bool( False ),
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
@@ -51,8 +53,8 @@ process.plotSet = cms.VPSet(
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'IPt2S_both_' ),
-              TitleName = cms.string( 'IP > 2 #sigma' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'vtxprobFirst3' ),
+              TitleName = cms.string( 'event choose 3 event' ), # used in TLegend
               SetNormalize= cms.bool( False ),
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
@@ -60,8 +62,8 @@ process.plotSet = cms.VPSet(
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'IPt3S_both_' ),
-              TitleName = cms.string( 'IP > 3 #sigma' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'vtxprobFirst4' ),
+              TitleName = cms.string( 'event choose 4 event' ), # used in TLegend
               SetNormalize= cms.bool( False ),
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
@@ -69,8 +71,17 @@ process.plotSet = cms.VPSet(
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'IPt4S_both_' ),
-              TitleName = cms.string( 'IP > 4 #sigma' ), # used in TLegend
+    cms.PSet( PreName   = cms.string( 'vtxprobFirst5' ),
+              TitleName = cms.string( 'event choose 5 event' ), # used in TLegend
+              SetNormalize= cms.bool( False ),
+              SetFill   = cms.bool( False ),
+              LineWidth = cms.int32( 2 ),
+              LineColor = cms.int32( 5 ),
+              FillStyle = cms.int32( 0 ),
+              FillColor = cms.int32( 0 ),
+              ),
+    cms.PSet( PreName   = cms.string( 'vtxprobFirst6' ),
+              TitleName = cms.string( 'event choose 6 event' ), # used in TLegend
               SetNormalize= cms.bool( False ),
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),

@@ -16,6 +16,7 @@ process.generalSet = cms.PSet(
     XaxisName  = cms.string( 'GeV' ),
     XaxisMin   = cms.double( 5.0 ),
     XaxisMax   = cms.double( 6.0 ),
+    Yaxisname  = cms.string( 'number' ),
     YaxisMin   = cms.int32( 0 ), # if -1 is set, find the value automatically.
     YaxisMax   = cms.int32( -1 ), # if -1 is set, find the value automatically.
     isSideBand = cms.bool(False),
@@ -28,6 +29,7 @@ process.LegendSet = cms.PSet(
         xRight= cms.double( 0.88 ),
         yLeft = cms.double( 0.65 ),
         yRight= cms.double( 0.85 ),
+        FontSize=cms.int32( 18 ),
         )
 
 process.plotSet = cms.VPSet(

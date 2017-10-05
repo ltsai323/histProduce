@@ -3,7 +3,7 @@
 #include "histProduce/histProduce/interface/fourMom.h"
 #include "DataFormats/GeometryVector/interface/GlobalVector.h"
 #include "histProduce/histProduce/interface/usefulFuncs.h"
-
+#include <math.h>
 
 histMain_findIPdiff::histMain_findIPdiff( TFileDirectory* d ) :
     histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis") )
@@ -39,6 +39,16 @@ histMain_findIPdiff::histMain_findIPdiff( TFileDirectory* d ) :
         createHisto( name+"_ntk_"+"massFakePhi1020", 80, 0.9, 1.3 );
         createHisto( name+"_ntk_"+"massFakeK892", 80, 0.7, 1.1 );
         createHisto( name+"_ntk_"+"massFakePiPi",180, 0.3, 1.2 );
+
+        createHisto( name+"_both_"+"massLbTk", 50, 5.0, 6.0 );
+        createHisto( name+"_both_"+"massTkTk",120, 1.3, 2.5 );
+        createHisto( name+"_both_"+"massFakeBd", 50, 5.0, 6.0 );
+        createHisto( name+"_both_"+"massFakeBd_withCuts", 50, 5.0, 6.0 );
+        createHisto( name+"_both_"+"massFakeBs", 50, 5.0, 6.0 );
+        createHisto( name+"_both_"+"massFakeBs_withCuts", 50, 5.0, 6.0 );
+        createHisto( name+"_both_"+"massFakePhi1020", 80, 0.9, 1.3 );
+        createHisto( name+"_both_"+"massFakeK892", 80, 0.7, 1.1 );
+        createHisto( name+"_both_"+"massFakePiPi",180, 0.3, 1.2 );
     }
     //createHisto( "errFD2D", 100, 0, 0.15 );
     //createHisto( "parIPt_BsSideBand", 200, 0, 0.4 );
@@ -100,14 +110,18 @@ void histMain_findIPdiff::Process( fwlite::Event* ev )
                 double i = name.first;
                 bool pTag = false;
                 bool nTag = false;
-                if ( pIP > i*pIPE ) pTag = true;
-                if ( nIP > i*nIPE ) nTag = true;
+                bool twoTag = false;
+                if ( fabs(pIP) > i*pIPE ) pTag = true;
+                if ( fabs(nIP) > i*nIPE ) nTag = true;
+                if ( fabs(pIP) > i*pIPE && fabs(nIP) > i*nIPE ) twoTag = true;
                 if ( !pTag && !nTag ) continue;
                 if ( !cand.hasUserFloat("fitMass") ) continue;
                 if ( pTag )
                     fillHisto( dirname+"_ptk_"+"massLbTk", cand.userFloat("fitMass") );
                 if ( nTag )
                     fillHisto( dirname+"_ntk_"+"massLbTk", cand.userFloat("fitMass") );
+                if ( twoTag )
+                    fillHisto( dirname+"_both_"+"massLbTk", cand.userFloat("fitMass") );
 
 
                 if ( !cand.hasUserData("TkTk/Proton.fitMom") || !cand.hasUserData("TkTk/Kaon.fitMom") ) continue;
@@ -127,6 +141,8 @@ void histMain_findIPdiff::Process( fwlite::Event* ev )
                     fillHisto( dirname+"_ptk_"+"massTkTk", twoTk.Mag() );
                 if ( nTag )
                     fillHisto( dirname+"_ntk_"+"massTkTk", twoTk.Mag() );
+                if ( twoTag )
+                    fillHisto( dirname+"_both_"+"massTkTk", twoTk.Mag() );
 
                 const GlobalVector* pmuMom = cand.userData<GlobalVector>("JPsi/MuPos.fitMom");
                 const GlobalVector* nmuMom = cand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
@@ -148,12 +164,16 @@ void histMain_findIPdiff::Process( fwlite::Event* ev )
                     fillHisto( dirname+"_ptk_"+"massFakeBd", fourTk.Mag() );
                 if ( nTag )
                     fillHisto( dirname+"_ntk_"+"massFakeBd", fourTk.Mag() );
+                if ( twoTag )
+                    fillHisto( dirname+"_both_"+"massFakeBd", fourTk.Mag() );
                 if ( twoTk.Mag() > 0.850 && twoTk.Mag() < 0.950 )
                 {
                     if ( pTag )
                         fillHisto( dirname+"_ptk_"+"massFakeBd_withCuts", fourTk.Mag() );
                     if ( nTag )
                         fillHisto( dirname+"_ntk_"+"massFakeBd_withCuts", fourTk.Mag() );
+                    if ( twoTag )
+                        fillHisto( dirname+"_both_"+"massFakeBd_withCuts", fourTk.Mag() );
                 }
                 if ( fourTk.Mag() > 5.2 && fourTk.Mag() < 5.35 )
                 {
@@ -161,6 +181,8 @@ void histMain_findIPdiff::Process( fwlite::Event* ev )
                         fillHisto( dirname+"_ptk_"+"massFakeK892", twoTk.Mag() );
                     if ( nTag )
                         fillHisto( dirname+"_ntk_"+"massFakeK892", twoTk.Mag() );
+                    if ( twoTag )
+                        fillHisto( dirname+"_both_"+"massFakeK892", twoTk.Mag() );
                 }
     
                 pTk.setMass( 0.493667 );
@@ -172,12 +194,16 @@ void histMain_findIPdiff::Process( fwlite::Event* ev )
                     fillHisto( dirname+"_ptk_"+"massFakeBs", fourTk.Mag() );
                 if ( nTag )
                     fillHisto( dirname+"_ntk_"+"massFakeBs", fourTk.Mag() );
+                if ( twoTag )
+                    fillHisto( dirname+"_both_"+"massFakeBs", fourTk.Mag() );
                 if ( twoTk.Mag() > 1.0 && twoTk.Mag() < 1.05 )
                 {
                     if ( pTag )
                         fillHisto( dirname+"_ptk_"+"massFakeBs_withCuts", fourTk.Mag() );
                     if ( nTag )
                         fillHisto( dirname+"_ntk_"+"massFakeBs_withCuts", fourTk.Mag() );
+                    if ( twoTag )
+                        fillHisto( dirname+"_both_"+"massFakeBs_withCuts", fourTk.Mag() );
                 }
                 if ( fourTk.Mag() > 5.3 && fourTk.Mag() < 5.5 )
                 {
@@ -185,6 +211,8 @@ void histMain_findIPdiff::Process( fwlite::Event* ev )
                         fillHisto( dirname+"_ptk_"+"massFakePhi1020", twoTk.Mag() );
                     if ( nTag )
                         fillHisto( dirname+"_ntk_"+"massFakePhi1020", twoTk.Mag() );
+                    if ( twoTag )
+                        fillHisto( dirname+"_both_"+"massFakePhi1020", twoTk.Mag() );
                 }
     
                 pTk.setMass( 0.13957061 );
@@ -194,6 +222,8 @@ void histMain_findIPdiff::Process( fwlite::Event* ev )
                     fillHisto( dirname+"_ptk_"+"massFakePiPi", twoTk.Mag() );
                 if ( nTag )
                     fillHisto( dirname+"_ntk_"+"massFakePiPi", twoTk.Mag() );
+                if ( twoTag )
+                    fillHisto( dirname+"_both_"+"massFakePiPi", twoTk.Mag() );
             } // for _nMap end
         } // while end
     } catch (...) {}

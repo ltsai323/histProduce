@@ -13,16 +13,21 @@ histMain_ParPlot::histMain_ParPlot( TFileDirectory* d ) :
     createHisto( "parQValueFakeBd", 200, 0, 20. );
     createHisto( "parQValueFakeBs", 200, 0, 20. );
     createHisto( "parQValueFakePiPi", 200, 0, 20. );
+    
+    createHisto( "parmassFakeBs_twoIP", 50, 5.0, 6.0 );
+    createHisto( "parmassFakeBd_twoIP", 50, 5.0, 6.0 );
     createHisto( "paretaLbTk", 50, 5.0, 6.0 );
     createHisto( "parETALbTk", 50, 5.0, 6.0 );
-    createHisto( "par_ptk_IPFakeBs", 100, 0., 0.08 );
-    createHisto( "par_ntk_IPFakeBs", 100, 0., 0.08 );
-    createHisto( "par_ptk_IPFakeBd", 100, 0., 0.08 );
-    createHisto( "par_ntk_IPFakeBd", 100, 0., 0.08 );
-    createHisto( "par_ptk_IP/ErrFakeBs", 100, 0., 5. );
-    createHisto( "par_ntk_IP/ErrFakeBs", 100, 0., 5. );
-    createHisto( "par_ptk_IP/ErrFakeBd", 100, 0., 5. );
-    createHisto( "par_ntk_IP/ErrFakeBd", 100, 0., 5. );
+    createHisto( "par_ptk_IPFakeBs", 2000, -1.00, 1.00 );
+    createHisto( "par_ntk_IPFakeBs", 2000, -1.00, 1.00 );
+    createHisto( "par_ptk_IPFakeBd", 2000, -1.00, 1.00 );
+    createHisto( "par_ntk_IPFakeBd", 2000, -1.00, 1.00 );
+    createHisto( "par_ALL_IPFakeBs", 2000, -1.00, 1.00 );
+    createHisto( "par_ALL_IPFakeBd", 2000, -1.00, 1.00 );
+    createHisto( "par_ptk_IP/ErrFakeBs", 400, -10., 10. );
+    createHisto( "par_ntk_IP/ErrFakeBs", 400, -10., 10. );
+    createHisto( "par_ptk_IP/ErrFakeBd", 400, -10., 10. );
+    createHisto( "par_ntk_IP/ErrFakeBd", 400, -10., 10. );
 }
 void histMain_ParPlot::Process( fwlite::Event* ev )
 {
@@ -74,6 +79,8 @@ void histMain_ParPlot::Process( fwlite::Event* ev )
             if ( !cand.hasUserData("TkTk/Kaon.fitMom") )    continue;
             if ( !cand.hasUserData("JPsi/MuPos.fitMom") )   continue;
             if ( !cand.hasUserData("JPsi/MuNeg.fitMom") )   continue;
+            fillHisto( "par_ALL_IPFakeBs", IPp );
+            fillHisto( "par_ALL_IPFakeBd", IPp );
             const GlobalVector* pTkMom = cand.userData<GlobalVector>("TkTk/Proton.fitMom");
             const GlobalVector* nTkMom = cand.userData<GlobalVector>("TkTk/Kaon.fitMom");
             const GlobalVector* pmuMom = cand.userData<GlobalVector>("JPsi/MuPos.fitMom");
@@ -115,6 +122,8 @@ void histMain_ParPlot::Process( fwlite::Event* ev )
                 fillHisto( "par_ntk_IPFakeBd", IPn );
                 fillHisto( "par_ntk_IP/ErrFakeBd", IPn/IPnErr );
             }
+            if ( IPp  > IPpErr && IPn > IPnErr )
+                fillHisto( "parmassFakeBd_twoIP", fourTk.Mag() );
 
             //pTk.setMass( protonMass );
             pTk.setMass(   kaonMass );
@@ -130,6 +139,8 @@ void histMain_ParPlot::Process( fwlite::Event* ev )
                 fillHisto( "par_ntk_IPFakeBs", IPn );
                 fillHisto( "par_ntk_IP/ErrFakeBs", IPn/IPnErr );
             }
+            if ( IPp  > IPpErr && IPn > IPnErr )
+                fillHisto( "parmassFakeBs_twoIP", fourTk.Mag() );
 
             pTk.setMass( 0.13957061 );
             nTk.setMass( 0.13957061 );

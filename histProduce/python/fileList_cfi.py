@@ -2,7 +2,6 @@ import FWCore.ParameterSet.Config as cms
 
 files = cms.vstring()
 files.extend( [
-    '/home/ltsai/ReceivedFile/recoWriteSpecificDecay.root',
 #'/home/ltsai/Data/CRABdata/CRABdata_5_Sep_2017_BsMC/recoWriteSpecificDecay_1.root',
 #'/home/ltsai/Data/CRABdata/CRABdata_5_Sep_2017_BsMC/recoWriteSpecificDecay_10.root',
 #'/home/ltsai/Data/CRABdata/CRABdata_5_Sep_2017_BsMC/recoWriteSpecificDecay_100.root',

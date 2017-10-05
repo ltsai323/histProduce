@@ -151,7 +151,6 @@ int main(int argc, char* argv[])
     {
         TCanvas* cc = new TCanvas( ("canvas."+histSet.nameInTree).c_str(), "", 1600, 1000 );
         // testZone
-        cc->SetFillColor(0);
         cc->SetBorderMode(0);
         cc->SetBorderSize(2);
         cc->SetTickx(0);
@@ -213,16 +212,24 @@ int main(int argc, char* argv[])
     
    
 
-        TLine* lLeft = new TLine( histSet.lLineXvalue, cc->GetUymin(), histSet.lLineXvalue, cc->GetUymax() );
-        lLeft->SetLineWidth(1);
-        lLeft->SetLineColor(1);
-        lLeft->SetLineStyle(2);
-        lLeft->Draw();
-        TLine* lRight = new TLine( histSet.rLineXvalue, cc->GetUymin(), histSet.rLineXvalue, cc->GetUymax() );
-        lRight->SetLineWidth(1);
-        lRight->SetLineColor(1);
-        lRight->SetLineStyle(2);
-        lRight->Draw();
+        TLine* lLeft  = nullptr;
+        TLine* lRight = nullptr;
+        if ( histSet.lLineXvalue > 0 )
+        {
+            lLeft = new TLine( histSet.lLineXvalue, cc->GetUymin(), histSet.lLineXvalue, cc->GetUymax() );
+            lLeft->SetLineWidth(1);
+            lLeft->SetLineColor(1);
+            lLeft->SetLineStyle(2);
+            lLeft->Draw();
+        }
+        if ( histSet.rLineXvalue > 0 )
+        {
+            lRight = new TLine( histSet.rLineXvalue, cc->GetUymin(), histSet.rLineXvalue, cc->GetUymax() );
+            lRight->SetLineWidth(1);
+            lRight->SetLineColor(1);
+            lRight->SetLineStyle(2);
+            lRight->Draw();
+        }
 
         std::string outputName = "hSinglePlot_"+histSet.nameInTree;
         cc->SaveAs( (outputName+generalSet.getParameter<std::string>("outFormat")).c_str() );
