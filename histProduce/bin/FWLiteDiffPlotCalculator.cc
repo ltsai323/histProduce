@@ -14,7 +14,6 @@
 #include <TLegend.h>
 #include <TLine.h>
 #include <TGaxis.h>
-#include <TLatex.h>
 
 #include "FWCore/FWLite/interface/AutoLibraryLoader.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -30,36 +29,32 @@
 #include "histProduce/histProduce/interface/histoMAP.h"
 #include "histProduce/histProduce/interface/generalCutList.h"
 
-// merge plots with the same last name, 
-// like: fd0S_myMassLb, fd1S_myMassLb, ...
-// Once you execute this, you can get lots of plots.
+// based on FWLiteMergePlots.cc
+// calculate the difference between two histogram.
+// That is use to calculate different cut, comparing to first cut, the second cut cuts out how much background?
 //
 // usage:
-//     hMerge plotset=histoMergePar testfile=mySource.root
+//     hDiff plotset=histoMergePar testfile=mySource.root
 
 
-struct secondaryPlotSettingRecorder
+struct plotPrivateSet
 {
-    std::string preName;
+    std::string preNameTar;
+    std::string preNameObj;
     std::string title;
     bool setFill;
     int lineColor;
     int lineWidth;
     int fillColor;
     int fillStyle;
-    secondaryPlotSettingRecorder( const std::string& n, const std::string& t, bool sF, int lC, int lW, int fC, int fS ) :
-        preName ( n ), title ( t ), setFill( sF ), lineColor( lC ), lineWidth( lW ), fillColor( fC ), fillStyle( fS ) {}
+    plotPrivateSet ( const std::string& n1, const std::string& n2, const std::string& t, bool sF, int lC, int lW, int fC, int fS ) :
+        preNameTar ( n1 ), preNameObj ( n2 ), title ( t ), setFill( sF ), lineColor( lC ), lineWidth( lW ), fillColor( fC ), fillStyle( fS ) {}
+    void show() const
+    {
+        printf( "preNameTar = %s, PreNameObj = %s, title = %s\nsetFill = %d\nlineColor = %d, lineWidth = %d\nfillColor = %d, fillStyle = %d\n",
+                preNameTar.c_str(), preNameObj.c_str(), title.c_str(), setFill, lineColor, lineWidth, fillColor, fillStyle );
+    }
 };
-struct mergedPlotsRecorder
-{
-    std::string mergedName;
-    double lmin; double lmax; 
-    std::string xname; double xmin; double xmax;
-    std::string yname; double ymin; double ymax;
-    mergedPlotsRecorder( const std::string& mN, double lm, double lM, const std::string& xN, double xm, double xM, const std::string& yN, double ym, double yM ) :
-        mergedName( mN ), lmin( lm ), lmax( lM ), xname( xN ), xmin( xm ), xmax( xM ), yname( yN ), ymin( ym ), ymax( yM ) {}
-};
-
     
 
 int main(int argc, char* argv[])
@@ -95,7 +90,7 @@ int main(int argc, char* argv[])
     optutl::CommandLineParser parser ("Analyze FWLite Histograms");
 
     parser.addOption("testFile",optutl::CommandLineParser::kString,"test input file","");
-    parser.addOption("plotSet",optutl::CommandLineParser::kString,"input the python file records parameter to plot","histoMergePar");
+    parser.addOption("plotSet",optutl::CommandLineParser::kString,"input the python file records parameter to plot","histoDiffPar");
 
     // parse arguments
     parser.parseArguments (argc, argv);
@@ -105,17 +100,19 @@ int main(int argc, char* argv[])
     const std::string dPath      = "/src/histProduce/histProduce/python/";
     const std::string confPython = sysPath+dPath+configFile+"_cfi.py";
     const edm::ParameterSet& ioOption = edm::readPSetsFrom(confPython.c_str())->getParameter<edm::ParameterSet>("process");
-    const edm::ParameterSet& generalSet = ioOption.getParameter<edm::ParameterSet>("GeneralSet");
+    const edm::ParameterSet& generalSet = ioOption.getParameter<edm::ParameterSet>("generalSet");
     const edm::ParameterSet& legendSet = ioOption.getParameter<edm::ParameterSet>("LegendSet");
-    const std::vector<edm::ParameterSet>& privateSet = ioOption.getParameter< std::vector<edm::ParameterSet> >("SecondaryPlotSetting");
+    const std::vector<edm::ParameterSet>& privateSet = ioOption.getParameter< std::vector<edm::ParameterSet> >("plotSet");
 
-    const std::vector<edm::ParameterSet>& mergedPlotFromPython = ioOption.getParameter<std::vector<edm::ParameterSet>>("MergedPlots");
+    //const std::vector<std::string>& mergedPlots = generalSet.getParameter<std::vector<std::string>>("mergedPlots");
+    const std::vector<edm::ParameterSet>& mergedPlots = generalSet.getParameter<std::vector<edm::ParameterSet>>("mergedPlots");
     int pSize = privateSet.size();
-    std::vector<secondaryPlotSettingRecorder> plotSetting;
+    std::vector<plotPrivateSet> plotSetting;
     plotSetting.reserve( pSize );
     for ( const edm::ParameterSet& _set : privateSet )
         plotSetting.emplace_back(
-                _set.getParameter< std::string >( "PreName" ) ,
+                _set.getParameter< std::string >( "PreNameTar" ) ,
+                _set.getParameter< std::string >( "PreNameObj" ) ,
                 _set.getParameter< std::string >( "TitleName" ),
                 _set.getParameter< bool >( "SetFill" ),
                 _set.getParameter< int >( "LineColor" ),
@@ -123,21 +120,6 @@ int main(int argc, char* argv[])
                 _set.getParameter< int >( "FillColor" ),
                 _set.getParameter< int >( "FillStyle" )
                 );
-    std::vector<mergedPlotsRecorder> mergedPlots;
-    mergedPlots.reserve( mergedPlotFromPython.size() );
-    for ( const edm::ParameterSet& _set : mergedPlotFromPython )
-        mergedPlots.emplace_back(
-                _set.getParameter< std::string >( "MergedName" ),
-                _set.getParameter< double >( "SignalRegionMin" ),
-                _set.getParameter< double >( "SignalRegionMax" ),
-                _set.getParameter< std::string >( "XaxisName" ),
-                _set.getParameter< double >( "XaxisMin" ),
-                _set.getParameter< double >( "XaxisMax" ),
-                _set.getParameter< std::string >( "YaxisName" ),
-                _set.getParameter< double >( "YaxisMin" ),
-                _set.getParameter< double >( "YaxisMax" )
-                );
-
 
     // parser setting end }}}
 
@@ -159,87 +141,75 @@ int main(int argc, char* argv[])
 
 
     TGaxis::SetMaxDigits(3);
-    for ( const mergedPlotsRecorder& mergedObj : mergedPlots )
+    for ( const edm::ParameterSet& mergedObj : mergedPlots )
     {
-        TCanvas* cc = new TCanvas( ("canvas."+mergedObj.mergedName).c_str(), "", 1600, 1000 );
-        cc->cd();
+        const std::string& mergedName = mergedObj.getParameter<std::string>("MergedName");
+        TCanvas* cc = new TCanvas( ("canvas."+mergedName).c_str(), "", 1600, 1000 );
         
-        TH1D* h[ pSize ];
+        TH1D* hTar[ pSize ] = { nullptr };
+        TH1D* hObj[ pSize ] = { nullptr };
         for ( int i=0; i<pSize; ++i )
-            h[i] = (TH1D*) inFile->Get( (generalSet.getParameter<std::string>("defaultTree")+"/"+plotSetting[i].preName+mergedObj.mergedName).c_str() );
+        {
+            hTar[i] = (TH1D*)(  inFile->Get( (generalSet.getParameter<std::string>("defaultTree")+"/"+plotSetting[i].preNameTar+mergedName).c_str() )  )->Clone();
+            hObj[i] = (TH1D*)(  inFile->Get( (generalSet.getParameter<std::string>("defaultTree")+"/"+plotSetting[i].preNameObj+mergedName).c_str() )  )->Clone();
+            hObj[i]->Add( hTar[i], -1. );
+        }
     
         int ymin = 999;
         int ymax = 0;
         // get y axis range {{{
-        if ( mergedObj.ymin == -1 )
+        if ( generalSet.getParameter<int>("YaxisMin") == -1 )
         {
             for ( int i=0; i<pSize; ++i )
             {
-                int val = h[i]->GetMinimum();
+                int val = hObj[i]->GetMinimum();
                 if ( ymin > val )
                     ymin = val;
             }
         }
         else 
-            ymin = mergedObj.ymin;
-        if ( mergedObj.ymax == -1 )
+            ymin = generalSet.getParameter<int>("YaxisMin");
+        if ( generalSet.getParameter<int>("YaxisMax") == -1 )
         {
             for ( int i=0; i<pSize; ++i )
             {
-                double val = h[i]->GetMaximum();
+                double val = hObj[i]->GetMaximum();
                 if ( ymax < val )
                     ymax = val;
             }
         }
         else 
-            ymax = mergedObj.ymax;
-        ymax = ymax * 1.4;
+            ymax = generalSet.getParameter<int>("YaxisMax");
+        ymax = ymax * 1.6;
         // get y axis range }}}
     
         for ( int i=0; i<pSize; ++i )
         {
-            h[i]->SetTitle( mergedObj.mergedName.c_str() );
-            h[i]->SetStats(kFALSE);
-            h[i]->SetLineWidth( plotSetting[i].lineWidth );
-            h[i]->SetLineColor( plotSetting[i].lineColor );
+            // wanted title : "mass_Bs using vtxprob sorging"
+            hObj[i]->SetTitle( ( mergedName+generalSet.getParameter<std::string>("ComplementTitle") ).c_str() );
+            hObj[i]->SetStats(kFALSE);
+            hObj[i]->SetLineWidth( plotSetting[i].lineWidth );
+            hObj[i]->SetLineColor( plotSetting[i].lineColor );
             if ( plotSetting[i].setFill )
             {
-                h[i]->SetFillColor( plotSetting[i].fillColor );
-                h[i]->SetFillStyle( plotSetting[i].fillStyle );
+                hObj[i]->SetFillColor( plotSetting[i].fillColor );
+                hObj[i]->SetFillStyle( plotSetting[i].fillStyle );
             }
-            h[i]->GetXaxis()->SetRangeUser( mergedObj.xmin, mergedObj.xmax );
-            h[i]->GetXaxis()->SetTitle( mergedObj.xname.c_str() );
-            h[i]->GetYaxis()->SetRangeUser( ymin, ymax );
-            h[i]->GetYaxis()->SetTitle( mergedObj.yname.c_str() );
+            hObj[i]->GetXaxis()->SetRangeUser( generalSet.getParameter<double>("XaxisMin"), generalSet.getParameter<double>("XaxisMax") );
+            hObj[i]->GetXaxis()->SetTitle( generalSet.getParameter<std::string>("XaxisName").c_str() );
+            hObj[i]->GetYaxis()->SetRangeUser( ymin, ymax );
+            hObj[i]->GetYaxis()->SetTitle( generalSet.getParameter<std::string>("YaxisName").c_str() );
             if ( i == 0 )
-                h[i]->Draw();
+                hObj[i]->Draw();
             else
-                h[i]->Draw("same");
+                hObj[i]->Draw("same");
         }
     
-        TLegend* leg = new TLegend(
-                legendSet.getParameter<double>("xLeft"),
-                legendSet.getParameter<double>("yLeft"),
-                legendSet.getParameter<double>("xRight"),
-                legendSet.getParameter<double>("yRight"),
-                legendSet.getParameter<std::string>("Title").c_str(),
-                "NDC"
-                );
-        for ( int i=0;i<pSize; ++i )
-            leg->AddEntry( h[i], plotSetting[i].title.c_str(), "lepf" );
-        if ( legendSet.getParameter<bool>("SetTransparent") )
-        {
-            leg->SetFillColor(4000);
-            leg->SetFillStyle(4000);
-        }
-        leg->SetBorderSize(0);
-        leg->SetTextFont(43);
-        leg->Draw();
     
         TLine* lLeft  = nullptr;
         TLine* lRight = nullptr;
-        double lmin = mergedObj.lmin;
-        double lmax = mergedObj.lmax;
+        double lmin = mergedObj.getParameter<double>("SignalRegionMin");
+        double lmax = mergedObj.getParameter<double>("SignalRegionMax");
         if ( lmin > 0. )
         {
             //lLeft = new TLine( lmin, cc->GetUymin(), lmin, cc->GetUymax() );
@@ -257,13 +227,37 @@ int main(int argc, char* argv[])
             lRight->SetLineStyle(2);
             lRight->Draw();
         }
-        std::string outputName = "hMerged_"+mergedObj.mergedName;
+        TLegend* leg = new TLegend(
+                legendSet.getParameter<double>("xLeft"),
+                legendSet.getParameter<double>("yLeft"),
+                legendSet.getParameter<double>("xRight"),
+                legendSet.getParameter<double>("yRight"),
+                legendSet.getParameter<std::string>("Title").c_str(),
+                "NDC"
+                );
+        for ( int i=0;i<pSize; ++i )
+            leg->AddEntry( hObj[i], plotSetting[i].title.c_str(), "lepf" );
+        if ( legendSet.getParameter<bool>("SetTransparent") )
+        {
+            leg->SetFillColor(4000);
+            leg->SetFillStyle(4000);
+        }
+        leg->SetBorderSize(0);
+        leg->SetTextFont( 43 );
+        leg->Draw();
+        std::string outputName = "hDiff_"+mergedName;
         cc->SaveAs( (outputName+generalSet.getParameter<std::string>("outFormat")).c_str() );
     
         delete cc;
+        delete leg;
         delete lLeft;
         delete lRight;
+        for ( int i=0;i<pSize;++i )
+        {
+            delete hTar[i];
+            delete hObj[i];
+        }
+
     }
-    inFile->Close();
     return 0;
 }

@@ -2,41 +2,125 @@ import FWCore.ParameterSet.Config as cms
 process = cms.PSet()
 
 
-process.generalSet = cms.PSet(
+process.GeneralSet = cms.PSet(
     defaultTree= cms.string('lbSpecificDecay'),
-    mergedPlots= cms.vstring(
-        'massLbTk',
-        'massTkTk',
-        'massFakeBd',
-        'massFakeBs',
-        'massFakeBd_withCuts',
-        'massFakeBs_withCuts',
-        'massFakePhi1020',
-        'massFakeK892',
-        'massFakePiPi',
-        ),
-    XaxisName  = cms.string( 'GeV' ),
-    XaxisMin   = cms.double( 5.0 ),
-    XaxisMax   = cms.double( 6.0 ),
-    YaxisName  = cms.string( 'number' ),
-    YaxisMin   = cms.int32( 0 ), # if -1 is set, find the value automatically.
-    YaxisMax   = cms.int32( -1 ), # if -1 is set, find the value automatically.
     isSideBand = cms.bool(False),
     isLogScale = cms.bool(False),
     outFormat  = cms.string('.eps')
 )
 process.LegendSet = cms.PSet(
-        Title = cms.string('Cut:'),
+        Title = cms.string('each event chooses:'),
         xLeft = cms.double( 0.70 ),
-        xRight= cms.double( 0.88 ),
-        yLeft = cms.double( 0.65 ),
-        yRight= cms.double( 0.85 ),
-        FontSize= cms.int32( 18 ),
+        xRight= cms.double( 0.98 ),
+        yLeft = cms.double( 0.55 ),
+        yRight= cms.double( 0.89 ),
+        SetTransparent=cms.bool( True ),
 )
 
-process.plotSet = cms.VPSet(
+process.MergedPlots = cms.VPSet(
+    cms.PSet(
+        MergedName = cms.string( 'massLbTk' ),
+        SignalRegionMin = cms.double( 5.58 ),
+        SignalRegionMax = cms.double( 5.64 ),
+        XaxisName       = cms.string( 'GeV' ),
+        XaxisMin        = cms.double( 5.0 ),
+        XaxisMax        = cms.double( 6.0 ),
+        YaxisName       = cms.string( 'Number' ),
+        YaxisMin        = cms.double( 0. ),
+        YaxisMax        = cms.double( -1.),
+        ),
+    cms.PSet(
+        MergedName = cms.string( 'massTkTk' ),
+        SignalRegionMin = cms.double( -1.),
+        SignalRegionMax = cms.double( -1.),
+        XaxisName       = cms.string( 'GeV' ),
+        XaxisMin        = cms.double( 1.3 ),
+        XaxisMax        = cms.double( 2.2 ),
+        YaxisName       = cms.string( 'Number' ),
+        YaxisMin        = cms.double( 0. ),
+        YaxisMax        = cms.double( -1.),
+        ),
+    cms.PSet(
+        MergedName = cms.string( 'massFakeBs_withCuts' ),
+        SignalRegionMin = cms.double( 5.3 ),
+        SignalRegionMax = cms.double( 5.44),
+        XaxisName       = cms.string( 'GeV' ),
+        XaxisMin        = cms.double( 5.0 ),
+        XaxisMax        = cms.double( 6.0 ),
+        YaxisName       = cms.string( 'Number' ),
+        YaxisMin        = cms.double( 0. ),
+        YaxisMax        = cms.double( -1.),
+        ),
+    cms.PSet(
+        MergedName = cms.string( 'massFakeBd_withCuts' ),
+        SignalRegionMin = cms.double( 5.22),
+        SignalRegionMax = cms.double( 5.32),
+        XaxisName       = cms.string( 'GeV' ),
+        XaxisMin        = cms.double( 5.0 ),
+        XaxisMax        = cms.double( 6.0 ),
+        YaxisName       = cms.string( 'Number' ),
+        YaxisMin        = cms.double( 0. ),
+        YaxisMax        = cms.double( -1.),
+        ),
+    cms.PSet(
+        MergedName = cms.string( 'massFakeBs' ),
+        SignalRegionMin = cms.double( 5.3 ),
+        SignalRegionMax = cms.double( 5.44),
+        XaxisName       = cms.string( 'GeV' ),
+        XaxisMin        = cms.double( 5.0 ),
+        XaxisMax        = cms.double( 6.0 ),
+        YaxisName       = cms.string( 'Number' ),
+        YaxisMin        = cms.double( 0. ),
+        YaxisMax        = cms.double( -1.),
+        ),
+    cms.PSet(
+        MergedName = cms.string( 'massFakeBd' ),
+        SignalRegionMin = cms.double( 5.22),
+        SignalRegionMax = cms.double( 5.32),
+        XaxisName       = cms.string( 'GeV' ),
+        XaxisMin        = cms.double( 5.0 ),
+        XaxisMax        = cms.double( 6.0 ),
+        YaxisName       = cms.string( 'Number' ),
+        YaxisMin        = cms.double( 0. ),
+        YaxisMax        = cms.double( -1.),
+        ),
+    cms.PSet(
+        MergedName = cms.string( 'massFakePhi1020' ),
+        SignalRegionMin = cms.double( 1.01 ),
+        SignalRegionMax = cms.double( 1.035),
+        XaxisName       = cms.string( 'GeV' ),
+        XaxisMin        = cms.double( 0.90 ),
+        XaxisMax        = cms.double( 1.10 ),
+        YaxisName       = cms.string( 'Number' ),
+        YaxisMin        = cms.double( 0. ),
+        YaxisMax        = cms.double( -1.),
+        ),
+    cms.PSet(
+        MergedName = cms.string( 'massFakeK892' ),
+        SignalRegionMin = cms.double( 0.85 ),
+        SignalRegionMax = cms.double( 0.95 ),
+        XaxisName       = cms.string( 'GeV' ),
+        XaxisMin        = cms.double( 0.8 ),
+        XaxisMax        = cms.double( 1.0 ),
+        YaxisName       = cms.string( 'Number' ),
+        YaxisMin        = cms.double( 0. ),
+        YaxisMax        = cms.double( -1.),
+        ),
+    cms.PSet(
+        MergedName = cms.string( 'massFakePiPi' ),
+        SignalRegionMin = cms.double( -1. ),
+        SignalRegionMax = cms.double( -1. ),
+        XaxisName       = cms.string( 'GeV' ),
+        XaxisMin        = cms.double( 0.2 ),
+        XaxisMax        = cms.double( 1.3 ),
+        YaxisName       = cms.string( 'Number' ),
+        YaxisMin        = cms.double( 0. ),
+        YaxisMax        = cms.double( -1.),
+        ),
+    )
+process.SecondaryPlotSetting = cms.VPSet(
     cms.PSet( PreName   = cms.string( 'vtxprobFirst1' ),
-              TitleName = cms.string( 'event choose 1 event' ), # used in TLegend
+              TitleName = cms.string( '1 candidate' ), # used in TLegend
               SetNormalize= cms.bool( False ),
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
@@ -45,7 +129,7 @@ process.plotSet = cms.VPSet(
               FillColor = cms.int32( 0 ),
               ),
     cms.PSet( PreName   = cms.string( 'vtxprobFirst2' ),
-              TitleName = cms.string( 'event choose 2 event' ), # used in TLegend
+              TitleName = cms.string( '2 candidates' ), # used in TLegend
               SetNormalize= cms.bool( False ),
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
@@ -54,7 +138,7 @@ process.plotSet = cms.VPSet(
               FillColor = cms.int32( 0 ),
               ),
     cms.PSet( PreName   = cms.string( 'vtxprobFirst3' ),
-              TitleName = cms.string( 'event choose 3 event' ), # used in TLegend
+              TitleName = cms.string( '3 candidates' ), # used in TLegend
               SetNormalize= cms.bool( False ),
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
@@ -63,7 +147,7 @@ process.plotSet = cms.VPSet(
               FillColor = cms.int32( 0 ),
               ),
     cms.PSet( PreName   = cms.string( 'vtxprobFirst4' ),
-              TitleName = cms.string( 'event choose 4 event' ), # used in TLegend
+              TitleName = cms.string( '4 candidates' ), # used in TLegend
               SetNormalize= cms.bool( False ),
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
@@ -72,7 +156,7 @@ process.plotSet = cms.VPSet(
               FillColor = cms.int32( 0 ),
               ),
     cms.PSet( PreName   = cms.string( 'vtxprobFirst5' ),
-              TitleName = cms.string( 'event choose 5 event' ), # used in TLegend
+              TitleName = cms.string( '5 candidates' ), # used in TLegend
               SetNormalize= cms.bool( False ),
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
@@ -81,7 +165,7 @@ process.plotSet = cms.VPSet(
               FillColor = cms.int32( 0 ),
               ),
     cms.PSet( PreName   = cms.string( 'vtxprobFirst6' ),
-              TitleName = cms.string( 'event choose 6 event' ), # used in TLegend
+              TitleName = cms.string( '6 candidates' ), # used in TLegend
               SetNormalize= cms.bool( False ),
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),

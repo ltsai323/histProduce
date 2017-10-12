@@ -4,6 +4,7 @@ process = cms.PSet()
 
 process.generalSet = cms.PSet(
     defaultTree= cms.string('lbSpecificDecay'),
+    ComplementTitle = cms.string( ' using vtxprob sorting' ),
     mergedPlots = cms.VPSet(
         cms.PSet(
             MergedName = cms.string( 'massLbTk' ),
@@ -22,16 +23,6 @@ process.generalSet = cms.PSet(
             ),
         cms.PSet(
             MergedName = cms.string( 'massFakeBd_withCuts' ),
-            SignalRegionMin = cms.double( 5.22),
-            SignalRegionMax = cms.double( 5.32),
-            ),
-        cms.PSet(
-            MergedName = cms.string( 'massFakeBs' ),
-            SignalRegionMin = cms.double( 5.3 ),
-            SignalRegionMax = cms.double( 5.44),
-            ),
-        cms.PSet(
-            MergedName = cms.string( 'massFakeBd' ),
             SignalRegionMin = cms.double( 5.22),
             SignalRegionMax = cms.double( 5.32),
             ),
@@ -62,56 +53,62 @@ process.generalSet = cms.PSet(
     outFormat  = cms.string('.eps')
 )
 process.LegendSet = cms.PSet(
-        Title = cms.string('Cut:'),
-        xLeft = cms.double( 0.70 ),
-        xRight= cms.double( 0.88 ),
-        yLeft = cms.double( 0.65 ),
-        yRight= cms.double( 0.85 ),
-)
+        Title = cms.string('compare to each event chooses 6 candidates:'),
+        xLeft = cms.double( 0.60 ),
+        xRight= cms.double( 0.99 ),
+        yLeft = cms.double( 0.60 ),
+        yRight= cms.double( 0.89 ),
+        SetTransparent = cms.bool( True ),
+        )
 
 process.plotSet = cms.VPSet(
-    cms.PSet( PreName   = cms.string( 'IPt0S_both_' ),
-              TitleName = cms.string( 'IP > 0 #sigma' ), # used in TLegend
-              SetNormalize= cms.bool( False ),
+    cms.PSet(
+              PreNameTar= cms.string( 'vtxprobFirst1' ),
+              PreNameObj= cms.string( 'vtxprobFirst6' ),
+              TitleName = cms.string( 'each event chooses 1 candidate' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 1 ),
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'IPt1S_both_' ),
-              TitleName = cms.string( 'IP > 1 #sigma' ), # used in TLegend
-              SetNormalize= cms.bool( False ),
+    cms.PSet(
+              PreNameTar= cms.string( 'vtxprobFirst2' ),
+              PreNameObj= cms.string( 'vtxprobFirst6' ),
+              TitleName = cms.string( 'each event chooses 2 candidate' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 2 ),
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'IPt2S_both_' ),
-              TitleName = cms.string( 'IP > 2 #sigma' ), # used in TLegend
-              SetNormalize= cms.bool( False ),
+    cms.PSet(
+              PreNameTar= cms.string( 'vtxprobFirst3' ),
+              PreNameObj= cms.string( 'vtxprobFirst6' ),
+              TitleName = cms.string( 'each event chooses 3 candidate' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 3 ),
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'IPt3S_both_' ),
-              TitleName = cms.string( 'IP > 3 #sigma' ), # used in TLegend
-              SetNormalize= cms.bool( False ),
+    cms.PSet(
+              PreNameTar= cms.string( 'vtxprobFirst4' ),
+              PreNameObj= cms.string( 'vtxprobFirst6' ),
+              TitleName = cms.string( 'each event chooses 4 candidate' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
               LineColor = cms.int32( 4 ),
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'IPt4S_both_' ),
-              TitleName = cms.string( 'IP > 4 #sigma' ), # used in TLegend
-              SetNormalize= cms.bool( False ),
+    cms.PSet(
+              PreNameTar= cms.string( 'vtxprobFirst5' ),
+              PreNameObj= cms.string( 'vtxprobFirst6' ),
+              TitleName = cms.string( 'each event chooses 5 candidate' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
-              LineColor = cms.int32( 6 ),
+              LineColor = cms.int32( 5 ),
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),

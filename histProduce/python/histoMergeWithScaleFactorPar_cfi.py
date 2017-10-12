@@ -4,11 +4,11 @@ process = cms.PSet()
 
 process.generalSet = cms.PSet(
     defaultTree= cms.string('lbSpecificDecay'),
-    plotTitle  = cms.string('IPFakeBs'),
+    plotTitle  = cms.string('fake B^{0}_{s} impact parameter'),
     XaxisName  = cms.string( 'mm' ),
     XaxisMin   = cms.double( -0.2 ),
     XaxisMax   = cms.double(  0.2 ),
-    YaxisName  = cms.string( 'hii' ),
+    YaxisName  = cms.string( 'Normalized to first bin' ),
     YaxisMin   = cms.int32( 0 ), # if -1 is set, find the value automatically.
     YaxisMax   = cms.int32( -1 ), # if -1 is set, find the value automatically.
     isSideBand = cms.bool(False),
@@ -21,13 +21,13 @@ process.LegendSet = cms.PSet(
         xRight= cms.double( 0.88 ),
         yLeft = cms.double( 0.65 ),
         yRight= cms.double( 0.85 ),
-        FontSize=cms.int32( 18 ),
+        SetTransparent=cms.bool(True),
         )
 
 process.plotSet = cms.VPSet(
     cms.PSet( NameInTree    = cms.string( 'par_ptk_IPFakeBd' ),
               TitleName     = cms.string( 'positive track in Bs' ), # used in TLegend
-              ScaleFactor   = cms.double( 1./2754. ),
+              ScaleFactor   = cms.double( 1./2754. ), # if -1 set, normalize automatically
               SetFill       = cms.bool( False ),
               LineWidth     = cms.int32( 2 ),
               LineColor     = cms.int32( 3 ),

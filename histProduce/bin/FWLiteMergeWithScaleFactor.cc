@@ -13,6 +13,7 @@
 #include <TCanvas.h>
 #include <TLegend.h>
 #include <TLine.h>
+#include <TGaxis.h>
 
 #include "FWCore/FWLite/interface/AutoLibraryLoader.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -82,7 +83,7 @@ int main(int argc, char* argv[])
     optutl::CommandLineParser parser ("Analyze FWLite Histograms");
 
     parser.addOption("testFile",optutl::CommandLineParser::kString,"test input file","");
-    parser.addOption("plotSet",optutl::CommandLineParser::kString,"input the python file records parameter to plot","histoMergeGeneralPar");
+    parser.addOption("plotSet",optutl::CommandLineParser::kString,"input the python file records parameter to plot","histoMergeWithScaleFactorPar");
 
     // parse arguments
     parser.parseArguments (argc, argv);
@@ -132,6 +133,8 @@ int main(int argc, char* argv[])
 
 
     TCanvas* cc = new TCanvas( ("canvas."+ generalSet.getParameter<std::string>("plotTitle") ).c_str(), "", 1600, 1000 );
+    // set y axis digits, if bigger than 3, use 3.14E-2(example) to display
+    TGaxis::SetMaxDigits(3);
     
     TH1D* h[ pSize ];
     for ( int i=0; i<pSize; ++i )
@@ -181,14 +184,14 @@ int main(int argc, char* argv[])
         h[i]->GetXaxis()->SetRangeUser( generalSet.getParameter<double>("XaxisMin"), generalSet.getParameter<double>("XaxisMax") );
         h[i]->GetXaxis()->SetTitle( generalSet.getParameter<std::string>("XaxisName").c_str() );
         h[i]->GetYaxis()->SetTitle( generalSet.getParameter<std::string>("YaxisName").c_str() );
-        if ( plotSetting[i].scaleFactor != 1 )
-        {
+
+        if ( plotSetting[i].scaleFactor == -1. )
+            h[i]->SetNormFactor();
+        else if ( plotSetting[i].scaleFactor != 1 )
             h[i]->Scale( plotSetting[i].scaleFactor );
-        }
         else
-        {
             h[i]->GetYaxis()->SetRangeUser( ymin, ymax );
-        }
+
         if ( i == 0 )
             h[i]->Draw();
         else
@@ -207,13 +210,18 @@ int main(int argc, char* argv[])
         leg->AddEntry( h[i], plotSetting[i].title.c_str(), "lepf" );
     leg->SetBorderSize(0);
     leg->SetTextFont( 43 );
-    leg->SetTextSize( legendSet.getParameter<int>("FontSize") );
+    if ( legendSet.getParameter<bool>("SetTransparent") )
+    {
+        leg->SetFillStyle(4000);
+        leg->SetFillColor(4000);
+    }
     leg->Draw();
     
     std::string outputName = "hMerged_"+plotTitle;
     cc->SaveAs( (outputName+generalSet.getParameter<std::string>("outFormat")).c_str() );
     
     delete cc;
+    inFile->Close();
 }
 //    return 0;
 //}

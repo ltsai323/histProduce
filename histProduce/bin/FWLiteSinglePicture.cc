@@ -13,6 +13,7 @@
 #include <TCanvas.h>
 #include <TLegend.h>
 #include <TLine.h>
+#include <TGaxis.h>
 
 #include "FWCore/FWLite/interface/AutoLibraryLoader.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -92,7 +93,7 @@ int main(int argc, char* argv[])
     optutl::CommandLineParser parser ("Analyze FWLite Histograms");
 
     parser.addOption("testFile",optutl::CommandLineParser::kString,"test input file","");
-    parser.addOption("plotSet",optutl::CommandLineParser::kString,"input the python file records parameter to plot","hSinglePar");
+    parser.addOption("plotSet",optutl::CommandLineParser::kString,"input the python file records parameter to plot","histoSinglePlotPar");
 
     // parse arguments
     parser.parseArguments (argc, argv);
@@ -147,6 +148,7 @@ int main(int argc, char* argv[])
     }
 
 
+    TGaxis::SetMaxDigits(3);
     for ( const plotPrivateSet& histSet : plotSetting )
     {
         TCanvas* cc = new TCanvas( ("canvas."+histSet.nameInTree).c_str(), "", 1600, 1000 );
@@ -184,7 +186,7 @@ int main(int argc, char* argv[])
         }
         else 
             ymax = histSet.yMax;
-        ymax = ymax * 1.2;
+        ymax = ymax * 1.4;
         // get y axis range }}}
     
         h->SetTitle( histSet.title.c_str() );
