@@ -31,6 +31,7 @@
 #include "histProduce/histProduce/interface/hMainfindIPdiff.h"
 #include "histProduce/histProduce/interface/hMainParPlot.h"
 #include "histProduce/histProduce/interface/hMainfindVtxprobDiff.h"
+#include "histProduce/histProduce/interface/hMainfindFDdiff.h"
 
 // create histograms from CMSSW based data.
 // use FWLIte to load data.
@@ -140,7 +141,6 @@ int main(int argc, char* argv[])
     cutLists.push_back( new              massCut(5.0 ,  6.0) );
     cutLists.push_back( new            cosa2dCut(0.99      ) );
     cutLists.push_back( new                ptCut(15  ,-99. ) );
-    //cutLists.push_back( new      flightDist2DCut(0.2 ,-99. ) );
     cutLists.push_back( new flightDist2DSigmaCut( 2., -99. ) );
     histMain::setCutList( &cutLists );
 
@@ -151,8 +151,9 @@ int main(int argc, char* argv[])
     mainCode.push_back( new histMain_LbTk(&dir) );
     //mainCode.push_back( new histMain_findParDiff(&dir) );
     //mainCode.push_back( new histMain_findIPdiff(&dir) );
-    mainCode.push_back( new histMain_findVtxprobDiff(&dir) );
-    mainCode.push_back( new histMain_ParPlot(&dir) );
+    //mainCode.push_back( new histMain_findVtxprobDiff(&dir) );
+    mainCode.push_back( new histMain_findFlightDistanceDiff(&dir) );
+    //mainCode.push_back( new histMain_ParPlot(&dir) );
 
     int ievt=0;
     for ( const auto& file : inputFiles_ )

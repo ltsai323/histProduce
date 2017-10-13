@@ -9,19 +9,19 @@
 histMain_LbTk::histMain_LbTk( TFileDirectory* d ) :
     histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis") )
 {
-    createHisto( "massLbTk", 50, 5.0, 6.0 );
-    createHisto( "massLbTk_withCuts", 50, 5.0, 6.0 );
-    createHisto( "massFakeBd", 50, 5.0, 6.0 );
-    createHisto( "massFakeBd_withCuts", 50, 5.0, 6.0 );
-    createHisto( "massFakeBs", 50, 5.0, 6.0 );
-    createHisto( "massFakeBs_withCuts", 50, 5.0, 6.0 );
-    createHisto( "massTkTk", 50, 1., 1.5 );
-    createHisto( "ptLbTk",  60, 8., 20. );
-    createHisto( "ptPTk",  60, 0., 6. );
-    createHisto( "massFakePhi1020", 80, 0.9, 1.3 );
-    createHisto( "massFakeK892", 80, 0.7, 1.1 );
-    createHisto( "massFakePiPi",180, 0.3, 1.2 );
-    createHisto( "parIPtransverse", 200, 0., 0.4 );
+    createHisto( "massLbTk", 500, 5.0, 6.0 );
+    createHisto( "massLbTk_withCuts", 500, 5.0, 6.0 );
+    createHisto( "massFakeBd", 500, 5.0, 6.0 );
+    createHisto( "massFakeBd_withCuts", 500, 5.0, 6.0 );
+    createHisto( "massFakeBs", 500, 5.0, 6.0 );
+    createHisto( "massFakeBs_withCuts", 500, 5.0, 6.0 );
+    createHisto( "massTkTk", 500, 1., 1.5 );
+    createHisto( "ptLbTk",  600, 8., 20. );
+    createHisto( "ptPTk",  600, 0., 6. );
+    createHisto( "massFakePhi1020", 800, 0.9, 1.3 );
+    createHisto( "massFakeK892", 800, 0.7, 1.1 );
+    createHisto( "massFakePiPi",1800, 0.3, 1.2 );
+    createHisto( "parIPtransverse", 2000, 0., 0.4 );
     createHisto( "eventsInEvent", 100, 0., 100. );
 }
 void histMain_LbTk::Process( fwlite::Event* ev )

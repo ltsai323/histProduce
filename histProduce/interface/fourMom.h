@@ -39,6 +39,8 @@ struct fourMom
     }
     fourMom& operator=(const fourMom& in)
     { x0 = in.x0; x1 = in.x1; x2 = in.x2; x3 = in.x3; return *this; }
+    double transverse() const
+    { return sqrt( x1*x1+x2*x2 ); }
 
     void setVar(const double v0, const double v1, const double v2, const double v3)
     { x0 = v0; x1 = v1; x2 = v2; x3 = v3; }

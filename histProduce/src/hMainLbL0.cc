@@ -1,5 +1,6 @@
 #include "histProduce/histProduce/interface/hMainLbL0.h"
 #include "histProduce/histProduce/interface/generalCutList.h"
+#include "histProduce/histProduce/interface/usefulFuncs.h"
 #include "DataFormats/GeometryVector/interface/GlobalVector.h"
 
 
@@ -12,7 +13,9 @@ histMain_LbL0::histMain_LbL0( TFileDirectory* d ) :
     setRefitName( "Lam0/Pion" );
 
     createHisto( "massLb", 50, 5.0, 6.0 );
-    createHisto( "ptProton",  20, 0., 20. );
+    createHisto( "massLam0",  50, 1.10, 1.15 );
+    createHisto( "massLb_withCuts", 50, 5.0, 6.0 );
+    createHisto( "massLam0_withCuts",  50, 1.10, 1.15 );
 
 }
 void histMain_LbL0::Process( fwlite::Event* ev )
@@ -35,10 +38,21 @@ void histMain_LbL0::Process( fwlite::Event* ev )
                 { cutTag = true; break; }
             if ( cutTag ) continue;
     
-            if ( cand.hasUserFloat("fitMass") )
-                fillHisto( "massLb", cand.userFloat("fitMass") );
-            if ( cand.hasUserData("Lam0/Proton.fitMom") )
-                fillHisto( "ptProton", cand.userData<GlobalVector>("Lam0/Proton.fitMom")->transverse() );
+            if ( cand.hasUserFloat("fitMass") ) continue;
+            const pat::CompositeCandidate* lam0Cand = usefulFuncs::getByRef<pat::CompositeCandidate>( cand, "refToLam0" );
+            if ( lam0Cand == nullptr ) continue;
+            if ( lam0Cand->hasUserFloat( "fitMass" ) ) continue;
+            double lbMass( cand.userFloat( "fitMass" ) );
+            double lam0Mass( cand->userFloat( "fitMass" ) );
+
+        
+            fillHisto( "massLb", lbMass );
+            fillHisto("massLam0", lam0Mass );
+            if ( lam0Mass > 1.110 && lam0Mass < 1.125 )
+                fillHisto( "massLb_withCuts", lbMass );
+            if ( lbMass > 5.58 && lbMass < 5.63 )
+                fillHisto( "massLam0_withCuts", lam0Mass );
+            
         }
     } catch ( ... ) {}
 }
