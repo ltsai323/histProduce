@@ -15,9 +15,10 @@ histMain_LbTk::histMain_LbTk( TFileDirectory* d ) :
     createHisto( "massFakeBd_withCuts", 500, 5.0, 6.0 );
     createHisto( "massFakeBs", 500, 5.0, 6.0 );
     createHisto( "massFakeBs_withCuts", 500, 5.0, 6.0 );
-    createHisto( "massTkTk", 500, 1., 1.5 );
+    createHisto( "massTkTk", 65, 1.35, 2.0 );
     createHisto( "ptLbTk",  600, 8., 20. );
-    createHisto( "ptPTk",  600, 0., 6. );
+    createHisto( "ptPTk",  200, 0., 6. );
+    createHisto( "ptNTk",  200, 0., 6. );
     createHisto( "massFakePhi1020", 800, 0.9, 1.3 );
     createHisto( "massFakeK892", 800, 0.7, 1.1 );
     createHisto( "massFakePiPi",1800, 0.3, 1.2 );
@@ -85,7 +86,7 @@ void histMain_LbTk::Process( fwlite::Event* ev )
                     const GlobalVector* pmuMom = cand.userData<GlobalVector>("JPsi/MuPos.fitMom");
                     const GlobalVector* nmuMom = cand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
                     fillHisto( "ptPTk", pTkMom->transverse() );
-                    fillHisto( "ptPTk", nTkMom->transverse() );
+                    fillHisto( "ptNTk", nTkMom->transverse() );
     
                     fourMom pTk( pTkMom->x(), pTkMom->y(), pTkMom->z() );
                     fourMom nTk( nTkMom->x(), nTkMom->y(), nTkMom->z() );

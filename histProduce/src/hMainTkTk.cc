@@ -43,9 +43,9 @@ void histMain_TkTk::Process( fwlite::Event* ev )
 
         std::map< double, const pat::CompositeCandidate*>::const_reverse_iterator iter = vtxprobChooser.rbegin();
         std::map< double, const pat::CompositeCandidate*>::const_reverse_iterator iend = vtxprobChooser.rend  ();
-        int vtxprobSortLimit = 0;
+        //int vtxprobSortLimit = 0;
 
-        double kaonMass ( 0.493667 );
+        //double kaonMass ( 0.493667 );
         double protonMass ( 0.9382720813 );
         double pionMass ( 0.13957061 );
         while ( iter != iend )
@@ -108,8 +108,6 @@ double histMain_TkTk::getFlightDistance( const pat::CompositeCandidate& cand, co
 
     double _x ( _vtx->x() ); double _y ( _vtx->y() );
     double _px( _bs->x() ); double _py( _bs->y() );
-    double _xE ( _vtx->xError() ); double _yE ( _vtx->yError() );
-    double _pxE( _bs->xError() ); double _pyE( _bs->yError() );
     double dist ( (_x-_px)*(_x-_px) + (_y-_py)*(_y-_py) );
     return sqrt ( dist );
 }

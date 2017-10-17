@@ -1,11 +1,11 @@
-#ifndef __hMainfindTkTkFlightDistanceDiff_h__
-#define __hMainfindTkTkFlightDistanceDiff_h__
+#ifndef __hMainfindLam0FlightDistanceDiff_h__
+#define __hMainfindLam0FlightDistanceDiff_h__
 #include "histProduce/histProduce/interface/hMain.h"
 
-class histMain_findTkTkFlightDistanceDiff : public histMain
+class histMain_findLam0FlightDistanceDiff : public histMain
 {
 public:
-    histMain_findTkTkFlightDistanceDiff ( TFileDirectory* d);
+    histMain_findLam0FlightDistanceDiff ( TFileDirectory* d);
     virtual void Process( fwlite::Event* ev ) override;
     virtual void Clear() override;
     //enum dirName { fd05 = 1, fd10, fd15, fd20, fd25 };

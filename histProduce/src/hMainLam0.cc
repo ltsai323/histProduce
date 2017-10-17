@@ -1,4 +1,4 @@
-#include "histProduce/histProduce/interface/hMainfindTkTkFDdiff.h"
+#include "histProduce/histProduce/interface/hMainLam0.h"
 #include "histProduce/histProduce/interface/generalCutList.h"
 #include "histProduce/histProduce/interface/fourMom.h"
 #include "histProduce/histProduce/interface/usefulFuncs.h"
@@ -6,25 +6,17 @@
 #include "math.h"
 
 
-histMain_findTkTkFlightDistanceDiff::histMain_findTkTkFlightDistanceDiff( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis") )
+histMain_Lam0::histMain_Lam0( TFileDirectory* d ) :
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "Lam0Cand", "bphAnalysis") )
 {
-    _nMap[fd030] = "fd030";
-    _nMap[fd060] = "fd060";
-    _nMap[fd090] = "fd090";
-    _nMap[fd120] = "fd120";
-    _nMap[fd150] = "fd150";
-    _nMap[fd180] = "fd180";
-    _nMap[fd210] = "fd210";
-    _nMap[fd240] = "fd240";
-    for ( const auto& _dName : _nMap )
-    {
-        const std::string& name = _dName.second;
-        createHisto( name+"massTkTk_FakeLam0"        ,  50, 1.10, 1.15 );
-        createHisto( name+"massTkTk_FakeKshort"      , 160, 0.2, 1.0 );
-    }
+    createHisto( "parLam0_FlightDistance"   , 1051, -0.050, 1.000 );
+    createHisto( "candInEvent"              ,   40, 0.0, 40. );
+    createHisto( "parLam0_cosa2d"           , 100, -1.0, 1.0 );
+    createHisto( "massLam0_Lam0"        ,  50, 1.10, 1.15 );
+    createHisto( "ptProton",  50, 0., 20. );
+    createHisto( "ptPion", 50., 0., 20. );
 }
-void histMain_findTkTkFlightDistanceDiff::Process( fwlite::Event* ev )
+void histMain_Lam0::Process( fwlite::Event* ev )
 {
     try 
     {
@@ -60,65 +52,59 @@ void histMain_findTkTkFlightDistanceDiff::Process( fwlite::Event* ev )
         while ( iter != iend )
         {
             const pat::CompositeCandidate& cand = *(iter++->second);
+            if ( !cand.hasUserFloat( "fitMass" ) ) continue;
+            fillHisto( "massLam0_Lam0", cand.userFloat("fitMass") );
+
             double fd = getFlightDistance ( cand, &bs );
+            fillHisto( "parLam0_FlightDistance", fd );
             if ( fd < 0.1 ) continue;
 
             double cos2d = getCosa2d( cand, &bs );
+            fillHisto( "parLam0_cosa2d", cos2d );
             if ( cos2d < 0.99 ) continue;
+            
 
             //if ( ++vtxprobSortLimit > 2 ) break;
             
-            // boolean int to recognize the tags, if all tags are false, fill in the histogram: massTkTk_withCuts
-            std::map< double, const reco::Candidate* > dauMap;
-            for ( unsigned i=0; i<cand.numberOfDaughters(); ++i )
-            {
-                const reco::Candidate* dPtr = cand.daughter(i);
-                dauMap.insert( std::make_pair( dPtr->pt(), dPtr ) );
-            }
-            
-            if ( dauMap.size() != 2 ) continue;
-            std::map< double, const reco::Candidate* >::const_reverse_iterator dauRIter = dauMap.rbegin();
-            std::map< double, const reco::Candidate* >::const_reverse_iterator dauRIend = dauMap.rend  ();
-            // first one is proton and second one is kaon ( consider bigger momentum with heavier particle )
-            const reco::Candidate* dPTR[2] = {nullptr};
-            int IDX = 0;
-            while ( dauRIter != dauRIend )
-                dPTR[IDX++] = dauRIter++->second;
-            
-            fourMom pTk ( dPTR[0]->px(), dPTR[0]->py(), dPTR[0]->pz() );
-            fourMom nTk ( dPTR[1]->px(), dPTR[1]->py(), dPTR[1]->pz() );
-            // reconstruct lambda0
-            pTk.setMass( protonMass );
-            nTk.setMass(   pionMass );
+            //// boolean int to recognize the tags, if all tags are false, fill in the histogram: massLam0_withCuts
+            //std::map< double, const reco::Candidate* > dauMap;
+            //for ( unsigned i=0; i<cand.numberOfDaughters(); ++i )
+            //{
+            //    const reco::Candidate* dPtr = cand.daughter(i);
+            //    dauMap.insert( std::make_pair( dPtr->pt(), dPtr ) );
+            //}
+            //
+            //if ( dauMap.size() != 2 ) continue;
+            //std::map< double, const reco::Candidate* >::const_reverse_iterator dauRIter = dauMap.rbegin();
+            //std::map< double, const reco::Candidate* >::const_reverse_iterator dauRIend = dauMap.rend  ();
+            //// first one is proton and second one is kaon ( consider bigger momentum with heavier particle )
+            //const reco::Candidate* dPTR[2] = {nullptr};
+            //int IDX = 0;
+            //while ( dauRIter != dauRIend )
+            //    dPTR[IDX++] = dauRIter++->second;
+            //
+            //fourMom pTk ( dPTR[0]->px(), dPTR[0]->py(), dPTR[0]->pz() );
+            //fourMom nTk ( dPTR[1]->px(), dPTR[1]->py(), dPTR[1]->pz() );
+            //// reconstruct lambda0
+            //pTk.setMass( protonMass );
+            //nTk.setMass(   pionMass );
 
 
-            fourMom twoTk = pTk + nTk;
-            for ( const auto& name : _nMap )
-            {
-                const std::string& dirname = name.second;
-                double i ( name.first );
-                if ( fd < 0.3*i*0.3*i ) continue;
-                fillHisto( dirname+"massTkTk_FakeLam0", twoTk.Mag() );
-            }
-            // reconstruct k short
-            pTk.setMass( pionMass );
-            twoTk = pTk + nTk;
-            for ( const auto& name : _nMap )
-            {
-                const std::string& dirname = name.second;
-                double i ( name.first );
-                if ( fd < 0.1*i*0.1*i ) continue;
-                fillHisto( dirname+"massTkTk_FakeKshort", twoTk.Mag() );
-            }
+            //fourMom twoTk = pTk + nTk;
+            //fillHisto( "massLam0_FakeLam0", twoTk.Mag() );
+            //// reconstruct k short
+            //pTk.setMass( pionMass );
+            //twoTk = pTk + nTk;
+            //fillHisto( "massLam0_FakeKshort", twoTk.Mag() );
 
         }
     } catch (...) {}
 }
 
-void histMain_findTkTkFlightDistanceDiff::Clear()
+void histMain_Lam0::Clear()
 {
 }
-double histMain_findTkTkFlightDistanceDiff::getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
+double histMain_Lam0::getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
 {
     if ( !cand.hasUserData( "fitVertex" ) ) return -999.;
     const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
@@ -130,7 +116,7 @@ double histMain_findTkTkFlightDistanceDiff::getFlightDistance( const pat::Compos
     double dist ( (_x-_px)*(_x-_px) + (_y-_py)*(_y-_py) );
     return sqrt ( dist );
 }
-double histMain_findTkTkFlightDistanceDiff::getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
+double histMain_Lam0::getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
 {
     const GlobalVector* _mom = usefulFuncs::get<GlobalVector>( cand, "fitMomentum" );
     if ( _mom == nullptr ) return -999.;
