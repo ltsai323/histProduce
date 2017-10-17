@@ -32,6 +32,8 @@
 #include "histProduce/histProduce/interface/hMainParPlot.h"
 #include "histProduce/histProduce/interface/hMainfindVtxprobDiff.h"
 #include "histProduce/histProduce/interface/hMainfindFDdiff.h"
+#include "histProduce/histProduce/interface/hMainfindTkTkFDdiff.h"
+#include "histProduce/histProduce/interface/hMainTkTk.h"
 
 // create histograms from CMSSW based data.
 // use FWLIte to load data.
@@ -149,11 +151,13 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new histMain_LbL0(&dir) );
     //mainCode.push_back( new histMain_Bs(&dir) );
     mainCode.push_back( new histMain_LbTk(&dir) );
+    mainCode.push_back( new histMain_TkTk(&dir) );
     //mainCode.push_back( new histMain_findParDiff(&dir) );
     //mainCode.push_back( new histMain_findIPdiff(&dir) );
     //mainCode.push_back( new histMain_findVtxprobDiff(&dir) );
-    mainCode.push_back( new histMain_findFlightDistanceDiff(&dir) );
+    //mainCode.push_back( new histMain_findFlightDistanceDiff(&dir) );
     //mainCode.push_back( new histMain_ParPlot(&dir) );
+    mainCode.push_back( new histMain_findTkTkFlightDistanceDiff(&dir) );
 
     int ievt=0;
     for ( const auto& file : inputFiles_ )

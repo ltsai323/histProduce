@@ -12,9 +12,9 @@ histMain_LbL0::histMain_LbL0( TFileDirectory* d ) :
     setRefitName( "Lam0/Proton" );
     setRefitName( "Lam0/Pion" );
 
-    createHisto( "massLb", 50, 5.0, 6.0 );
+    createHisto( "massLb", 200, 5.0, 6.0 );
     createHisto( "massLam0",  50, 1.10, 1.15 );
-    createHisto( "massLb_withCuts", 50, 5.0, 6.0 );
+    createHisto( "massLb_withCuts", 100, 5.0, 6.0 );
     createHisto( "massLam0_withCuts",  50, 1.10, 1.15 );
 
 }
@@ -43,7 +43,7 @@ void histMain_LbL0::Process( fwlite::Event* ev )
             if ( lam0Cand == nullptr ) continue;
             if ( lam0Cand->hasUserFloat( "fitMass" ) ) continue;
             double lbMass( cand.userFloat( "fitMass" ) );
-            double lam0Mass( cand->userFloat( "fitMass" ) );
+            double lam0Mass( lam0Cand->userFloat( "fitMass" ) );
 
         
             fillHisto( "massLb", lbMass );
