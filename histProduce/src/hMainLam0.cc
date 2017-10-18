@@ -55,6 +55,10 @@ void histMain_Lam0::Process( fwlite::Event* ev )
             if ( !cand.hasUserFloat( "fitMass" ) ) continue;
             fillHisto( "massLam0_Lam0", cand.userFloat("fitMass") );
 
+            if ( cand.hasUserData("Proton.fitMom") )
+                fillHisto( "ptProton", cand.userData<GlobalVector>("Proton.fitMom")->transverse() );
+            else
+                std::cout << "refit proton track not found\n";
             double fd = getFlightDistance ( cand, &bs );
             fillHisto( "parLam0_FlightDistance", fd );
             if ( fd < 0.1 ) continue;

@@ -6,7 +6,7 @@ process.GeneralSet = cms.PSet(
     defaultTree= cms.string('lbSpecificDecay'),
     isSideBand = cms.bool(False),
     isLogScale = cms.bool(False),
-    outFormat  = cms.string('.eps')
+    outFormat  = cms.string('.png')
 )
 process.LegendSet = cms.PSet(
         Title = cms.string('Cut:'),
@@ -69,7 +69,7 @@ process.SecondaryPlotSetting = cms.VPSet(
               FillStyle = cms.int32( 0 ),
               FillColor = cms.int32( 0 ),
               ),
-    cms.PSet( PreName   = cms.string( 'fd039' ),
+    cms.PSet( PreName   = cms.string( 'fd090' ),
               TitleName = cms.string( 'fd > 0.9 cm' ), # used in TLegend
               SetFill   = cms.bool( False ),
               LineWidth = cms.int32( 2 ),
