@@ -16,7 +16,7 @@ process.LegendSet = cms.PSet(
         yRight= cms.double( 0.85 ),
         SetTransparent=cms.bool( True ),
         )
-process.aaMergedPlots = cms.VPSet(
+process.MergedPlots = cms.VPSet(
     cms.PSet(
         MergedName = cms.string( 'massLbTk' ),
         SignalRegionMin = cms.double( 5.58 ),

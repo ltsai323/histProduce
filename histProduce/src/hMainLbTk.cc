@@ -54,10 +54,7 @@ void histMain_LbTk::Process( fwlite::Event* ev )
         int vtxprobSortLimit = 0;
         while ( iter != iend )
         {
-            double a( iter->first );
             const pat::CompositeCandidate& cand = *(iter++->second);
-            double b( iter->first );
-            if ( a < b ) std::cout << "\nfalse\n\n";
             bool cutTag = false;
             const std::vector<myCut::generalCutList*>* generalCut = getCutList();
             std::vector<myCut::generalCutList*>::const_iterator gcIter = generalCut->begin();
