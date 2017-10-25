@@ -1,17 +1,17 @@
-#ifndef __hMainfindParDiff_h__
-#define __hMainfindParDiff_h__
+#ifndef __hMainfindIPdiff_h__
+#define __hMainfindIPdiff_h__
 #include "histProduce/histProduce/interface/hMain.h"
 
-class histMain_findParDiff : public histMain
+class histMain_findIPdiff : public histMain
 {
 public:
-    histMain_findParDiff ( TFileDirectory* d);
+    histMain_findIPdiff ( TFileDirectory* d);
     virtual void Process( fwlite::Event* ev );
     virtual void Clear();
 private:
     //enum dirName { fd020, fd025, fd030, fd035, fd040 };
     //enum dirName { fd1S = 1, fd2S, fd3S, fd4S, fd5S };
-    enum dirName { pvtx000 = 0, pvtx005, pvtx010, pvtx015, pvtx020 };
+    enum dirName { IPt0S = 0, IPt1S, IPt2S, IPt3S, IPt4S, IPt5S };
     std::vector<myCut::generalCutList*> myCutLists;
     std::map< dirName, myCut::generalCutList*> testCuts;
     TFileDirectory* origDir;

@@ -1,17 +1,17 @@
-#ifndef __hMainfindParDiff_h__
-#define __hMainfindParDiff_h__
+#ifndef __hMainfindVtxprobDiff_h__
+#define __hMainfindVtxprobDiff_h__
 #include "histProduce/histProduce/interface/hMain.h"
 
-class histMain_findParDiff : public histMain
+class histMain_findVtxprobDiff : public histMain
 {
 public:
-    histMain_findParDiff ( TFileDirectory* d);
+    histMain_findVtxprobDiff ( TFileDirectory* d);
     virtual void Process( fwlite::Event* ev );
     virtual void Clear();
 private:
     //enum dirName { fd020, fd025, fd030, fd035, fd040 };
     //enum dirName { fd1S = 1, fd2S, fd3S, fd4S, fd5S };
-    enum dirName { pvtx000 = 0, pvtx005, pvtx010, pvtx015, pvtx020 };
+    enum dirName { vtxprobFirst1 = 1, vtxprobFirst2, vtxprobFirst3, vtxprobFirst4, vtxprobFirst5, vtxprobFirst6 };
     std::vector<myCut::generalCutList*> myCutLists;
     std::map< dirName, myCut::generalCutList*> testCuts;
     TFileDirectory* origDir;
