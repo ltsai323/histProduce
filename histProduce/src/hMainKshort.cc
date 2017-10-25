@@ -9,7 +9,7 @@
 histMain_Kshort::histMain_Kshort( TFileDirectory* d ) :
     histMain( d, histMain::Label("lbWriteSpecificDecay", "KshortCand", "bphAnalysis") )
 {
-    createHisto( "candInEvent_Kshort", 1000, 0.0, 30000. );
+    createHisto( "candInEvent_Kshort", 1000, 0.0, 3000000. );
     createHisto( "candInVtxSort_Kshort", 80, 0.0, 2000. );
     createHisto( "parKshort_cosa2d" , 100, -1.0, 1.0 );
     createHisto( "parKshort_vtxprob", 100, 0., 1.);
@@ -43,7 +43,7 @@ void histMain_Kshort::Process( fwlite::Event* ev )
         {
             const pat::CompositeCandidate& cand = *handleIter++;
             if ( !cand.hasUserFloat( "fitMass" ) ) continue;
-            if ( cand.userFloat( "fitMass" ) > 0.6 && cand.userFloat("fitMass") < 0.4 ) continue;
+            if ( cand.userFloat( "fitMass" ) > 0.6 || cand.userFloat("fitMass") < 0.4 ) continue;
             if ( !cand.hasUserData("PiPos.fitMom") ) continue;
             if ( !cand.hasUserData("PiNeg.fitMom") ) continue;
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
@@ -53,7 +53,7 @@ void histMain_Kshort::Process( fwlite::Event* ev )
             double cos2d = getCosa2d( cand, &bs );
             fillHisto( "parKshort_FlightDistance", fd );
             fillHisto( "parKshort_cosa2d", cos2d );
-            fillHisto( "parKshort_vrxprob", vtxprob );
+            fillHisto( "parKshort_vtxprob", vtxprob );
             if ( fd < 0.1 ) continue;
             if ( cos2d < 0.99 ) continue;
             if ( vtxprob < 0.2 ) continue;

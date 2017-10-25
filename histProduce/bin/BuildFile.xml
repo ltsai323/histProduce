@@ -17,4 +17,5 @@
   <bin name="hSingle"                   file="FWLiteSinglePicture.cc"></bin>
   <bin name="testLite"                  file="FWLiteWithPythonConfig.cc"></bin>
   <bin name="histoProducer"             file="FWLiteMyCustomTest.cc"></bin>
+  <bin name="hOutAllHists"              file="RootPrintAllHistogramAsPDF.cc"></bin>
 </environment>

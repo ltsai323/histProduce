@@ -8534,7 +8534,7 @@ files.extend( [
 process = cms.PSet()
 
 process.runSetting = cms.PSet(
-        maxEvents = cms.int32(50000),
+        maxEvents = cms.int32(500000),
         #maxEvents = cms.int32(-1),
         outEvery  = cms.uint32(5000),
         outName   = cms.string('histogram_2016RunG_18Apr2017ReReco.root'),
