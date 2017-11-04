@@ -34,6 +34,9 @@
 //
 // usage: 
 //     hMergeGeneral plotset=histoMergeGeneralPar testfile=mySource.root
+//     you can use 
+//         myTree->GetBinContent(i);
+//         to decide the normalize factor.
 
 struct plotPrivateSet
 {
@@ -186,9 +189,14 @@ int main(int argc, char* argv[])
         h[i]->GetYaxis()->SetTitle( generalSet.getParameter<std::string>("YaxisName").c_str() );
 
         if ( plotSetting[i].scaleFactor == -1. )
+        {
             h[i]->SetNormFactor();
+        }
         else if ( plotSetting[i].scaleFactor != 1 )
+        {
             h[i]->Scale( plotSetting[i].scaleFactor );
+            h[i]->GetYaxis()->SetRangeUser( ymin, ymax );
+        }
         else
             h[i]->GetYaxis()->SetRangeUser( ymin, ymax );
 

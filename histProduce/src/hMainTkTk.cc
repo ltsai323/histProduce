@@ -9,7 +9,7 @@
 histMain_TkTk::histMain_TkTk( TFileDirectory* d ) :
     histMain( d, histMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis") )
 {
-    createHisto( "candInEvent_TkTk"         ,  80,  0.0, 800.);
+    createHisto( "candInEvent_TkTk"         , 160,  0.0, 1600.);
     createHisto( "candInVtxsort_TkTk"       ,  40,  0.0, 400.);
     createHisto( "parTkTk_cosa2d"           , 100, -1.0, 1.0 );
     createHisto( "parTkTk_vtxprob"          , 100,   0.,   1.);
@@ -22,6 +22,16 @@ histMain_TkTk::histMain_TkTk( TFileDirectory* d ) :
     createHisto( "specialPtTkTk_FakeLam0", 150, 0., 30. );
     createHisto( "specialPtTkTk_FakeKshort", 150, 0., 30. );
     createHisto( "specialParTkTk", 8, 0., 8. );
+    createHisto( "massSpecialTkTk_findoutDiffFromOrigToReVtx", 200, 0., 1.);
+
+    createHisto( "parTkTk_Harmonic_proton", 100, 0., 20., 100, 0., 20. );
+    createHisto( "parTkTk_PixelHrm_proton", 100, 0., 20., 100, 0., 20. );
+    createHisto( "parTkTk_Harmonic_pion"  , 100, 0., 20., 100, 0., 20. );
+    createHisto( "parTkTk_PixelHrm_pion"  , 100, 0., 20., 100, 0., 20. );
+    createHisto( "parIPt_ptk", 200, 0, 0.4 );
+    createHisto( "parIPt_ntk", 200, 0, 0.4 );
+    createHisto( "par_ptk_IPt/Err", 200, 0, 5. );
+    createHisto( "par_ntk_IPt/Err", 200, 0, 5. );
 }
 void histMain_TkTk::Process( fwlite::Event* ev )
 {
@@ -46,6 +56,10 @@ void histMain_TkTk::Process( fwlite::Event* ev )
             if ( !cand.hasUserFloat("fitMass") ) continue;
             if ( !cand.hasUserData("Proton.fitMom") ) continue;
             if ( !cand.hasUserData("Kaon.fitMom") ) continue;
+            if ( !cand.hasUserFloat("Proton.dEdx.Harmonic") ) continue;
+            if ( !cand.hasUserFloat(  "Kaon.dEdx.Harmonic") ) continue;
+            if ( !cand.hasUserFloat("Proton.dEdx.pixelHrm") ) continue;
+            if ( !cand.hasUserFloat(  "Kaon.dEdx.pixelHrm") ) continue;
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) continue;
             double fd = getFlightDistance ( cand, &bs );
@@ -106,7 +120,26 @@ void histMain_TkTk::Process( fwlite::Event* ev )
             twoTk = pTk + nTk;
             mass = twoTk.Mag();
             if ( mass > 0.40 && mass < 0.6 )
+            {
                 fillHisto( "massTkTk_FakeKshort", mass );
+                const reco::Candidate* trackMom[2] = {nullptr};
+                trackMom[0] = cand.daughter(0)->pt() > cand.daughter(1)->pt() ? cand.daughter(0) : cand.daughter(1);
+                trackMom[1] = cand.daughter(0)->pt() < cand.daughter(1)->pt() ? cand.daughter(0) : cand.daughter(1);
+                fourMom origPTk ( trackMom[0]->px(), trackMom[0]->py(), trackMom[0]->pz() );
+                fourMom origNTk ( trackMom[1]->px(), trackMom[1]->py(), trackMom[1]->pz() );
+                origPTk.setMass(   pionMass );
+                origNTk.setMass(   pionMass );
+                fourMom origTwoTrack = origPTk + origNTk;
+                fillHisto( "massSpecialTkTk_findoutDiffFromOrigToReVtx", fabs( origTwoTrack.Mag() - twoTk.Mag() ) );
+                if ( mass > 0.49 && mass < 0.51 )
+                {
+                    fillHisto( "parTkTk_PixelHrm_proton", pTk.Momentum(), cand.userFloat("Proton.dEdx.pixelHrm") );
+                    fillHisto( "parTkTk_PixelHrm_pion"  , nTk.Momentum(), cand.userFloat(  "Kaon.dEdx.pixelHrm") );
+                    fillHisto( "parTkTk_Harmonic_proton", pTk.Momentum(), cand.userFloat("Proton.dEdx.Harmonic") );
+                    fillHisto( "parTkTk_Harmonic_pion"  , nTk.Momentum(), cand.userFloat(  "Kaon.dEdx.Harmonic") );
+                }
+            }
+
             if ( mass - 2*pionMass < 0.01 )
             {
                 specialTag += 1 << 2;
@@ -115,6 +148,14 @@ void histMain_TkTk::Process( fwlite::Event* ev )
             if ( specialTag )
                 fillHisto( "specialParTkTk", specialTag );
 
+            double pIP( cand.userFloat("Proton.IPt") );
+            double nIP( cand.userFloat("Kaon.IPt") );
+            double pIPE( cand.userFloat("Proton.IPt.Error") );
+            double nIPE( cand.userFloat("Kaon.IPt.Error") );
+            fillHisto( "parIPt_ptk", pIP );
+            fillHisto( "parIPt_ntk", nIP );
+            fillHisto( "par_ptk_IPt/Err", pIP/pIPE );
+            fillHisto( "par_ntk_IPt/Err", nIP/nIPE );
         }
     } catch (...) {}
 }

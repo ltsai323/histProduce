@@ -21,6 +21,8 @@ histMain_Lam0::histMain_Lam0( TFileDirectory* d ) :
     createHisto( "massLam0_FakeKshort", 40, 0.40, 0.6 );
     createHisto( "specialPtLam0_FakeLam0", 150, 0., 30. );
     createHisto( "specialPtLam0_FakeKshort", 150, 0., 30. );
+    createHisto( "specialPtDiffLam0_FakeLam0", 150, 0., 5. );
+    createHisto( "specialPtDiffLam0_FakeKshort", 150, 0., 5. );
     createHisto( "specialParLam0", 8, 0., 8. );
 }
 void histMain_Lam0::Process( fwlite::Event* ev )
@@ -48,6 +50,11 @@ void histMain_Lam0::Process( fwlite::Event* ev )
             if ( _vtx == nullptr ) continue;
             if ( !cand.hasUserData("Proton.fitMom") ) continue;
             if ( !cand.hasUserData("Pion.fitMom") ) continue;
+
+            fillHisto( "specialParLam0_massDifferent", fabs(cand.userFloat("fitMass") - cand.mass()) );
+            fillHisto( "specialParLam0_pptDifferent", fabs(cand.userData<GlobalVector>("Proton.fitMom")->transverse() - cand.pt()) );
+            fillHisto( "specialParLam0_nptDifferent", fabs(cand.userData<GlobalVector>("Pion.fitMom")->transverse() - cand.pt()) );
+
             double fd = getFlightDistance ( cand, &bs );
             double cos2d = getCosa2d( cand, &bs );
             double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
@@ -93,10 +100,12 @@ void histMain_Lam0::Process( fwlite::Event* ev )
             int specialTag = 0;
             if ( mass > 1.10 && mass < 1.15 )
                 fillHisto( "massLam0_FakeLam0", mass );
+
             if ( mass - protonMass - pionMass < 0.01 )
             {
                 specialTag += 1 << 1;
                 fillHisto( "specialPtLam0_FakeLam0", twoTk.transverse() );
+                fillHisto( "specialPtDiffLam0_FakeLam0", fabs( pTk.transverse() - nTk.transverse() ) );
             }
             // reconstruct k short
             pTk.setMass( pionMass );
@@ -108,6 +117,7 @@ void histMain_Lam0::Process( fwlite::Event* ev )
             {
                 specialTag += 1 << 2;
                 fillHisto( "specialPtLam0_FakeKshort", twoTk.transverse() );
+                fillHisto( "specialPtDiffLam0_FakeKshort", fabs( pTk.transverse() - nTk.transverse() ) );
             }
             if ( specialTag )
                 fillHisto( "specialParLam0", specialTag );

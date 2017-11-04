@@ -9,8 +9,8 @@
 histMain_Kshort::histMain_Kshort( TFileDirectory* d ) :
     histMain( d, histMain::Label("lbWriteSpecificDecay", "KshortCand", "bphAnalysis") )
 {
-    createHisto( "candInEvent_Kshort", 1000, 0.0, 3000000. );
-    createHisto( "candInVtxSort_Kshort", 80, 0.0, 2000. );
+    createHisto( "candInEvent_Kshort", 1000, 0.0, 120000. );
+    createHisto( "candInVtxSort_Kshort", 50, 0.0, 250. );
     createHisto( "parKshort_cosa2d" , 100, -1.0, 1.0 );
     createHisto( "parKshort_vtxprob", 100, 0., 1.);
     createHisto( "parKshort_FlightDistance"   , 105,-0.05,1.000);
@@ -21,7 +21,12 @@ histMain_Kshort::histMain_Kshort( TFileDirectory* d ) :
     createHisto( "massKshort_FakeKshort", 40, 0.40, 0.6 );
     createHisto( "specialPtKshort_FakeLam0", 150, 0., 30. );
     createHisto( "specialPtKshort_FakeKshort", 150, 0., 30. );
+    createHisto( "specialPtDiffKshort_FakeLam0", 150, 0., 5. );
+    createHisto( "specialPtDiffKshort_FakeKshort", 150, 0., 5. );
     createHisto( "specialParKshort", 8, 0., 8. );
+    createHisto( "specialParKshort_pptDifferent", 150, 0., 5. );
+    createHisto( "specialParKshort_nptDifferent", 150, 0., 5. );
+    createHisto( "specialParKshort_massDifferent", 150, 0., 5. );
 }
 void histMain_Kshort::Process( fwlite::Event* ev )
 {
@@ -46,6 +51,16 @@ void histMain_Kshort::Process( fwlite::Event* ev )
             if ( cand.userFloat( "fitMass" ) > 0.6 || cand.userFloat("fitMass") < 0.4 ) continue;
             if ( !cand.hasUserData("PiPos.fitMom") ) continue;
             if ( !cand.hasUserData("PiNeg.fitMom") ) continue;
+
+            const reco::Candidate* dau0 = (cand.daughter(0)->pt() > cand.daughter(1)->pt() ) ? cand.daughter(0) : cand.daughter(1);
+            const reco::Candidate* dau1 = (cand.daughter(0)->pt() < cand.daughter(1)->pt() ) ? cand.daughter(0) : cand.daughter(1);
+            fillHisto( "specialParKshort_massDifferent", fabs(cand.userFloat("fitMass") - cand.mass()) );
+            fillHisto( "specialParKshort_pptDifferent", fabs(cand.userData<GlobalVector>("PiPos.fitMom")->transverse() - dau0->pt()) );
+            fillHisto( "specialParKshort_nptDifferent", fabs(cand.userData<GlobalVector>("PiNeg.fitMom")->transverse() - dau1->pt()) );
+
+
+
+
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) continue;
             double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
@@ -72,7 +87,7 @@ void histMain_Kshort::Process( fwlite::Event* ev )
         int getFirstNEvent = 0;
         while ( iter != iend )
         {
-            if ( ++getFirstNEvent > 50 ) break;
+            //if ( ++getFirstNEvent > 50 ) break;
             const pat::CompositeCandidate& cand = *(iter++->second);
 
             if ( !cand.hasUserFloat( "fitMass" ) ) continue;
@@ -100,6 +115,7 @@ void histMain_Kshort::Process( fwlite::Event* ev )
             {
                 specialTag += 1 << 1;
                 fillHisto( "specialPtKshort_FakeLam0", twoTk.transverse() );
+                fillHisto( "specialPtDiffKshort_FakeLam0", fabs( pTk.transverse() - nTk.transverse() ) );
             }
             
             // reconstruct k short
@@ -112,6 +128,7 @@ void histMain_Kshort::Process( fwlite::Event* ev )
             {
                 specialTag += 1 << 2;
                 fillHisto( "specialPtKshort_FakeKshort", twoTk.transverse() );
+                fillHisto( "specialPtDiffKshort_FakeKshort", fabs( pTk.transverse() - nTk.transverse() ) );
             }
             if ( specialTag )
                 fillHisto( "specialParKshort", specialTag );

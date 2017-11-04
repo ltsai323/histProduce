@@ -155,8 +155,8 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new histMain_Bs(&dir) );
     mainCode.push_back( new histMain_LbTk(&dir) );
     mainCode.push_back( new histMain_TkTk(&dir) );
-    mainCode.push_back( new histMain_Lam0(&dir) );
-    mainCode.push_back( new histMain_Kshort(&dir) );
+    //mainCode.push_back( new histMain_Lam0(&dir) );
+    //mainCode.push_back( new histMain_Kshort(&dir) );
     //mainCode.push_back( new histMain_findParDiff(&dir) );
     //mainCode.push_back( new histMain_findIPdiff(&dir) );
     //mainCode.push_back( new histMain_findVtxprobDiff(&dir) );
