@@ -17,27 +17,34 @@ namespace myMass
 };
 
 histMain_findFlightDistanceDiff::histMain_findFlightDistanceDiff( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis") )
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis") )
 {
     using namespace myCut;
 
-    _nMap[fd05] = "fd05";
     _nMap[fd10] = "fd10";
-    _nMap[fd15] = "fd15";
     _nMap[fd20] = "fd20";
-    _nMap[fd25] = "fd25";
+    _nMap[fd30] = "fd30";
+    _nMap[fd40] = "fd40";
+    _nMap[fd50] = "fd50";
+    _nMap[fd60] = "fd60";
+    _nMap[fd70] = "fd70";
+    _nMap[fd70] = "fd80";
+    _nMap[fd70] = "fd90";
     for ( const auto& _dName : _nMap )
     {
         const std::string& name = _dName.second;
-        createHisto( name+"massFakeLam0",  50, 1.10, 1.15 );
-        createHisto( name+"massFakeLbL0", 200, 5.0, 6.0 );
-        createHisto( name+"massFakeLam0_withCut",  50, 1.10, 1.15 );
-        createHisto( name+"massFakeLbL0_withCut", 200, 5.0, 6.0 );
-        createHisto( name+"massFakeKs",  60, 0.2, 0.8);
+        createHisto( name+"massTkTk_FakeLam0",  50, 1.10, 1.15 );
+        createHisto( name+"massTkTk_FakeKs",  60, 0.2, 0.8);
+        createHisto( name+"parTkTk_Harmonic_proton", 100, 0., 20., 1000, 0., 20. );
+        createHisto( name+"parTkTk_PixelHrm_proton", 100, 0., 20., 1000, 0., 20. );
+        createHisto( name+"parTkTk_Harmonic_pion"  , 100, 0., 20., 1000, 0., 20. );
+        createHisto( name+"parTkTk_PixelHrm_pion"  , 100, 0., 20., 1000, 0., 20. );
+        createHisto( name+"parSignalIPt_proton", 200, 0, 10.0 );
+        createHisto( name+"parSignalIPt_pion"  , 200, 0, 10.0 );
+        createHisto( name+"parBackgroundIPt_proton", 200, 0, 10.0 );
+        createHisto( name+"parBackgroundIPt_pion"  , 200, 0, 10.0 );
     }
-    createHisto( "massFakeLam0", 120, 1.10, 1.50 );
-    createHisto( "massFakeLbL0", 400, 5.0, 6.0 );
-    createHisto( "flightDistTkTkinLb", 1051, -0.050, 1.000 );
+    createHisto( "flightDistTkTk", 3051, -0.050, 3.000 );
 
 }
 void histMain_findFlightDistanceDiff::Process( fwlite::Event* ev )
@@ -47,6 +54,11 @@ void histMain_findFlightDistanceDiff::Process( fwlite::Event* ev )
         if ( !ev->isValid() ) return;
         
         _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
+        fwlite::Handle< reco::BeamSpot > beamSpotHandle;
+        beamSpotHandle.getByLabel( *ev,"offlineBeamSpot", "", "RECO"  );
+        if ( !beamSpotHandle.isValid() ) return;
+        if ( _handle->size()  == 0 ) return;
+        const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
     
         std::map< double, const pat::CompositeCandidate*> vtxprobChooser;
         std::vector<pat::CompositeCandidate>::const_iterator handleIter = _handle->begin();
@@ -54,21 +66,28 @@ void histMain_findFlightDistanceDiff::Process( fwlite::Event* ev )
         while( handleIter != handleIend )
         {
             const pat::CompositeCandidate& cand = *handleIter++;
-            const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
-            if ( _vtx == nullptr ) continue;
-
-            const pat::CompositeCandidate* jpsiCand = usefulFuncs::getByRef<pat::CompositeCandidate>( cand, "refToJPsi" );
-            if ( jpsiCand == nullptr ) continue;
-            const pat::CompositeCandidate* tktkCand = usefulFuncs::getByRef<pat::CompositeCandidate>( cand, "refToTkTk" );
-            if ( tktkCand == nullptr ) continue;
-            const reco::Vertex* tktkVtx = usefulFuncs::get<reco::Vertex>( *tktkCand, "fitVertex" );
+            const reco::Vertex* tktkVtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( tktkVtx == nullptr ) continue;
 
-            if ( !cand.hasUserFloat("TkTk/Proton.IPt") ) continue;
-            if ( !cand.hasUserFloat("TkTk/Kaon.IPt") ) continue;
-            if ( !cand.hasUserFloat("TkTk/Proton.IPt.Error") ) continue;
-            if ( !cand.hasUserFloat("TkTk/Kaon.IPt.Error") ) continue;
             if ( !cand.hasUserFloat("fitMass") ) continue;
+            if ( !cand.hasUserFloat("Proton.IPt") ) continue;
+            if ( !cand.hasUserFloat(  "Kaon.IPt") ) continue;
+            if ( !cand.hasUserFloat("Proton.IPt.Error") ) continue;
+            if ( !cand.hasUserFloat(  "Kaon.IPt.Error") ) continue;
+            if ( !cand.hasUserFloat("Proton.dEdx.Harmonic") ) continue;
+            if ( !cand.hasUserFloat(  "Kaon.dEdx.Harmonic") ) continue;
+            if ( !cand.hasUserFloat("Proton.dEdx.pixelHrm") ) continue;
+            if ( !cand.hasUserFloat(  "Kaon.dEdx.pixelHrm") ) continue;
+
+            const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+            if ( _vtx == nullptr ) continue;
+            double fd = getFlightDistance ( cand, &bs );
+            double cos2d = getCosa2d( cand, &bs );
+            double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
+            fillHisto( "parTkTk_vtxprob", vtxprob );
+            if ( fd < 0.1 ) continue;
+            if ( cos2d < 0.99 ) continue;
+            if ( vtxprob < 0.1 ) continue;
             vtxprobChooser.insert( std::make_pair( TMath::Prob( _vtx->chi2(), _vtx->ndof() ), &cand ) );
         }
 
@@ -78,80 +97,48 @@ void histMain_findFlightDistanceDiff::Process( fwlite::Event* ev )
         while ( iter != iend )
         {
             const pat::CompositeCandidate& cand = *(iter++->second);
-            bool cutTag = false;
-            const std::vector<myCut::generalCutList*>* generalCut = getCutList();
-            std::vector<myCut::generalCutList*>::const_iterator gcIter = generalCut->begin();
-            std::vector<myCut::generalCutList*>::const_iterator gcIend = generalCut->end  ();
-            while ( gcIter != gcIend )
-            {
-                myCut::generalCutList* gCut = *gcIter++;
-                if ( !gCut->accept(cand) )
-                { cutTag = true; break; }
-            }
-            if ( cutTag ) continue;
-
-            if ( ++vtxprobSortLimit > 2 ) break;
-
-            // boolean int to recognize the tags, if all tags are false, fill in the histogram: massLbTk_withCuts
-            if ( cand.hasUserFloat("fitMass") )
-                fillHisto( "massLbTk", cand.userFloat("fitMass") );
-            if ( cand.hasUserData("fitMomentum") )
-                fillHisto( "ptLbTk", cand.userData<GlobalVector>("fitMomentum")->transverse() );
+            if ( ++vtxprobSortLimit > 20 ) break;
     
-            const pat::CompositeCandidate* tktkCand = usefulFuncs::getByRef<pat::CompositeCandidate>( cand, "refToTkTk" );
-            const pat::CompositeCandidate* jpsiCand = usefulFuncs::getByRef<pat::CompositeCandidate>( cand, "refToJPsi" );
-            const reco::Vertex* tktkVtx = usefulFuncs::get<reco::Vertex>( *tktkCand, "fitVertex" );
-            const reco::Vertex* __pv = usefulFuncs::getByRef<reco::Vertex>( *jpsiCand, "primaryVertex" );
-            double transFD = ( tktkVtx->x() - __pv->x() )*( tktkVtx->x()-__pv->x() ) + (tktkVtx->y()-__pv->y())*(tktkVtx->y()-__pv->y());
+            const reco::Vertex* tktkVtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+            double transFD = ( tktkVtx->x() - bs.x() )*( tktkVtx->x()-bs.x() ) + (tktkVtx->y()-bs.y())*(tktkVtx->y()-bs.y());
             fillHisto( "flightDistTkTkinLb", sqrt( transFD ) );
             if ( transFD < 0.01*0.01 ) continue;
-            
 
-            if ( cand.hasUserData("TkTk/Proton.fitMom") && cand.hasUserData("TkTk/Kaon.fitMom") )
-                if ( cand.hasUserData("JPsi/MuPos.fitMom") && cand.hasUserData("JPsi/MuNeg.fitMom") )
+            if ( cand.hasUserData("Proton.fitMom") && cand.hasUserData("Kaon.fitMom") )
                 {
-                    const GlobalVector* pTkMom = cand.userData<GlobalVector>("TkTk/Proton.fitMom");
-                    const GlobalVector* nTkMom = cand.userData<GlobalVector>("TkTk/Kaon.fitMom");
-                    const GlobalVector* pmuMom = cand.userData<GlobalVector>("JPsi/MuPos.fitMom");
-                    const GlobalVector* nmuMom = cand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
-                    bool pTkBigger = false;
-                    if ( pTkMom->transverse() > nTkMom->transverse() ) pTkBigger = true;
+                    const GlobalVector* pTkMom = cand.userData<GlobalVector>("Proton.fitMom");
+                    const GlobalVector* nTkMom = cand.userData<GlobalVector>("Kaon.fitMom");
     
                     fourMom pTk( pTkMom->x(), pTkMom->y(), pTkMom->z() );
                     fourMom nTk( nTkMom->x(), nTkMom->y(), nTkMom->z() );
-                    fourMom pmu( pmuMom->x(), pmuMom->y(), pmuMom->z() );
-                    fourMom nmu( nmuMom->x(), nmuMom->y(), nmuMom->z() );
     
-                    if ( pTkBigger )
+                    fourMom twoTk = pTk + nTk;
+                    for ( const auto&  name : _nMap )
                     {
                         pTk.setMass( myMass::protonMass );
                         nTk.setMass( myMass::  pionMass );
-                    }
-                    else
-                    {
-                        nTk.setMass( myMass::protonMass );
-                        pTk.setMass( myMass::  pionMass );
-                    }
-                    pmu.setMass( myMass::muonMass );
-                    nmu.setMass( myMass::muonMass );
-    
-                    fourMom fourTk = pTk + nTk + pmu + nmu;
-                    fourMom twoTk = pTk + nTk;
-                    fillHisto( "massFakeLam0", twoTk.Mag() );
-                    fillHisto( "massFakeLbL0", fourTk.Mag() );
-                    for ( const auto&  name : _nMap )
-                    {
+                        twoTk = pTk + nTk;
                         const std::string& dirname = name.second;
                         double i( name.first );
-                        if ( transFD < 0.5*i*0.5*i ) continue;
-                        fillHisto( dirname+"massFakeLam0", twoTk.Mag() );
-                        fillHisto( dirname+"massFakeLbL0", fourTk.Mag() );
-                        if ( twoTk.Mag() > 1.110 && twoTk.Mag() < 1.120 )
-                            fillHisto( dirname+"massFakeLbL0_withCut", fourTk.Mag() );
-                        if ( fourTk.Mag() > 5.58 && fourTk.Mag() < 5.63 )
-                            fillHisto( dirname+"massFakeLam0_withCut", twoTk.Mag() );
-
-
+                        if ( transFD < 0.1*i*0.1*i ) continue;
+                        fillHisto( dirname+"massTkTk_FakeLam0", twoTk.Mag() );
+                        if ( twoTk.Mag() > 1.10 && twoTk.Mag() < 1.15 )
+                        {
+                            if ( twoTk.Mag() > 1.114 && twoTk.Mag() < 1.118 )
+                            {
+                                fillHisto( dirname+"parTkTk_Harmonic_proton" , pTk.Momentum(), cand.userFloat("Proton.dEdx.Harmonic") );
+                                fillHisto( dirname+"parTkTk_PixelHrm_proton" , pTk.Momentum(), cand.userFloat("Proton.dEdx.pixelHrm") );
+                                fillHisto( dirname+"parTkTk_Harmonic_pion" , nTk.Momentum(), cand.userFloat("Kaon.dEdx.Harmonic") );
+                                fillHisto( dirname+"parTkTk_PixelHrm_pion" , nTk.Momentum(), cand.userFloat("Kaon.dEdx.pixelHrm") );
+                                fillHisto( dirname+"parSignalIPt_proton" , cand.userFloat("Proton.IPt") );
+                                fillHisto( dirname+"parSignalIPt_pion"   , cand.userFloat(  "Kaon.IPt") );
+                            }
+                            else
+                            {
+                                fillHisto( dirname+"parBackgroundIPt_proton" , cand.userFloat("Proton.IPt") );
+                                fillHisto( dirname+"parBackgroundIPt_pion"   , cand.userFloat(  "Kaon.IPt") );
+                            }
+                        }
                     }
                     pTk.setMass( myMass::pionMass );
                     nTk.setMass( myMass::pionMass );
@@ -160,8 +147,8 @@ void histMain_findFlightDistanceDiff::Process( fwlite::Event* ev )
                     {
                         const std::string& dirname = name.second;
                         double i( name.first );
-                        if ( transFD < 0.05*i*0.05*i ) continue;
-                        fillHisto( dirname+"massFakeKs", twoTk.Mag() );
+                        if ( transFD < 0.1*i*0.1*i ) continue;
+                        fillHisto( dirname+"massTkTk_FakeKs", twoTk.Mag() );
                     }
 
 
@@ -177,3 +164,30 @@ void histMain_findFlightDistanceDiff::Clear()
 {
 }
 
+double histMain_findFlightDistanceDiff::getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
+{
+    if ( !cand.hasUserData( "fitVertex" ) ) return -999.;
+    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+    if ( _vtx == nullptr ) return -999.;
+    if ( _bs == nullptr ) return -999.;
+
+    double _x ( _vtx->x() ); double _y ( _vtx->y() );
+    double _px( _bs->x() ); double _py( _bs->y() );
+    double dist ( (_x-_px)*(_x-_px) + (_y-_py)*(_y-_py) );
+    return sqrt ( dist );
+}
+double histMain_findFlightDistanceDiff::getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
+{
+    const GlobalVector* _mom = usefulFuncs::get<GlobalVector>( cand, "fitMomentum" );
+    if ( _mom == nullptr ) return -999.;
+    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+    if ( _vtx == nullptr ) return -999.;
+    if ( _bs == nullptr ) return -999.;
+    double _x = _vtx->x() - _bs->x();
+    double _y = _vtx->y() - _bs->y();
+    double _r = sqrt( _x*_x+_y*_y );
+    double mx = _mom->x();
+    double my = _mom->y();
+    double cosa2d = (mx*_x + my*_y) / (_mom->transverse()*_r);
+    return cosa2d;
+}

@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
     // set defaults for testFile is assigned
     parser.integerValue ("maxEvents"  ) = -1;
     parser.integerValue ("outputEvery") = 1000;
-    parser.stringValue  ("outputFile" ) = "histoTestOutput.root";
+    parser.stringValue  ("outputFile" ) = "histTestOutput.root";
 
     // parse arguments
     parser.parseArguments (argc, argv);
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new histMain_findParDiff(&dir) );
     //mainCode.push_back( new histMain_findIPdiff(&dir) );
     //mainCode.push_back( new histMain_findVtxprobDiff(&dir) );
-    //mainCode.push_back( new histMain_findFlightDistanceDiff(&dir) );
+    mainCode.push_back( new histMain_findFlightDistanceDiff(&dir) );
     //mainCode.push_back( new histMain_ParPlot(&dir) );
     //mainCode.push_back( new histMain_findTkTkFlightDistanceDiff(&dir) );
     //mainCode.push_back( new histMain_findLam0FlightDistanceDiff(&dir) );
