@@ -1,11 +1,11 @@
-#ifndef __hMainLam0_h__
-#define __hMainLam0_h__
+#ifndef __hMainPV_h__
+#define __hMainPV_h__
 #include "histProduce/histProduce/interface/hMain.h"
 
-class histMain_Lam0 : public histMain
+class histMain_PV : public histMain
 {
 public:
-    histMain_Lam0 ( TFileDirectory* d);
+    histMain_PV ( TFileDirectory* d);
     virtual void Process( fwlite::Event* ev ) override;
     virtual void Clear() override;
 private:

@@ -28,10 +28,10 @@ histMain_TkTk::histMain_TkTk( TFileDirectory* d ) :
     createHisto( "parTkTk_PixelHrm_proton", 100, 0., 20., 100, 0., 20. );
     createHisto( "parTkTk_Harmonic_pion"  , 100, 0., 20., 100, 0., 20. );
     createHisto( "parTkTk_PixelHrm_pion"  , 100, 0., 20., 100, 0., 20. );
-    createHisto( "parIPt_ptk", 200, 0, 0.4 );
-    createHisto( "parIPt_ntk", 200, 0, 0.4 );
-    createHisto( "par_ptk_IPt/Err", 200, 0, 5. );
-    createHisto( "par_ntk_IPt/Err", 200, 0, 5. );
+    createHisto( "parTkTk_pIPt", 200, 0, 0.4 );
+    createHisto( "parTkTk_nIPt", 200, 0, 0.4 );
+    createHisto( "parTkTk_pIPt/Err", 200, 0, 5. );
+    createHisto( "parTkTk_nIPt/Err", 200, 0, 5. );
 }
 void histMain_TkTk::Process( fwlite::Event* ev )
 {
@@ -48,6 +48,7 @@ void histMain_TkTk::Process( fwlite::Event* ev )
         const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
     
         std::map< double, const pat::CompositeCandidate*> vtxprobChooser;
+        vtxprobChooser.clear();
         std::vector<pat::CompositeCandidate>::const_iterator handleIter = _handle->begin();
         std::vector<pat::CompositeCandidate>::const_iterator handleIend = _handle->end  ();
         while( handleIter != handleIend )
@@ -62,8 +63,8 @@ void histMain_TkTk::Process( fwlite::Event* ev )
             if ( !cand.hasUserFloat(  "Kaon.dEdx.pixelHrm") ) continue;
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) continue;
-            double fd = getFlightDistance ( cand, &bs );
-            double cos2d = getCosa2d( cand, &bs );
+            double fd = usefulFuncs::getFlightDistance ( cand, &bs );
+            double cos2d = usefulFuncs::getCosa2d( cand, &bs );
             fillHisto( "parTkTk_FlightDistance", fd );
             fillHisto( "parTkTk_cosa2d", cos2d );
             double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
@@ -152,10 +153,10 @@ void histMain_TkTk::Process( fwlite::Event* ev )
             double nIP( cand.userFloat("Kaon.IPt") );
             double pIPE( cand.userFloat("Proton.IPt.Error") );
             double nIPE( cand.userFloat("Kaon.IPt.Error") );
-            fillHisto( "parIPt_ptk", pIP );
-            fillHisto( "parIPt_ntk", nIP );
-            fillHisto( "par_ptk_IPt/Err", pIP/pIPE );
-            fillHisto( "par_ntk_IPt/Err", nIP/nIPE );
+            fillHisto( "parTkTk_pIPt", pIP );
+            fillHisto( "parTkTk_nIPt", nIP );
+            fillHisto( "parTkTk_pIPt/Err", pIP/pIPE );
+            fillHisto( "parTkTk_nIPt/Err", nIP/nIPE );
         }
     } catch (...) {}
 }
@@ -163,30 +164,30 @@ void histMain_TkTk::Process( fwlite::Event* ev )
 void histMain_TkTk::Clear()
 {
 }
-double histMain_TkTk::getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
-{
-    if ( !cand.hasUserData( "fitVertex" ) ) return -999.;
-    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
-    if ( _vtx == nullptr ) return -999.;
-    if ( _bs == nullptr ) return -999.;
-
-    double _x ( _vtx->x() ); double _y ( _vtx->y() );
-    double _px( _bs->x() ); double _py( _bs->y() );
-    double dist ( (_x-_px)*(_x-_px) + (_y-_py)*(_y-_py) );
-    return sqrt ( dist );
-}
-double histMain_TkTk::getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
-{
-    const GlobalVector* _mom = usefulFuncs::get<GlobalVector>( cand, "fitMomentum" );
-    if ( _mom == nullptr ) return -999.;
-    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
-    if ( _vtx == nullptr ) return -999.;
-    if ( _bs == nullptr ) return -999.;
-    double _x = _vtx->x() - _bs->x();
-    double _y = _vtx->y() - _bs->y();
-    double _r = sqrt( _x*_x+_y*_y );
-    double mx = _mom->x();
-    double my = _mom->y();
-    double cosa2d = (mx*_x + my*_y) / (_mom->transverse()*_r);
-    return cosa2d;
-}
+//double histMain_TkTk::getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
+//{
+//    if ( !cand.hasUserData( "fitVertex" ) ) return -999.;
+//    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+//    if ( _vtx == nullptr ) return -999.;
+//    if ( _bs == nullptr ) return -999.;
+//
+//    double _x ( _vtx->x() ); double _y ( _vtx->y() );
+//    double _px( _bs->x() ); double _py( _bs->y() );
+//    double dist ( (_x-_px)*(_x-_px) + (_y-_py)*(_y-_py) );
+//    return sqrt ( dist );
+//}
+//double histMain_TkTk::getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
+//{
+//    const GlobalVector* _mom = usefulFuncs::get<GlobalVector>( cand, "fitMomentum" );
+//    if ( _mom == nullptr ) return -999.;
+//    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+//    if ( _vtx == nullptr ) return -999.;
+//    if ( _bs == nullptr ) return -999.;
+//    double _x = _vtx->x() - _bs->x();
+//    double _y = _vtx->y() - _bs->y();
+//    double _r = sqrt( _x*_x+_y*_y );
+//    double mx = _mom->x();
+//    double my = _mom->y();
+//    double cosa2d = (mx*_x + my*_y) / (_mom->transverse()*_r);
+//    return cosa2d;
+//}

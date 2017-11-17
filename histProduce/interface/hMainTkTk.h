@@ -9,8 +9,6 @@ public:
     virtual void Process( fwlite::Event* ev ) override;
     virtual void Clear() override;
 private:
-    double getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _bs );
-    double getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _bs );
 };
 
 

@@ -13,8 +13,8 @@ public:
     std::vector<myCut::generalCutList*> myCutLists;
     std::map< dirName, std::string > _nMap;
 private:
-    double getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _bs );
-    double getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _bs );
+    //double getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _bs );
+    //double getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _bs );
 };
 #endif
 

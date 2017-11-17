@@ -64,8 +64,8 @@ void histMain_Kshort::Process( fwlite::Event* ev )
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) continue;
             double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
-            double fd = getFlightDistance ( cand, &bs );
-            double cos2d = getCosa2d( cand, &bs );
+            double fd = usefulFuncs::getFlightDistance ( cand, &bs );
+            double cos2d = usefulFuncs::getCosa2d( cand, &bs );
             fillHisto( "parKshort_FlightDistance", fd );
             fillHisto( "parKshort_cosa2d", cos2d );
             fillHisto( "parKshort_vtxprob", vtxprob );
@@ -139,30 +139,30 @@ void histMain_Kshort::Process( fwlite::Event* ev )
 void histMain_Kshort::Clear()
 {
 }
-double histMain_Kshort::getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
-{
-    if ( !cand.hasUserData( "fitVertex" ) ) return -999.;
-    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
-    if ( _vtx == nullptr ) return -999.;
-    if ( _bs == nullptr ) return -999.;
-
-    double _x ( _vtx->x() ); double _y ( _vtx->y() );
-    double _px( _bs->x() ); double _py( _bs->y() );
-    double dist ( (_x-_px)*(_x-_px) + (_y-_py)*(_y-_py) );
-    return sqrt ( dist );
-}
-double histMain_Kshort::getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
-{
-    const GlobalVector* _mom = usefulFuncs::get<GlobalVector>( cand, "fitMomentum" );
-    if ( _mom == nullptr ) return -999.;
-    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
-    if ( _vtx == nullptr ) return -999.;
-    if ( _bs == nullptr ) return -999.;
-    double _x = _vtx->x() - _bs->x();
-    double _y = _vtx->y() - _bs->y();
-    double _r = sqrt( _x*_x+_y*_y );
-    double mx = _mom->x();
-    double my = _mom->y();
-    double cosa2d = (mx*_x + my*_y) / (_mom->transverse()*_r);
-    return cosa2d;
-}
+//double histMain_Kshort::getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
+//{
+//    if ( !cand.hasUserData( "fitVertex" ) ) return -999.;
+//    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+//    if ( _vtx == nullptr ) return -999.;
+//    if ( _bs == nullptr ) return -999.;
+//
+//    double _x ( _vtx->x() ); double _y ( _vtx->y() );
+//    double _px( _bs->x() ); double _py( _bs->y() );
+//    double dist ( (_x-_px)*(_x-_px) + (_y-_py)*(_y-_py) );
+//    return sqrt ( dist );
+//}
+//double histMain_Kshort::getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
+//{
+//    const GlobalVector* _mom = usefulFuncs::get<GlobalVector>( cand, "fitMomentum" );
+//    if ( _mom == nullptr ) return -999.;
+//    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+//    if ( _vtx == nullptr ) return -999.;
+//    if ( _bs == nullptr ) return -999.;
+//    double _x = _vtx->x() - _bs->x();
+//    double _y = _vtx->y() - _bs->y();
+//    double _r = sqrt( _x*_x+_y*_y );
+//    double mx = _mom->x();
+//    double my = _mom->y();
+//    double cosa2d = (mx*_x + my*_y) / (_mom->transverse()*_r);
+//    return cosa2d;
+//}

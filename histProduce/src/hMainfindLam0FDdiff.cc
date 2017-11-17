@@ -60,11 +60,11 @@ void histMain_findLam0FlightDistanceDiff::Process( fwlite::Event* ev )
             const pat::CompositeCandidate& cand = *(iter++->second);
             if ( !cand.hasUserFloat( "fitMass" ) ) continue;
 
-            double fd = getFlightDistance ( cand, &bs );
+            double fd = usefulFuncs::getFlightDistance ( cand, &bs );
             fillHisto( "parLam0_FlightDistance", fd );
             if ( fd < 0.1 ) continue;
 
-            double cos2d = getCosa2d( cand, &bs );
+            double cos2d = usefulFuncs::getCosa2d( cand, &bs );
             fillHisto( "parLam0_cosa2d", cos2d );
             if ( cos2d < 0.99 ) continue;
 
@@ -82,30 +82,30 @@ void histMain_findLam0FlightDistanceDiff::Process( fwlite::Event* ev )
 void histMain_findLam0FlightDistanceDiff::Clear()
 {
 }
-double histMain_findLam0FlightDistanceDiff::getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
-{
-    if ( !cand.hasUserData( "fitVertex" ) ) return -999.;
-    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
-    if ( _vtx == nullptr ) return -999.;
-    if ( _bs == nullptr ) return -999.;
-
-    double _x ( _vtx->x() ); double _y ( _vtx->y() );
-    double _px( _bs->x() ); double _py( _bs->y() );
-    double dist ( (_x-_px)*(_x-_px) + (_y-_py)*(_y-_py) );
-    return sqrt ( dist );
-}
-double histMain_findLam0FlightDistanceDiff::getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
-{
-    const GlobalVector* _mom = usefulFuncs::get<GlobalVector>( cand, "fitMomentum" );
-    if ( _mom == nullptr ) return -999.;
-    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
-    if ( _vtx == nullptr ) return -999.;
-    if ( _bs == nullptr ) return -999.;
-    double _x = _vtx->x() - _bs->x();
-    double _y = _vtx->y() - _bs->y();
-    double _r = sqrt( _x*_x+_y*_y );
-    double mx = _mom->x();
-    double my = _mom->y();
-    double cosa2d = (mx*_x + my*_y) / (_mom->transverse()*_r);
-    return cosa2d;
-}
+//double histMain_findLam0FlightDistanceDiff::getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
+//{
+//    if ( !cand.hasUserData( "fitVertex" ) ) return -999.;
+//    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+//    if ( _vtx == nullptr ) return -999.;
+//    if ( _bs == nullptr ) return -999.;
+//
+//    double _x ( _vtx->x() ); double _y ( _vtx->y() );
+//    double _px( _bs->x() ); double _py( _bs->y() );
+//    double dist ( (_x-_px)*(_x-_px) + (_y-_py)*(_y-_py) );
+//    return sqrt ( dist );
+//}
+//double histMain_findLam0FlightDistanceDiff::getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _bs )
+//{
+//    const GlobalVector* _mom = usefulFuncs::get<GlobalVector>( cand, "fitMomentum" );
+//    if ( _mom == nullptr ) return -999.;
+//    const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+//    if ( _vtx == nullptr ) return -999.;
+//    if ( _bs == nullptr ) return -999.;
+//    double _x = _vtx->x() - _bs->x();
+//    double _y = _vtx->y() - _bs->y();
+//    double _r = sqrt( _x*_x+_y*_y );
+//    double mx = _mom->x();
+//    double my = _mom->y();
+//    double cosa2d = (mx*_x + my*_y) / (_mom->transverse()*_r);
+//    return cosa2d;
+//}

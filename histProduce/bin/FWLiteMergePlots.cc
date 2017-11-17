@@ -53,11 +53,12 @@ struct secondaryPlotSettingRecorder
 struct mergedPlotsRecorder
 {
     std::string mergedName;
+    std::string plotsTitle;
     double lmin; double lmax; 
     std::string xname; double xmin; double xmax;
     std::string yname; double ymin; double ymax;
-    mergedPlotsRecorder( const std::string& mN, double lm, double lM, const std::string& xN, double xm, double xM, const std::string& yN, double ym, double yM ) :
-        mergedName( mN ), lmin( lm ), lmax( lM ), xname( xN ), xmin( xm ), xmax( xM ), yname( yN ), ymin( ym ), ymax( yM ) {}
+    mergedPlotsRecorder( const std::string& mN, const std::string& pT, double lm, double lM, const std::string& xN, double xm, double xM, const std::string& yN, double ym, double yM ) :
+        mergedName( mN ), plotsTitle( pT ), lmin( lm ), lmax( lM ), xname( xN ), xmin( xm ), xmax( xM ), yname( yN ), ymin( ym ), ymax( yM ) {}
 };
 
     
@@ -128,19 +129,20 @@ int main(int argc, char* argv[])
     for ( const edm::ParameterSet& _set : mergedPlotFromPython )
         mergedPlots.emplace_back(
                 _set.getParameter< std::string >( "MergedName" ),
-                _set.getParameter< double >( "SignalRegionMin" ),
-                _set.getParameter< double >( "SignalRegionMax" ),
-                _set.getParameter< std::string >( "XaxisName" ),
-                _set.getParameter< double >( "XaxisMin" ),
-                _set.getParameter< double >( "XaxisMax" ),
-                _set.getParameter< std::string >( "YaxisName" ),
-                _set.getParameter< double >( "YaxisMin" ),
-                _set.getParameter< double >( "YaxisMax" )
+                _set.getParameter< std::string >( "PlotsTitle" ),
+                _set.getParameter< double      >( "SRegionMin" ),
+                _set.getParameter< double      >( "SRegionMax" ),
+                _set.getParameter< std::string >( "XaxisTitle" ),
+                _set.getParameter< double      >( "XaxisMin" ),
+                _set.getParameter< double      >( "XaxisMax" ),
+                _set.getParameter< std::string >( "YaxisTitle" ),
+                _set.getParameter< double      >( "YaxisMin" ),
+                _set.getParameter< double      >( "YaxisMax" )
                 );
 
 
     // parser setting end }}}
-
+    printf("load parameter sucessful\n");
     // input files
     std::vector<std::string> inputFiles_;
     if ( parser.stringValue("testFile").empty() )
@@ -156,6 +158,7 @@ int main(int argc, char* argv[])
         printf("testFile not found!\n");
         exit(128);
     }
+    printf("load file sucessful\n");
 
 
     TGaxis::SetMaxDigits(3);
@@ -198,7 +201,7 @@ int main(int argc, char* argv[])
     
         for ( int i=0; i<pSize; ++i )
         {
-            h[i]->SetTitle( mergedObj.mergedName.c_str() );
+            h[i]->SetTitle( mergedObj.plotsTitle.c_str() );
             h[i]->SetStats(kFALSE);
             h[i]->SetLineWidth( plotSetting[i].lineWidth );
             h[i]->SetLineColor( plotSetting[i].lineColor );

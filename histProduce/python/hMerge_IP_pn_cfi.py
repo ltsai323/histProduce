@@ -8,7 +8,7 @@ process.generalSet = cms.PSet(
         #"IPFakeBs",
         "IPFakeBd",
         ),
-    XaxisName  = cms.string( 'GeV' ),
+    XaxisTitle = cms.string( 'GeV' ),
     XaxisMin   = cms.double( 6.0 ),
     XaxisMax   = cms.double( 6.0 ),
     YaxisMin   = cms.int32( 0 ), # if -1 is set, find the value automatically.
