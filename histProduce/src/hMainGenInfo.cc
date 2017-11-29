@@ -35,32 +35,34 @@ void histMain_GenInformation::Process( fwlite::Event* ev )
         while ( iter != iend )
         {
             const reco::GenParticle& gParticle = *iter++;
-            if ( fabs( gParticle.pdgId() ) == 321 )
+            if ( gParticle.status() < 2 )
             {
-                fillHisto( "ptGenInfo_kaon", gParticle.pt() );
-                fillHisto( "momGenInfo_kaon", gParticle.p() );
+                if ( fabs( gParticle.pdgId() ) == 321 )
+                {
+                    fillHisto( "ptGenInfo_kaon", gParticle.pt() );
+                    fillHisto( "momGenInfo_kaon", gParticle.p() );
+                }
+                if ( fabs( gParticle.pdgId() ) == 211 )
+                {
+                    fillHisto( "ptGenInfo_pion", gParticle.pt() );
+                    fillHisto( "momGenInfo_pion", gParticle.p() );
+                }
+                if ( fabs( gParticle.pdgId() ) == 2212 )
+                {
+                    fillHisto( "ptGenInfo_proton", gParticle.pt() );
+                    fillHisto( "momGenInfo_proton", gParticle.p() );
+                }
+                if ( fabs( gParticle.pdgId() ) == 321 )
+                    if ( fabs( gParticle.mother()->pdgId() ) == 5122 && 
+                    gParticle.mother()->numberOfDaughters() == 3
+                   )
+                    fillHisto( "momGenInfo_kaonSignal", gParticle.p() );
+                if ( fabs( gParticle.pdgId() ) == 2212 &&
+                     fabs( gParticle.mother()->pdgId() ) == 5122 && 
+                    gParticle.mother()->numberOfDaughters() == 3
+                   )
+                    fillHisto( "momGenInfo_protonSignal", gParticle.p() );
             }
-            if ( fabs( gParticle.pdgId() ) == 211 )
-            {
-                fillHisto( "ptGenInfo_pion", gParticle.pt() );
-                fillHisto( "momGenInfo_pion", gParticle.p() );
-            }
-            if ( fabs( gParticle.pdgId() ) == 2212 )
-            {
-                if ( gParticle.pt() == 0 ) std::cout << "SHIIIIIIIIIIIT\n";
-                fillHisto( "ptGenInfo_proton", gParticle.pt() );
-                fillHisto( "momGenInfo_proton", gParticle.p() );
-            }
-            if ( fabs( gParticle.pdgId() ) == 321 &&
-                 fabs( gParticle.mother()->pdgId() ) == 5122 && 
-                gParticle.mother()->numberOfDaughters() == 3
-               )
-                fillHisto( "momGenInfo_kaonSignal", gParticle.p() );
-            if ( fabs( gParticle.pdgId() ) == 2212 &&
-                 fabs( gParticle.mother()->pdgId() ) == 5122 && 
-                gParticle.mother()->numberOfDaughters() == 3
-               )
-                fillHisto( "momGenInfo_protonSignal", gParticle.p() );
             if ( fabs( gParticle.pdgId() ) == 5122 )
                 fillHisto( "massGenInfo_LbSignal", gParticle.mass() );
 
