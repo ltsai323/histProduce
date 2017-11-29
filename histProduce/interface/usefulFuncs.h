@@ -30,10 +30,10 @@ template< typename key, typename val >
     void sortingByFirstValue( std::vector< std::pair<key, val> >& myVector )
     {
         int n = myVector.size();
+        std::pair< key, val > tmpPair;
         for ( int i=0; i < n; ++i )
             for ( int j = i; j < n; ++j )
             {
-                std::pair< key, val > tmpPair;
                 // if first one is smaller than second one, exchange
                 // meaning that smaller value will propagate to last
                 if ( myVector[i].first < myVector[j].first )
@@ -44,6 +44,30 @@ template< typename key, typename val >
                 }
             }
     }
+template< typename myParticle >
+    bool mcMatch( const myParticle* cand, const reco::GenParticle* gpCand, double minDeltaR )
+    {
+        // test for deltaR == (eta)^2+(phi)^2
+        if ( cand == nullptr ) return false;
+        if ( gpCand == nullptr ) return false;
+        double val1 = cand->eta() - gpCand->eta();
+        double val2 = cand->phi() - gpCand->phi();
+        double deltaR2 = val1*val1+val2*val2;
+        return (deltaR2 < minDeltaR*minDeltaR) ? true : false;
+    }
+template< typename myParticle >
+    double mcMatchVal( const myParticle* cand, const reco::GenParticle* gpCand )
+    {
+        // test for deltaR == (eta)^2+(phi)^2
+        if ( cand == nullptr ) return 9999.;
+        if ( gpCand == nullptr ) return 9999.;
+        double val1 = cand->eta() - gpCand->eta();
+        double val2 = cand->phi() - gpCand->phi();
+        double deltaR2 = val1*val1+val2*val2;
+        return sqrt(deltaR2) ; 
+    }
+
+
 
     double getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
     double getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );

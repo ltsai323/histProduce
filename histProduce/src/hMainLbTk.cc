@@ -112,7 +112,8 @@ void histMain_LbTk::Process( fwlite::Event* ev )
             //if ( cos2d < 0.99 ) continue;
             if ( vtxprob < 0.15 ) continue;
             //if ( cand.userFloat("Proton.IPt") < 0.03 || cand.userFloat("Kaon.IPt") < 0.03 ) continue;
-            candsSorted.emplace_back( std::pair<double, const pat::CompositeCandidate*>( TMath::Prob( _vtx->chi2(), _vtx->ndof() ), &cand ) );
+            //candsSorted.emplace_back( std::pair<double, const pat::CompositeCandidate*>( TMath::Prob( _vtx->chi2(), _vtx->ndof() ), &cand ) );
+            candsSorted.emplace_back( TMath::Prob( _vtx->chi2(), _vtx->ndof() ), &cand );
             //vtxprobChooser.insert( std::make_pair( TMath::Prob( _vtx->chi2(), _vtx->ndof() ), &cand ) );
         }
         usefulFuncs::sortingByFirstValue( candsSorted );

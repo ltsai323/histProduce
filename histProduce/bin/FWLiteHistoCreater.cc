@@ -38,6 +38,8 @@
 #include "histProduce/histProduce/interface/hMainLam0.h"
 #include "histProduce/histProduce/interface/hMainKshort.h"
 #include "histProduce/histProduce/interface/hMainPV.h"
+#include "histProduce/histProduce/interface/hMainGenInfo.h"
+#include "histProduce/histProduce/interface/hMainTkTkGenParticle.h"
 
 // create histograms from CMSSW based data.
 // use FWLIte to load data.
@@ -165,7 +167,9 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new histMain_ParPlot(&dir) );
     //mainCode.push_back( new histMain_findTkTkFlightDistanceDiff(&dir) );
     //mainCode.push_back( new histMain_findLam0FlightDistanceDiff(&dir) );
+    mainCode.push_back( new histMain_TkTkGenParticle(&dir) );
     mainCode.push_back( new histMain_PV(&dir) );
+    mainCode.push_back( new histMain_GenInformation(&dir) );
 
     int ievt=0;
     for ( const auto& file : inputFiles_ )
