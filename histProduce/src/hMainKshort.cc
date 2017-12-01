@@ -84,10 +84,8 @@ void histMain_Kshort::Process( fwlite::Event* ev )
         //double kaonMass ( 0.493667 );
         double protonMass ( 0.9382720813 );
         double pionMass ( 0.13957061 );
-        int getFirstNEvent = 0;
         while ( iter != iend )
         {
-            //if ( ++getFirstNEvent > 50 ) break;
             const pat::CompositeCandidate& cand = *(iter++->second);
 
             if ( !cand.hasUserFloat( "fitMass" ) ) continue;

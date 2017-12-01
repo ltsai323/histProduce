@@ -17,7 +17,14 @@ histMain_TkTkGenParticle::histMain_TkTkGenParticle( TFileDirectory* d ) :
     createHisto("parTkTkGen_PDGID_ptk", 10000, -5000, 5000 );
     createHisto("parTkTkGen_PDGID_ntk", 10000, -5000, 5000 );
     createHisto("parTkTkGen_eventLost", 10, 0., 10. );
-    createHisto("parTkTkGen_minDeltaR", 1000, 0., 100. );
+    createHisto("parTkTkGen_minDeltaR", 150, 0., 1.5 );
+    createHisto("parTkTkGen_momentumDiffBetweenPairs", 200, -5. ,  5. );
+    createHisto("parTkTkGen_ptDiffBetweenPairs", 120, -3. ,  3. );
+    createHisto("parTkTkGen_momentumDiffProton", 200, -5. ,  5. );
+    createHisto("parTkTkGen_momentumDiffKaon", 200, -5.,  5. );
+    createHisto("parTkTkGen_protonDeDx", 100, 0., 5., 100, 0., 10. );
+    createHisto("parTkTkGen_kaonDeDx"  , 100, 0., 5., 100, 0., 10. );
+    createHisto("parTkTkGen_pionDeDx"  , 100, 0., 5., 100, 0., 10. );
 }
 void histMain_TkTkGenParticle::Process( fwlite::Event* ev )
 {
@@ -55,8 +62,8 @@ void histMain_TkTkGenParticle::Process( fwlite::Event* ev )
             if ( !cand.hasUserFloat("fitMass") ) continue;
             if ( !cand.hasUserData("Proton.fitMom") ) continue;
             if ( !cand.hasUserData("Kaon.fitMom") ) continue;
-            //if ( !cand.hasUserFloat("Proton.dEdx.Harmonic") ) continue;
-            //if ( !cand.hasUserFloat(  "Kaon.dEdx.Harmonic") ) continue;
+            if ( !cand.hasUserFloat("Proton.dEdx.Harmonic") ) continue;
+            if ( !cand.hasUserFloat(  "Kaon.dEdx.Harmonic") ) continue;
             //if ( !cand.hasUserFloat("Proton.dEdx.pixelHrm") ) continue;
             //if ( !cand.hasUserFloat(  "Kaon.dEdx.pixelHrm") ) continue;
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
@@ -84,13 +91,10 @@ void histMain_TkTkGenParticle::Process( fwlite::Event* ev )
         std::vector< std::pair<double, const pat::CompositeCandidate*> >::const_iterator iter = candsSorted.begin();
         std::vector< std::pair<double, const pat::CompositeCandidate*> >::const_iterator iend = candsSorted.end  ();
 
-        //double kaonMass ( 0.493667 );
-        int getFirstNEvent = 0;
         while ( iter != iend )
         {
-            //if ( ++getFirstNEvent > 20 ) break;
             const pat::CompositeCandidate& cand = *(iter++->second);
-            //fillHisto("massTkTk_TkTk", cand.userFloat("fitMass") );
+            fillHisto("massTkTk_TkTk", cand.userFloat("fitMass") );
             
             // first one is proton and second one is kaon ( consider bigger momentum with heavier particle )
             const GlobalVector* dPTR[2] = {nullptr};
@@ -101,12 +105,32 @@ void histMain_TkTkGenParticle::Process( fwlite::Event* ev )
             
             fourMom pTk ( dPTR[0]->x(), dPTR[0]->y(), dPTR[0]->z() );
             fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
-            const reco::GenParticle pParticle = searchForGenParticle( &pTk, 2.0 );
-            const reco::GenParticle nParticle = searchForGenParticle( &nTk, 2.0 );
+            const std::pair< double, reco::GenParticle>& pParticle = searchForGenParticle( &pTk );
+            const std::pair< double, reco::GenParticle>& nParticle = searchForGenParticle( &nTk );
             //if ( !pParticle.status() ) continue;
             //if ( !nParticle.status() ) continue;
-            fillHisto( "parTkTkGen_PDGID_ptk", pParticle.pdgId() );
-            fillHisto( "parTkTkGen_PDGID_ntk", nParticle.pdgId() );
+            fillHisto( "parTkTkGen_PDGID_ptk", pParticle.second.pdgId() );
+            fillHisto( "parTkTkGen_PDGID_ntk", nParticle.second.pdgId() );
+            fillHisto( "parTkTkGen_minDeltaR", pParticle.first );
+            fillHisto( "parTkTkGen_minDeltaR", nParticle.first );
+            fillHisto( "parTkTkGen_ptDiffBetweenPairs", pParticle.second.pt() - pTk.transverse() );
+            fillHisto( "parTkTkGen_ptDiffBetweenPairs", nParticle.second.pt() - nTk.transverse() );
+            fillHisto( "parTkTkGen_momentumDiffBetweenPairs", pParticle.second.p() - pTk.Momentum() );
+            fillHisto( "parTkTkGen_momentumDiffBetweenPairs", nParticle.second.p() - nTk.Momentum() );
+            if ( fabs( pParticle.second.pdgId() ) ==  321 )
+            {
+                fillHisto( "parTkTkGen_kaonDeDx"  , nTk.Momentum(), cand.userFloat(  "Kaon.dEdx.Harmonic") );
+                fillHisto( "parTkTkGen_momentumDiffKaon", nParticle.second.p() - nTk.Momentum() );
+            }
+            if ( fabs( pParticle.second.pdgId() ) == 2212 )
+            {
+                fillHisto( "parTkTkGen_protonDeDx", pTk.Momentum(), cand.userFloat("Proton.dEdx.Harmonic") );
+                fillHisto( "parTkTkGen_momentumDiffProton", pParticle.second.p() - pTk.Momentum() );
+            }
+            if ( fabs( nParticle.second.pdgId() ) ==  211 )
+                fillHisto( "parTkTkGen_pionDeDx",  nTk.Momentum(), cand.userFloat(   "Kaon.dEdx.Harmonic") );
+            if ( fabs( pParticle.second.pdgId() ) ==  211 )
+                fillHisto( "parTkTkGen_pionDeDx",  pTk.Momentum(), cand.userFloat( "Proton.dEdx.Harmonic") );
 //            // reconstruct lambda0
 //            pTk.setMass( protonMass );
 //            nTk.setMass(   pionMass );

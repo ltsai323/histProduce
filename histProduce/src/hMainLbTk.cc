@@ -95,7 +95,7 @@ void histMain_LbTk::Process( fwlite::Event* ev )
             if ( _vtx == nullptr ) continue;
             const pat::CompositeCandidate* jpsiCand = usefulFuncs::getByRef<pat::CompositeCandidate>( cand, "refToJPsi" );
             if ( jpsiCand == nullptr ) continue;
-            const reco::Vertex* _pv = usefulFuncs::get<reco::Vertex>( *jpsiCand, "fitVertex" );
+            const reco::Vertex* _pv = usefulFuncs::getByRef<reco::Vertex>( *jpsiCand, "primaryVertex" );
             if ( _pv == nullptr ) continue;
             double fdbs = usefulFuncs::getFlightDistance ( cand, &bs );
             double fd = usefulFuncs::getFlightDistance ( cand, _pv );

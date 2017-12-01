@@ -9,15 +9,18 @@
 histMain_GenInformation::histMain_GenInformation( TFileDirectory* d ) :
     histMain( d, histMain::Label("", "", "") )
 {
-    createHisto( "ptGenInfo_kaon"   ,  70, 0.,  7. );
-    createHisto( "ptGenInfo_pion"   ,  70, 0.,  7. );
-    createHisto( "ptGenInfo_proton" ,  70, 0.,  7. );
-    createHisto( "momGenInfo_kaon"  , 100, 0., 20. );
-    createHisto( "momGenInfo_pion"  , 100, 0., 20. );
-    createHisto( "momGenInfo_proton", 150, 0., 30. );
+    createHisto( "ptGenInfo_kaonAll"   ,  70, 0.,  7. );
+    createHisto( "ptGenInfo_pionAll"   ,  70, 0.,  7. );
+    createHisto( "ptGenInfo_protonAll" ,  70, 0.,  7. );
+    createHisto( "momGenInfo_kaonAll"  , 100, 0., 20. );
+    createHisto( "momGenInfo_pionAll"  , 100, 0., 20. );
+    createHisto( "momGenInfo_protonAll", 150, 0., 30. );
     createHisto( "momGenInfo_kaonSignal"  , 100, 0., 20. );
     createHisto( "momGenInfo_protonSignal", 150, 0., 30. );
     createHisto( "massGenInfo_LbSignal",  80, 5.4, 5.8 );
+    createHisto( "massGenInfo_pKSignal",  110, 1.4, 2.5 );
+    createHisto( "ptGenInfo_LbSignal",  80, 8.0,40.0 );
+    createHisto( "ptGenInfo_pKSignal", 200, 0., 20.0 );
 }
 void histMain_GenInformation::Process( fwlite::Event* ev )
 {
@@ -38,19 +41,16 @@ void histMain_GenInformation::Process( fwlite::Event* ev )
             if ( gParticle.status() < 2 )
             {
                 if ( fabs( gParticle.pdgId() ) == 321 )
-                {
-                    fillHisto( "ptGenInfo_kaon", gParticle.pt() );
-                    fillHisto( "momGenInfo_kaon", gParticle.p() );
-                }
+                    fillHisto( "ptGenInfo_kaonAll", gParticle.pt() );
                 if ( fabs( gParticle.pdgId() ) == 211 )
                 {
-                    fillHisto( "ptGenInfo_pion", gParticle.pt() );
-                    fillHisto( "momGenInfo_pion", gParticle.p() );
+                    fillHisto( "ptGenInfo_pionAll", gParticle.pt() );
+                    fillHisto( "momGenInfo_pionAll", gParticle.p() );
                 }
                 if ( fabs( gParticle.pdgId() ) == 2212 )
                 {
-                    fillHisto( "ptGenInfo_proton", gParticle.pt() );
-                    fillHisto( "momGenInfo_proton", gParticle.p() );
+                    fillHisto( "ptGenInfo_protonAll", gParticle.pt() );
+                    fillHisto( "momGenInfo_protonAll", gParticle.p() );
                 }
                 if ( fabs( gParticle.pdgId() ) == 321 )
                     if ( fabs( gParticle.mother()->pdgId() ) == 5122 && 
@@ -64,7 +64,32 @@ void histMain_GenInformation::Process( fwlite::Event* ev )
                     fillHisto( "momGenInfo_protonSignal", gParticle.p() );
             }
             if ( fabs( gParticle.pdgId() ) == 5122 )
+            {
                 fillHisto( "massGenInfo_LbSignal", gParticle.mass() );
+                fillHisto( "ptGenInfo_LbSignal", gParticle.pt() );
+                const reco::Candidate* protonDau = nullptr;
+                const reco::Candidate*   kaonDau = nullptr;
+                for ( unsigned i=0;i < gParticle.numberOfDaughters(); ++i )
+                {
+                    const reco::Candidate* dau = gParticle.daughter(i);
+                    if ( fabs( dau->pdgId() ) == 2212 )
+                        protonDau = dau;
+                    //    fillHisto( "momGenInfo_protonSignal", dau->pdgId() );
+                    if ( fabs( dau->pdgId() ) == 321 )
+                        kaonDau = dau;
+                    //    fillHisto( "momGenInfo_kaonSignal", dau->pdgId() );
+                }
+                if ( protonDau && kaonDau )
+                {
+                    fourMom prot( protonDau->energy(), protonDau->px(), protonDau->py(), protonDau->pz() );
+                    fourMom kaon( kaonDau->energy(), kaonDau->px(), kaonDau->py(), kaonDau->pz() );
+                    fourMom tktk = prot + kaon;
+                    fillHisto( "massGenInfo_pKSignal", tktk.Mag() );
+                    fillHisto( "ptGenInfo_pKSignal", tktk.transverse() );
+                }
+
+
+            }
 
         }
 
