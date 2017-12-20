@@ -1,15 +1,15 @@
-#ifndef __hMainTkTkGenParticle_h__
-#define __hMainTkTkGenParticle_h__
+#ifndef __hMainLbTkGenParticle_h__
+#define __hMainLbTkGenParticle_h__
 #include "histProduce/histProduce/interface/hMain.h"
 #include "histProduce/histProduce/interface/usefulFuncs.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include <vector>
 #include <utility> // std::pair
 
-class histMain_TkTkGenParticle : public histMain
+class histMain_LbTkGenParticle : public histMain
 {
 public:
-    histMain_TkTkGenParticle ( TFileDirectory* d);
+    histMain_LbTkGenParticle ( TFileDirectory* d);
     virtual void Process( fwlite::Event* ev ) override;
     virtual void Clear() override;
 private:

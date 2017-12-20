@@ -1,15 +1,15 @@
-#ifndef __hMainTkTkGenParticle_h__
-#define __hMainTkTkGenParticle_h__
+#ifndef __hMainJPsiGenParticle_h__
+#define __hMainJPsiGenParticle_h__
 #include "histProduce/histProduce/interface/hMain.h"
 #include "histProduce/histProduce/interface/usefulFuncs.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include <vector>
 #include <utility> // std::pair
 
-class histMain_TkTkGenParticle : public histMain
+class histMain_JPsiGenParticle : public histMain
 {
 public:
-    histMain_TkTkGenParticle ( TFileDirectory* d);
+    histMain_JPsiGenParticle ( TFileDirectory* d);
     virtual void Process( fwlite::Event* ev ) override;
     virtual void Clear() override;
 private:
@@ -34,14 +34,7 @@ template< typename myParticle >
         {
             const reco::GenParticle& _genParticle = *iter++;
             // only keep pion, kaon, proton
-            if ( _genParticle.status() != 1 ) continue;
-            if ( fabs( _genParticle.pdgId() ) != 211 )
-                if ( fabs( _genParticle.pdgId() ) != 321 )
-                    if ( fabs( _genParticle.pdgId() ) != 2212 )
-                        continue;
-            double deltaPT = fabs( cand->transverse() - _genParticle.pt() );
-            if ( deltaPT/cand->transverse() > 1.0 ) continue;
-
+            if ( fabs( _genParticle.pdgId() ) != 13 ) continue;
             //if ( fabs( _genParticle.pt() - cand->transverse() ) > 0.5 ) continue;
             double tmpDeltaRVal = usefulFuncs::mcMatchVal( cand, &_genParticle );
             if ( tmpDeltaRVal < minDeltaRVal )

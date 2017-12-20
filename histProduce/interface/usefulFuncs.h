@@ -4,6 +4,7 @@
 #include <utility> // std::pair
 #include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
+#include "TVector2.h"
 
 namespace usefulFuncs
 {
@@ -26,6 +27,8 @@ template< typename T >
         }
         return nullptr;
     }
+
+// sort result: large key to small key
 template< typename key, typename val >
     void sortingByFirstValue( std::vector< std::pair<key, val> >& myVector )
     {
@@ -51,7 +54,7 @@ template< typename myParticle >
         if ( cand == nullptr ) return false;
         if ( gpCand == nullptr ) return false;
         double val1 = cand->eta() - gpCand->eta();
-        double val2 = cand->phi() - gpCand->phi();
+        double val2 = TVector2::Phi_mpi_pi( cand->phi() - gpCand->phi() );
         double deltaR2 = val1*val1+val2*val2;
         return (deltaR2 < minDeltaR*minDeltaR) ? true : false;
     }
@@ -62,7 +65,7 @@ template< typename myParticle >
         if ( cand == nullptr ) return 9999.;
         if ( gpCand == nullptr ) return 9999.;
         double val1 = cand->eta() - gpCand->eta();
-        double val2 = cand->phi() - gpCand->phi();
+        double val2 = TVector2::Phi_mpi_pi( cand->phi() - gpCand->phi() );
         double deltaR2 = val1*val1+val2*val2;
         return sqrt(deltaR2) ; 
     }

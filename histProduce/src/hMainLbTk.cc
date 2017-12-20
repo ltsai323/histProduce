@@ -32,9 +32,9 @@ histMain_LbTk::histMain_LbTk( TFileDirectory* d ) :
     createHisto( "parLbTk_cosa2d"           , 100, -1.0, 1.0 );
     createHisto( "parLbTk_cosa2dBS"         , 100, -1.0, 1.0 );
     createHisto( "parLbTk_vtxprob"          , 100,   0.,   1.);
-    createHisto( "parLbTk_FlightDistance"   ,  65,-0.05,0.060);
-    createHisto( "parLbTk_FDBS"             ,  75,-0.05,0.700);
-    createHisto( "parLbTk_distBS_PV"        , 105,-0.05,1.000);
+    createHisto( "parLbTk_FlightDistance"   , 150,-0.05,0.700);
+    createHisto( "parLbTk_FDBS"             , 150,-0.05,0.700);
+    createHisto( "parLbTk_distBS_PV"        ,  45,-0.05,0.100);
 
     createHisto( "parLbTk_Harmonic_Signal_ptk", 100, 0., 5., 100, 0., 10. );
     createHisto( "parLbTk_PixelHrm_Signal_ptk", 100, 0., 5., 100, 0., 10. );
@@ -146,9 +146,9 @@ void histMain_LbTk::Process( fwlite::Event* ev )
                 fillHisto( "parLbTk_Harmonic_Signal_ntk" , nTk.Momentum(), cand.userFloat("TkTk/Kaon.dEdx.Harmonic") );
                 //fillHisto( "parLbTk_PixelHrm_Signal_ntk" , nTk.Momentum(), cand.userFloat("TkTk/Kaon.dEdx.pixelHrm") );
                 fillHisto( "parLbTk_Signal_pIPt" , cand.userFloat("TkTk/Proton.IPt") );
-                fillHisto( "parLbTk_Signal_pIPt" , cand.userFloat(  "TkTk/Kaon.IPt") );
+                fillHisto( "parLbTk_Signal_nIPt" , cand.userFloat(  "TkTk/Kaon.IPt") );
                 fillHisto( "parLbTk_Signal_pIPt/Err" , cand.userFloat("TkTk/Proton.IPt") / cand.userFloat("TkTk/Proton.IPt.Error") );
-                fillHisto( "parLbTk_Signal_pIPt/Err" , cand.userFloat(  "TkTk/Kaon.IPt") / cand.userFloat(  "TkTk/Kaon.IPt.Error") );
+                fillHisto( "parLbTk_Signal_nIPt/Err" , cand.userFloat(  "TkTk/Kaon.IPt") / cand.userFloat(  "TkTk/Kaon.IPt.Error") );
             }
             else
             {
@@ -157,9 +157,9 @@ void histMain_LbTk::Process( fwlite::Event* ev )
                 fillHisto( "parLbTk_Harmonic_Backgd_ntk" , nTk.Momentum(), cand.userFloat("TkTk/Kaon.dEdx.Harmonic") );
                 //fillHisto( "parLbTk_PixelHrm_Backgd_ntk" , nTk.Momentum(), cand.userFloat("TkTk/Kaon.dEdx.pixelHrm") );
                 fillHisto( "parLbTk_Backgd_pIPt" , cand.userFloat("TkTk/Proton.IPt") );
-                fillHisto( "parLbTk_Backgd_pIPt" , cand.userFloat(  "TkTk/Kaon.IPt") );
+                fillHisto( "parLbTk_Backgd_nIPt" , cand.userFloat(  "TkTk/Kaon.IPt") );
                 fillHisto( "parLbTk_Backgd_pIPt/Err" , cand.userFloat("TkTk/Proton.IPt") / cand.userFloat("TkTk/Proton.IPt.Error") );
-                fillHisto( "parLbTk_Backgd_pIPt/Err" , cand.userFloat(  "TkTk/Kaon.IPt") / cand.userFloat(  "TkTk/Kaon.IPt.Error") );
+                fillHisto( "parLbTk_Backgd_nIPt/Err" , cand.userFloat(  "TkTk/Kaon.IPt") / cand.userFloat(  "TkTk/Kaon.IPt.Error") );
             }
 
             pTk.setMass( myMass::protonMass );

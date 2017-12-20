@@ -23,7 +23,7 @@ histMain_JPsiGenParticle::histMain_JPsiGenParticle( TFileDirectory* d ) :
     createHisto("parJPsiGen_MuNegDeDx"  , 100, 0., 5., 100, 0., 10. );
 }
 void histMain_JPsiGenParticle::Process( fwlite::Event* ev )
-
+{
     try 
     {
         if ( !ev->isValid() ) return;
@@ -52,6 +52,7 @@ void histMain_JPsiGenParticle::Process( fwlite::Event* ev )
             if ( !cand.hasUserData("primaryVertex") ) continue;
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) continue;
+            double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
             candsSorted.emplace_back( vtxprob, &cand );
         } // preselection end }}}
         usefulFuncs::sortingByFirstValue( candsSorted );
@@ -78,8 +79,8 @@ void histMain_JPsiGenParticle::Process( fwlite::Event* ev )
             const std::pair< double, reco::GenParticle>& nParticle = searchForGenParticle( &nTk );
             //if ( !pParticle.status() ) continue;
             //if ( !nParticle.status() ) continue;
-            fillHisto( "parJPsiGen_PDGID_ptk", pParticle.second.pdgId() );
-            fillHisto( "parJPsiGen_PDGID_ntk", nParticle.second.pdgId() );
+            fillHisto( "parJPsiGen_PDGID_MuPos", pParticle.second.pdgId() );
+            fillHisto( "parJPsiGen_PDGID_MuNeg", nParticle.second.pdgId() );
             fillHisto( "parJPsiGen_minDeltaR", pParticle.first );
             fillHisto( "parJPsiGen_minDeltaR", nParticle.first );
             fillHisto( "parJPsiGen_ptDiffBetweenPairs", pParticle.second.pt() - pTk.transverse() );
@@ -88,7 +89,12 @@ void histMain_JPsiGenParticle::Process( fwlite::Event* ev )
             fillHisto( "parJPsiGen_momentumDiffBetweenPairs", nParticle.second.p() - nTk.Momentum() );
             if ( fabs( pParticle.second.pdgId() ) ==  13 )
             {
-                fillHisto( "parJPsiGen_MuNugDeDx"  , nTk.Momentum(), cand.userFloat(  "MuNeg.dEdx.Harmonic") );
+                fillHisto( "parJPsiGen_MuPosDeDx"  , pTk.Momentum(), cand.userFloat(  "MuPos.dEdx.Harmonic") );
+                fillHisto( "parJPsiGen_momentumDiffMuPos", pParticle.second.p() - nTk.Momentum() );
+            }
+            if ( fabs( nParticle.second.pdgId() ) ==  13 )
+            {
+                fillHisto( "parJPsiGen_MuNegDeDx"  , nTk.Momentum(), cand.userFloat(  "MuNeg.dEdx.Harmonic") );
                 fillHisto( "parJPsiGen_momentumDiffMuNeg", nParticle.second.p() - nTk.Momentum() );
             }
         }
