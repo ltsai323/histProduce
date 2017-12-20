@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 
   // default path
   std::string dPath = std::string(getenv("CMSSW_BASE")) + "/src/histProduce/histProduce/python/";
-  std::string aaa = "histogramPlotParameter";
+  std::string aaa = "histoWithPythonPar";
   std::string fPath = dPath+aaa+"_cfi.py";
   
   //if( !edm::readPSetsFrom(argv[1])->existsAs<edm::ParameterSet>("process") ){

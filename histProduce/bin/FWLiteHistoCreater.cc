@@ -28,6 +28,36 @@
 #include "histProduce/histProduce/interface/hMainLbTk.h"
 #include "histProduce/histProduce/interface/hMainBs.h"
 #include "histProduce/histProduce/interface/hMainfindParDiff.h"
+#include "histProduce/histProduce/interface/hMainfindIPdiff.h"
+#include "histProduce/histProduce/interface/hMainParPlot.h"
+#include "histProduce/histProduce/interface/hMainfindVtxprobDiff.h"
+#include "histProduce/histProduce/interface/hMainfindFDdiff.h"
+#include "histProduce/histProduce/interface/hMainfindTkTkFDdiff.h"
+#include "histProduce/histProduce/interface/hMainfindLam0FDdiff.h"
+#include "histProduce/histProduce/interface/hMainTkTk.h"
+#include "histProduce/histProduce/interface/hMainLam0.h"
+#include "histProduce/histProduce/interface/hMainKshort.h"
+#include "histProduce/histProduce/interface/hMainPV.h"
+#include "histProduce/histProduce/interface/hMainGenInfo.h"
+#include "histProduce/histProduce/interface/hMainTkTkGenParticle.h"
+#include "histProduce/histProduce/interface/hMainLam0GenParticle.h"
+#include "histProduce/histProduce/interface/hMainLbTkGenParticle.h"
+#include "histProduce/histProduce/interface/hMainLbL0GenParticle.h"
+#include "histProduce/histProduce/interface/hMainJPsiGenParticle.h"
+
+// create histograms from CMSSW based data.
+// use FWLIte to load data.
+// this file just write down:
+// 1. the argument you should or can input.
+// 2. apply general cuts known.
+// 3. loop the event.
+//
+// And the content in the loop is written in histProduce/histProduce/src/hMain????.cc
+// every hMain??? decides what to do in each event.
+// Normally, create a histogram and fill it. Save it into root file to be ploted.
+//
+// usage:
+//     hCreate filelist=fileList
 
 // initialize static member
 //std::vector<generalCutList*>* histMain::_cutLists = NULL;
@@ -71,7 +101,7 @@ int main(int argc, char* argv[])
     // set defaults for testFile is assigned
     parser.integerValue ("maxEvents"  ) = -1;
     parser.integerValue ("outputEvery") = 1000;
-    parser.stringValue  ("outputFile" ) = "histoTestOutput.root";
+    parser.stringValue  ("outputFile" ) = "histTestOutput.root";
 
     // parse arguments
     parser.parseArguments (argc, argv);
@@ -119,19 +149,35 @@ int main(int argc, char* argv[])
     using namespace myCut;
     // general cut applied
     std::vector<generalCutList*> cutLists;
-    cutLists.push_back( new      vtxprobCut(0.15,-99. ) );
-    cutLists.push_back( new         massCut(5.0 ,  6.0) );
-    cutLists.push_back( new       cosa2dCut(0.99      ) );
-    cutLists.push_back( new           ptCut(15  ,-99. ) );
-    cutLists.push_back( new flightDist2DCut(0.2 ,-99. ) );
+    //cutLists.push_back( new           vtxprobCut(0.15,-99. ) );
+    cutLists.push_back( new              massCut(5.0 ,  6.0) );
+    cutLists.push_back( new            cosa2dCut(0.99      ) );
+    cutLists.push_back( new                ptCut(15  ,-99. ) );
+    cutLists.push_back( new flightDist2DSigmaCut( 2., -99. ) );
     histMain::setCutList( &cutLists );
 
     // set main code.
     std::vector<histMain*> mainCode;
-    //mainCode.push_back( new histMain_LbL0(&dir) );
+    mainCode.push_back( new histMain_LbL0(&dir) );
+    mainCode.push_back( new histMain_Lam0GenParticle(&dir) );
     //mainCode.push_back( new histMain_Bs(&dir) );
-    mainCode.push_back( new histMain_LbTk(&dir) );
-    mainCode.push_back( new histMain_findParDiff(&dir) );
+    //mainCode.push_back( new histMain_LbTk(&dir) );
+    //mainCode.push_back( new histMain_LbTkGenParticle(&dir) );
+    mainCode.push_back( new histMain_LbL0GenParticle(&dir) );
+    //mainCode.push_back( new histMain_TkTk(&dir) );
+    //mainCode.push_back( new histMain_Lam0(&dir) );
+    //mainCode.push_back( new histMain_Kshort(&dir) );
+    //mainCode.push_back( new histMain_findParDiff(&dir) );
+    //mainCode.push_back( new histMain_findIPdiff(&dir) );
+    //mainCode.push_back( new histMain_findVtxprobDiff(&dir) );
+    //mainCode.push_back( new histMain_findFlightDistanceDiff(&dir) );
+    //mainCode.push_back( new histMain_ParPlot(&dir) );
+    //mainCode.push_back( new histMain_findTkTkFlightDistanceDiff(&dir) );
+    //mainCode.push_back( new histMain_findLam0FlightDistanceDiff(&dir) );
+    //mainCode.push_back( new histMain_TkTkGenParticle(&dir) );
+    //mainCode.push_back( new histMain_JPsiGenParticle(&dir) );
+    //mainCode.push_back( new histMain_PV(&dir) );
+    //mainCode.push_back( new histMain_GenInformation(&dir) );
 
     int ievt=0;
     for ( const auto& file : inputFiles_ )
@@ -140,9 +186,9 @@ int main(int argc, char* argv[])
         TFile* inFile = TFile::Open( ("file://"+file).c_str() );
         if( !inFile ) continue;
         // ----------------------------------------------------------------------
-        // Second Part: 
+        // Second Part:
         //
-        //  * loop the events in the input file 
+        //  * loop the events in the input file
         //  * receive the collections of interest via fwlite::Handle
         //  * fill the histograms
         //  * after the loop close the input file
@@ -151,11 +197,11 @@ int main(int argc, char* argv[])
         for(ev.toBegin(); !ev.atEnd(); ++ev, ++ievt)
         {
 	        //edm::EventBase const & event = ev;
-	        // break loop if maximal number of events is reached 
-	        if(maxEvents_>0 ? ievt+1>maxEvents_ : false) 
+	        // break loop if maximal number of events is reached
+	        if(maxEvents_>0 ? ievt+1>maxEvents_ : false)
             { terminateLoop = true; break; }
 	        // simple event counter
-            if ( ievt > 0 && ievt%outputEvery_ == 0 ) 
+            if ( ievt > 0 && ievt%outputEvery_ == 0 )
             {
                 printf( "\r  processing event: %i", ievt );
                 fflush( stdout );
