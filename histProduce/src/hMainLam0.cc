@@ -8,7 +8,7 @@
 
 histMain_Lam0::histMain_Lam0( TFileDirectory* d ) :
     //histMain( d, histMain::Label("lbWriteSpecificDecay", "Lam0Cand", "bphAnalysis") )
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "Lam0Fitted", "bphAnalysis") )
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "Lam0Fitted", "bphAnalysis"), "Lam0" )
 {
     createHisto( "candInEvent_Lam0"         , 160,  0.0, 1600.);
     createHisto( "candInVtxsort_Lam0"       ,  40,  0.0, 400.);
@@ -36,7 +36,7 @@ histMain_Lam0::histMain_Lam0( TFileDirectory* d ) :
 }
 void histMain_Lam0::Process( fwlite::Event* ev )
 {
-    try 
+    try
     {
         if ( !ev->isValid() ) return;
         _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
@@ -47,7 +47,7 @@ void histMain_Lam0::Process( fwlite::Event* ev )
         if ( !beamSpotHandle.isValid() ) return;
         if ( _handle->size()  == 0 ) return;
         const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
-    
+
         std::map< double, const pat::CompositeCandidate*> vtxprobChooser;
         vtxprobChooser.clear();
         std::vector<pat::CompositeCandidate>::const_iterator handleIter = _handle->begin();
@@ -89,7 +89,7 @@ void histMain_Lam0::Process( fwlite::Event* ev )
         {
             const pat::CompositeCandidate& cand = *(iter++->second);
             fillHisto("massLam0_Lam0", cand.userFloat("fitMass") );
-            
+
             // first one is proton and second one is kaon ( consider bigger momentum with heavier particle )
             const GlobalVector* dPTR[2] = {nullptr};
             dPTR[0] = cand.userData<GlobalVector>("Proton.fitMom");
@@ -97,7 +97,7 @@ void histMain_Lam0::Process( fwlite::Event* ev )
             fillHisto("ptLam0_Proton", dPTR[0]->transverse() );
             fillHisto("ptLam0_Pion"  , dPTR[1]->transverse() );
 
-            
+
             fourMom pTk ( dPTR[0]->x(), dPTR[0]->y(), dPTR[0]->z() );
             fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
             // reconstruct lambda0

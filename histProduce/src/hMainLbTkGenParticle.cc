@@ -8,7 +8,7 @@
 
 
 histMain_LbTkGenParticle::histMain_LbTkGenParticle( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis") ),
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis"), "LbTkGenInfo" ),
     protonMass( 0.9382720813 ), pionMass( 0.13957061 )
 {
     createHisto("parLbTkGen_PDGID_ptk", 10000, -5000, 5000 );
@@ -26,7 +26,7 @@ histMain_LbTkGenParticle::histMain_LbTkGenParticle( TFileDirectory* d ) :
 }
 void histMain_LbTkGenParticle::Process( fwlite::Event* ev )
 {
-    try 
+    try
     {
         if ( !ev->isValid() ) return;
         _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
@@ -39,7 +39,7 @@ void histMain_LbTkGenParticle::Process( fwlite::Event* ev )
         if ( _handle->size()  == 0 ) return;
         if ( genHandle->size() == 0 ) return;
         const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
-    
+
         //std::map< double, const pat::CompositeCandidate*> vtxprobChooser;
         std::vector< std::pair< double, const pat::CompositeCandidate*> > candsSorted;
         candsSorted.reserve( _handle->size() );
@@ -72,12 +72,12 @@ void histMain_LbTkGenParticle::Process( fwlite::Event* ev )
             const pat::CompositeCandidate& cand = *(iter++->second);
             if ( cand.userFloat("fitMass") > 5.65 ) continue;
             if ( cand.userFloat("fitMass") > 5.58 ) continue;
-            
+
             // first one is proton and second one is kaon ( consider bigger momentum with heavier particle )
             const GlobalVector* dPTR[2] = {nullptr};
             dPTR[0] = cand.userData<GlobalVector>("TkTk/Proton.fitMom");
             dPTR[1] = cand.userData<GlobalVector>("TkTk/Kaon.fitMom");
-            
+
             fourMom pTk ( dPTR[0]->x(), dPTR[0]->y(), dPTR[0]->z() );
             fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
             const std::pair< double, reco::GenParticle>& pParticle = searchForGenParticle( &pTk );

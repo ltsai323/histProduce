@@ -7,7 +7,7 @@
 
 
 histMain_TkTk::histMain_TkTk( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis") )
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis"), "TkTk" )
 {
     createHisto( "candInEvent_TkTk"         , 160,  0.0, 1600.);
     createHisto( "candInVtxsort_TkTk"       ,  40,  0.0, 400.);
@@ -35,7 +35,7 @@ histMain_TkTk::histMain_TkTk( TFileDirectory* d ) :
 }
 void histMain_TkTk::Process( fwlite::Event* ev )
 {
-    try 
+    try
     {
         if ( !ev->isValid() ) return;
         _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
@@ -46,7 +46,7 @@ void histMain_TkTk::Process( fwlite::Event* ev )
         if ( !beamSpotHandle.isValid() ) return;
         if ( _handle->size()  == 0 ) return;
         const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
-    
+
         std::map< double, const pat::CompositeCandidate*> vtxprobChooser;
         vtxprobChooser.clear();
         std::vector<pat::CompositeCandidate>::const_iterator handleIter = _handle->begin();
@@ -88,7 +88,7 @@ void histMain_TkTk::Process( fwlite::Event* ev )
         {
             const pat::CompositeCandidate& cand = *(iter++->second);
             fillHisto("massTkTk_TkTk", cand.userFloat("fitMass") );
-            
+
             // first one is proton and second one is kaon ( consider bigger momentum with heavier particle )
             const GlobalVector* dPTR[2] = {nullptr};
             dPTR[0] = cand.userData<GlobalVector>("Proton.fitMom");
@@ -96,7 +96,7 @@ void histMain_TkTk::Process( fwlite::Event* ev )
             fillHisto("ptTkTk_Proton", dPTR[0]->transverse() );
             fillHisto("ptTkTk_Kaon"  , dPTR[1]->transverse() );
 
-            
+
             fourMom pTk ( dPTR[0]->x(), dPTR[0]->y(), dPTR[0]->z() );
             fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
             // reconstruct lambda0

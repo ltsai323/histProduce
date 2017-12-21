@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
     parser.addOption("configFile",optutl::CommandLineParser::kString,"the plot options recorded in python file","histogramPlotParameter");
     // set defaults for testFile is assigned
     parser.integerValue ("maxEvents"  ) = -1;
-    parser.integerValue ("outputEvery") = 1000;
+    parser.integerValue ("outputEvery") = -1;
     parser.stringValue  ("outputFile" ) = "histTestOutput.root";
 
     // parse arguments
@@ -158,26 +158,26 @@ int main(int argc, char* argv[])
 
     // set main code.
     std::vector<histMain*> mainCode;
-    mainCode.push_back( new histMain_LbL0(&dir) );
-    mainCode.push_back( new histMain_Lam0GenParticle(&dir) );
-    //mainCode.push_back( new histMain_Bs(&dir) );
-    //mainCode.push_back( new histMain_LbTk(&dir) );
-    //mainCode.push_back( new histMain_LbTkGenParticle(&dir) );
-    mainCode.push_back( new histMain_LbL0GenParticle(&dir) );
     //mainCode.push_back( new histMain_TkTk(&dir) );
-    //mainCode.push_back( new histMain_Lam0(&dir) );
+    mainCode.push_back( new histMain_Lam0(&dir) );
     //mainCode.push_back( new histMain_Kshort(&dir) );
+    //mainCode.push_back( new histMain_LbTk(&dir) );
+    mainCode.push_back( new histMain_LbL0(&dir) );
+    //mainCode.push_back( new histMain_Bs(&dir) );
     //mainCode.push_back( new histMain_findParDiff(&dir) );
     //mainCode.push_back( new histMain_findIPdiff(&dir) );
     //mainCode.push_back( new histMain_findVtxprobDiff(&dir) );
-    //mainCode.push_back( new histMain_findFlightDistanceDiff(&dir) );
     //mainCode.push_back( new histMain_ParPlot(&dir) );
+    //mainCode.push_back( new histMain_findFlightDistanceDiff(&dir) );
     //mainCode.push_back( new histMain_findTkTkFlightDistanceDiff(&dir) );
     //mainCode.push_back( new histMain_findLam0FlightDistanceDiff(&dir) );
-    //mainCode.push_back( new histMain_TkTkGenParticle(&dir) );
-    //mainCode.push_back( new histMain_JPsiGenParticle(&dir) );
     //mainCode.push_back( new histMain_PV(&dir) );
     //mainCode.push_back( new histMain_GenInformation(&dir) );
+    //mainCode.push_back( new histMain_JPsiGenParticle(&dir) );
+    //mainCode.push_back( new histMain_Lam0GenParticle(&dir) );
+    //mainCode.push_back( new histMain_TkTkGenParticle(&dir) );
+    //mainCode.push_back( new histMain_LbTkGenParticle(&dir) );
+    //mainCode.push_back( new histMain_LbL0GenParticle(&dir) );
 
     int ievt=0;
     for ( const auto& file : inputFiles_ )
@@ -201,7 +201,8 @@ int main(int argc, char* argv[])
 	        if(maxEvents_>0 ? ievt+1>maxEvents_ : false)
             { terminateLoop = true; break; }
 	        // simple event counter
-            if ( ievt > 0 && ievt%outputEvery_ == 0 )
+            if ( outputEvery_ > 0 )
+                if ( ievt > 0 && ievt%outputEvery_ == 0 )
             {
                 printf( "\r  processing event: %i", ievt );
                 fflush( stdout );
@@ -226,9 +227,6 @@ int main(int argc, char* argv[])
         _main->Clear();
         delete _main;
     }
-
-    // there is no need to delete histogram in TDirectory
-    // histMain::clearHisto;
 
     printf("\n");
     return 0;

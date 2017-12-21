@@ -7,7 +7,7 @@
 
 
 histMain_findTkTkFlightDistanceDiff::histMain_findTkTkFlightDistanceDiff( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis") )
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis"), "TkTkFDdiff" )
 {
     _nMap[fd030] = "fd030";
     _nMap[fd060] = "fd060";
@@ -26,7 +26,7 @@ histMain_findTkTkFlightDistanceDiff::histMain_findTkTkFlightDistanceDiff( TFileD
 }
 void histMain_findTkTkFlightDistanceDiff::Process( fwlite::Event* ev )
 {
-    try 
+    try
     {
         if ( !ev->isValid() ) return;
         _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
@@ -36,7 +36,7 @@ void histMain_findTkTkFlightDistanceDiff::Process( fwlite::Event* ev )
         beamSpotHandle.getByLabel( *ev,"offlineBeamSpot", "", "RECO"  );
         if ( !beamSpotHandle.isValid() ) return;
         const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
-    
+
         std::map< double, const pat::CompositeCandidate*> vtxprobChooser;
         std::vector<pat::CompositeCandidate>::const_iterator handleIter = _handle->begin();
         std::vector<pat::CompositeCandidate>::const_iterator handleIend = _handle->end  ();
@@ -67,7 +67,7 @@ void histMain_findTkTkFlightDistanceDiff::Process( fwlite::Event* ev )
             if ( cos2d < 0.99 ) continue;
 
             //if ( ++vtxprobSortLimit > 2 ) break;
-            
+
             // boolean int to recognize the tags, if all tags are false, fill in the histogram: massTkTk_withCuts
             std::map< double, const reco::Candidate* > dauMap;
             for ( unsigned i=0; i<cand.numberOfDaughters(); ++i )
@@ -75,7 +75,7 @@ void histMain_findTkTkFlightDistanceDiff::Process( fwlite::Event* ev )
                 const reco::Candidate* dPtr = cand.daughter(i);
                 dauMap.insert( std::make_pair( dPtr->pt(), dPtr ) );
             }
-            
+
             if ( dauMap.size() != 2 ) continue;
             std::map< double, const reco::Candidate* >::const_reverse_iterator dauRIter = dauMap.rbegin();
             std::map< double, const reco::Candidate* >::const_reverse_iterator dauRIend = dauMap.rend  ();
@@ -84,7 +84,7 @@ void histMain_findTkTkFlightDistanceDiff::Process( fwlite::Event* ev )
             int IDX = 0;
             while ( dauRIter != dauRIend )
                 dPTR[IDX++] = dauRIter++->second;
-            
+
             fourMom pTk ( dPTR[0]->px(), dPTR[0]->py(), dPTR[0]->pz() );
             fourMom nTk ( dPTR[1]->px(), dPTR[1]->py(), dPTR[1]->pz() );
             // reconstruct lambda0

@@ -7,7 +7,7 @@
 
 
 histMain_Kshort::histMain_Kshort( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "KshortCand", "bphAnalysis") )
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "KshortCand", "bphAnalysis"), "Kshort" )
 {
     createHisto( "candInEvent_Kshort", 1000, 0.0, 120000. );
     createHisto( "candInVtxSort_Kshort", 50, 0.0, 250. );
@@ -30,7 +30,7 @@ histMain_Kshort::histMain_Kshort( TFileDirectory* d ) :
 }
 void histMain_Kshort::Process( fwlite::Event* ev )
 {
-    try 
+    try
     {
         if ( !ev->isValid() ) return;
         _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
@@ -40,7 +40,7 @@ void histMain_Kshort::Process( fwlite::Event* ev )
         beamSpotHandle.getByLabel( *ev,"offlineBeamSpot", "", "RECO"  );
         if ( !beamSpotHandle.isValid() ) return;
         const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
-    
+
         std::map< double, const pat::CompositeCandidate*> vtxprobChooser;
         std::vector<pat::CompositeCandidate>::const_iterator handleIter = _handle->begin();
         std::vector<pat::CompositeCandidate>::const_iterator handleIend = _handle->end  ();
@@ -90,7 +90,7 @@ void histMain_Kshort::Process( fwlite::Event* ev )
 
             if ( !cand.hasUserFloat( "fitMass" ) ) continue;
             fillHisto( "massKshort_Kshort", cand.userFloat("fitMass") );
-            
+
             const GlobalVector* dPTR[2] = { nullptr };
             dPTR[0] = cand.userData<GlobalVector>("PiPos.fitMom");
             dPTR[1] = cand.userData<GlobalVector>("PiNeg.fitMom");
@@ -115,7 +115,7 @@ void histMain_Kshort::Process( fwlite::Event* ev )
                 fillHisto( "specialPtKshort_FakeLam0", twoTk.transverse() );
                 fillHisto( "specialPtDiffKshort_FakeLam0", fabs( pTk.transverse() - nTk.transverse() ) );
             }
-            
+
             // reconstruct k short
             pTk.setMass( pionMass );
             twoTk = pTk + nTk;

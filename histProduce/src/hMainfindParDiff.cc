@@ -6,7 +6,7 @@
 
 
 histMain_findParDiff::histMain_findParDiff( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis") )
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis"), "parDiff" )
 {
     using namespace myCut;
 
@@ -38,7 +38,7 @@ histMain_findParDiff::histMain_findParDiff( TFileDirectory* d ) :
 }
 void histMain_findParDiff::Process( fwlite::Event* ev )
 {
-    try 
+    try
     {
         if ( !ev->isValid() ) return;
         _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
@@ -58,7 +58,7 @@ void histMain_findParDiff::Process( fwlite::Event* ev )
                 { cutTag = true; break; }
             }
             if ( cutTag ) continue;
-   
+
 
 
             for ( auto& name : _nMap )
@@ -102,7 +102,7 @@ void histMain_findParDiff::Process( fwlite::Event* ev )
                 nmu.setMass( 0.1056583715 );
 
                 fourMom fourTk = pTk + nTk + pmu + nmu;
-    
+
                 pTk.setMass( 0.493667 );
                 nTk.setMass( 0.13957061 );
                 fourTk = pTk + nTk + pmu + nmu;
@@ -113,7 +113,7 @@ void histMain_findParDiff::Process( fwlite::Event* ev )
                     fillHisto( dirname+"massFakeBd_withCuts", fourTk.Mag() );
                 if ( fourTk.Mag() > 5.2 && fourTk.Mag() < 5.35 )
                     fillHisto( dirname+"massFakeK892", twoTk.Mag() );
-    
+
                 pTk.setMass( 0.493667 );
                 nTk.setMass( 0.493667 );
                 fourTk = pTk + nTk + pmu + nmu;
@@ -124,7 +124,7 @@ void histMain_findParDiff::Process( fwlite::Event* ev )
                     fillHisto( dirname+"massFakeBs_withCuts", fourTk.Mag() );
                 if ( fourTk.Mag() > 5.3 && fourTk.Mag() < 5.5 )
                     fillHisto( dirname+"massFakePhi1020", twoTk.Mag() );
-    
+
                 pTk.setMass( 0.13957061 );
                 nTk.setMass( 0.13957061 );
                 twoTk = pTk + nTk;
@@ -155,4 +155,3 @@ void histMain_findParDiff::Clear()
     for ( auto& testcuts : testCuts )
         delete testcuts.second;
 }
-
