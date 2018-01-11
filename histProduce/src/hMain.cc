@@ -8,7 +8,6 @@ inline void histMain::createHisto( const std::string& name, int nbin, double min
         return;
     }
     hMap[name] = dir->make<TH1D>( getFullName(name).c_str(), name.c_str(), nbin, min, max );
-    //hMap[name] = dir->make<TH1D>( (preName+"_"+name).c_str(), name.c_str(), nbin, min, max );
     std::cout << "appened name :" << getFullName( name ) << std::endl;
     return;
 }
@@ -38,14 +37,6 @@ inline void histMain::fillHisto( const std::string& name, double valueX, double 
     iter->second->Fill( valueX, valueY );
     return;
 }
-//void histMain::clearHisto()
-//{
-//    for ( const auto& histoPair : hMap )
-//        histoPair.second->Reset();
-//    for ( const auto& histo2DPair : hMap2D )
-//        histo2DPair.second->Reset();
-//    return;
-//}
 
 inline std::string histMain::getFullName( const std::string& name )
 { return (preName+"_"+name); }
@@ -70,7 +61,5 @@ void histMain::regName( const std::string& _preName )
 }
 
 // initialization of static member
-//std::map<std::string, TH1D*> histMain::hMap;
-//std::map<std::string, TH2D*> histMain::hMap2D;
 std::vector< std::string > histMain::nameReg;
 std::vector<myCut::generalCutList*>* histMain::_cutLists = nullptr;

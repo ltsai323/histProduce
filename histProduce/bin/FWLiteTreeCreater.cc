@@ -9,6 +9,8 @@
 #include <TROOT.h>
 #include <TFile.h>
 #include <TSystem.h>
+#include <TNtupleD.h>
+#include <TTree.h>
 
 #include "FWCore/FWLite/interface/AutoLibraryLoader.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -23,27 +25,27 @@
 #include "PhysicsTools/FWLite/interface/CommandLineParser.h"
 #include "histProduce/histProduce/interface/histoMAP.h"
 #include "histProduce/histProduce/interface/generalCutList.h"
-#include "histProduce/histProduce/interface/hMain.h"
-#include "histProduce/histProduce/interface/hMainLbL0.h"
-#include "histProduce/histProduce/interface/hMainLbTk.h"
-#include "histProduce/histProduce/interface/hMainBs.h"
-#include "histProduce/histProduce/interface/hMainfindParDiff.h"
-#include "histProduce/histProduce/interface/hMainfindIPdiff.h"
-#include "histProduce/histProduce/interface/hMainParPlot.h"
-#include "histProduce/histProduce/interface/hMainfindVtxprobDiff.h"
-#include "histProduce/histProduce/interface/hMainfindFDdiff.h"
-#include "histProduce/histProduce/interface/hMainfindTkTkFDdiff.h"
-#include "histProduce/histProduce/interface/hMainfindLam0FDdiff.h"
-#include "histProduce/histProduce/interface/hMainTkTk.h"
-#include "histProduce/histProduce/interface/hMainLam0.h"
-#include "histProduce/histProduce/interface/hMainKshort.h"
-#include "histProduce/histProduce/interface/hMainPV.h"
-#include "histProduce/histProduce/interface/hMainGenInfo.h"
-#include "histProduce/histProduce/interface/hMainTkTkGenParticle.h"
-#include "histProduce/histProduce/interface/hMainLam0GenParticle.h"
-#include "histProduce/histProduce/interface/hMainLbTkGenParticle.h"
-#include "histProduce/histProduce/interface/hMainLbL0GenParticle.h"
-#include "histProduce/histProduce/interface/hMainJPsiGenParticle.h"
+#include "histProduce/histProduce/interface/tMain.h"
+//#include "histProduce/histProduce/interface/tMainLbL0.h"
+//#include "histProduce/histProduce/interface/tMainLbTk.h"
+//#include "histProduce/histProduce/interface/tMainBs.h"
+//#include "histProduce/histProduce/interface/tMainfindParDiff.h"
+//#include "histProduce/histProduce/interface/tMainfindIPdiff.h"
+//#include "histProduce/histProduce/interface/tMainParPlot.h"
+//#include "histProduce/histProduce/interface/tMainfindVtxprobDiff.h"
+//#include "histProduce/histProduce/interface/tMainfindFDdiff.h"
+//#include "histProduce/histProduce/interface/tMainfindTkTkFDdiff.h"
+//#include "histProduce/histProduce/interface/tMainfindLam0FDdiff.h"
+//#include "histProduce/histProduce/interface/tMainTkTk.h"
+#include "histProduce/histProduce/interface/tMainLam0.h"
+//#include "histProduce/histProduce/interface/tMainKshort.h"
+//#include "histProduce/histProduce/interface/tMainPV.h"
+//#include "histProduce/histProduce/interface/tMainGenInfo.h"
+//#include "histProduce/histProduce/interface/tMainTkTkGenParticle.h"
+#include "histProduce/histProduce/interface/tMainLam0GenParticle.h"
+//#include "histProduce/histProduce/interface/tMainLbTkGenParticle.h"
+//#include "histProduce/histProduce/interface/tMainLbL0GenParticle.h"
+//#include "histProduce/histProduce/interface/tMainJPsiGenParticle.h"
 
 // create histograms from CMSSW based data.
 // use FWLIte to load data.
@@ -58,6 +60,8 @@
 //
 // usage:
 //     hCreate filelist=fileList
+//
+// create TTree.
 
 // initialize static member
 //std::vector<generalCutList*>* histMain::_cutLists = NULL;
@@ -138,7 +142,7 @@ int main(int argc, char* argv[])
         outputEvery_ = parser.integerValue("outputEvery");
     }
 
-    // book a set of histograms
+    // book a root file to store data.
     fwlite::TFileService fs = fwlite::TFileService(outputFile_.c_str());
     TFileDirectory dir = fs.mkdir("lbSpecificDecay");
 
@@ -151,30 +155,30 @@ int main(int argc, char* argv[])
     cutLists.push_back( new            cosa2dCut(0.99      ) );
     cutLists.push_back( new                ptCut(15  ,-99. ) );
     cutLists.push_back( new flightDist2DSigmaCut( 2., -99. ) );
-    histMain::setCutList( &cutLists );
+    treeMain::setCutList( &cutLists );
 
     // set main code.
-    std::vector<histMain*> mainCode;
-    //mainCode.push_back( new histMain_TkTk(&dir) );
-    mainCode.push_back( new histMain_Lam0(&dir) );
-    //mainCode.push_back( new histMain_Kshort(&dir) );
-    //mainCode.push_back( new histMain_LbTk(&dir) );
-    mainCode.push_back( new histMain_LbL0(&dir) );
-    //mainCode.push_back( new histMain_Bs(&dir) );
-    //mainCode.push_back( new histMain_findParDiff(&dir) );
-    //mainCode.push_back( new histMain_findIPdiff(&dir) );
-    //mainCode.push_back( new histMain_findVtxprobDiff(&dir) );
-    //mainCode.push_back( new histMain_ParPlot(&dir) );
-    //mainCode.push_back( new histMain_findFlightDistanceDiff(&dir) );
-    //mainCode.push_back( new histMain_findTkTkFlightDistanceDiff(&dir) );
-    //mainCode.push_back( new histMain_findLam0FlightDistanceDiff(&dir) );
-    //mainCode.push_back( new histMain_PV(&dir) );
-    //mainCode.push_back( new histMain_GenInformation(&dir) );
-    //mainCode.push_back( new histMain_JPsiGenParticle(&dir) );
-    //mainCode.push_back( new histMain_Lam0GenParticle(&dir) );
-    //mainCode.push_back( new histMain_TkTkGenParticle(&dir) );
-    //mainCode.push_back( new histMain_LbTkGenParticle(&dir) );
-    //mainCode.push_back( new histMain_LbL0GenParticle(&dir) );
+    std::vector<treeMain*> mainCode;
+    //mainCode.push_back( new treeMain_TkTk(&dir) );
+    mainCode.push_back( new treeMain_Lam0(&dir) );
+    //mainCode.push_back( new treeMain_Kshort(&dir) );
+    //mainCode.push_back( new treeMain_LbTk(&dir) );
+    //mainCode.push_back( new treeMain_LbL0(&dir) );
+    //mainCode.push_back( new treeMain_Bs(&dir) );
+    //mainCode.push_back( new treeMain_findParDiff(&dir) );
+    //mainCode.push_back( new treeMain_findIPdiff(&dir) );
+    //mainCode.push_back( new treeMain_findVtxprobDiff(&dir) );
+    //mainCode.push_back( new treeMain_ParPlot(&dir) );
+    //mainCode.push_back( new treeMain_findFlightDistanceDiff(&dir) );
+    //mainCode.push_back( new treeMain_findTkTkFlightDistanceDiff(&dir) );
+    //mainCode.push_back( new treeMain_findLam0FlightDistanceDiff(&dir) );
+    //mainCode.push_back( new treeMain_PV(&dir) );
+    //mainCode.push_back( new treeMain_GenInformation(&dir) );
+    //mainCode.push_back( new treeMain_JPsiGenParticle(&dir) );
+    mainCode.push_back( new treeMain_Lam0GenParticle(&dir) );
+    //mainCode.push_back( new treeMain_TkTkGenParticle(&dir) );
+    //mainCode.push_back( new treeMain_LbTkGenParticle(&dir) );
+    //mainCode.push_back( new treeMain_LbL0GenParticle(&dir) );
 
     int ievt=0;
     for ( const auto& file : inputFiles_ )
@@ -185,7 +189,7 @@ int main(int argc, char* argv[])
         // ----------------------------------------------------------------------
         // Second Part:
         //
-        //  * loop the events in the input files
+        //  * loop the events in the input file
         //  * receive the collections of interest via fwlite::Handle
         //  * fill the histograms
         //  * after the loop close the input file

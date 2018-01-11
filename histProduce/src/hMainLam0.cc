@@ -71,7 +71,7 @@ void histMain_Lam0::Process( fwlite::Event* ev )
             fillHisto( "parLam0_cosa2d", cos2d );
             double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
             fillHisto( "parLam0_vtxprob", vtxprob );
-            if ( fd < 0.2 ) continue;
+            if ( fd < 1.0 ) continue;
             if ( cos2d < 0.99 ) continue;
             if ( vtxprob < 0.2 ) continue;
             //vtxprobChooser.insert( std::make_pair( vtxprob, &cand ) );

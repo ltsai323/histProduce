@@ -12,13 +12,17 @@
 #include "TH2D.h"
 
 
-// maybe you can change pat::CompositeCandidate to template
-// the name stored in TFile is preName + "_" + name
-// for example: tktk_par_FlightDistance. tktk is the preName
-// This code will check if preNames are duplicated or not.
-// And it doesn't allow histogram with the same name ( in each file )  & doesn't allow the same preName ( at different files ).
-
-
+// abstruct class to process main function.
+// histMain::Label          : store the labels to be used in handle.getByLabel().
+// histMain::preName        : preName is the name used to separate the histograms in TFile.
+//                            the name used in TFile is preName_histName.
+// histMain::Process()      : the main function of bin/FWLiteHistoCreater.cc
+// histMain::createHisto()  : create histogram, which is managed & protected by a map.
+// histMain::fillHisto()    : fill the histograms.
+// histMain::setCutList()   : set general cut list assigned in src/FWLiteHistoCreater.cc.
+// histMain::getCutList()   : get general cut list.
+// histMain::regName()      : check the preName is the same or not. If it is duplicated, stop the code.
+// histMain::Clear()        : if each Process owns something to be deleted at the end.
 
 class histMain
 {
@@ -40,8 +44,6 @@ public:
     // search name and fill TH1D & TH2D
     virtual void fillHisto( const std::string& name, double value ) final;
     virtual void fillHisto( const std::string& name, double valueX, double valueY ) final;
-    // allHistos->Clear();
-    //static void clearHisto();
     // add general cuts in the whole analysis
     static void setCutList( std::vector<myCut::generalCutList*>* in ) { _cutLists = in; }
     static std::vector<myCut::generalCutList*>* getCutList()  { return _cutLists; }
