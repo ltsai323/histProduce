@@ -1,4 +1,4 @@
-#include "histProduce/histProduce/interface/tMainLam0.h"
+#include "histProduce/histProduce/interface/tmainLam0.h"
 #include "histProduce/histProduce/interface/generalCutList.h"
 #include "histProduce/histProduce/interface/fourMom.h"
 #include "histProduce/histProduce/interface/usefulFuncs.h"
@@ -10,23 +10,21 @@
 treeMain_Lam0::treeMain_Lam0( TFileDirectory* d ) :
     treeMain( d, treeMain::Label("lbWriteSpecificDecay", "Lam0Fitted", "bphAnalysis"), "Lam0" )
 {
-    regTree();
+    RegTree();
 }
 void treeMain_Lam0::Process( fwlite::Event* ev )
 {
     try
     {
-        // preselect event {{{
         if ( !ev->isValid() ) return;
-        _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
+        GetByLabel( ev );
 
-        // pv not recorded, use BS
-        fwlite::Handle< reco::BeamSpot > beamSpotHandle;
-        beamSpotHandle.getByLabel( *ev,"offlineBeamSpot", "", "RECO"  );
         if ( !beamSpotHandle.isValid() ) return;
         if ( _handle->size()  == 0 ) return;
         const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
 
+        //std::map< double, const pat::CompositeCandidate*> vtxprobChooser;
+        //vtxprobChooser.clear();
         std::vector< std::pair< double, const pat::CompositeCandidate*> > candsSorted;
         candsSorted.clear();
         candsSorted.reserve( _handle->size() );
@@ -51,8 +49,8 @@ void treeMain_Lam0::Process( fwlite::Event* ev )
             if ( vtxprob < 0.2 ) continue;
             candsSorted.emplace_back( vtxprob, &cand );
         }
+        //if ( vtxprobChooser.size() == 0 ) return;
         if ( candsSorted.size() == 0 ) return;
-        // preselect events end }}}
 
         std::vector< std::pair<double, const pat::CompositeCandidate*> >::const_iterator iter = candsSorted.begin();
         std::vector< std::pair<double, const pat::CompositeCandidate*> >::const_iterator iend = candsSorted.end  ();
@@ -60,15 +58,10 @@ void treeMain_Lam0::Process( fwlite::Event* ev )
         //double kaonMass ( 0.493667 );
         double protonMass ( 0.9382720813 );
         double pionMass ( 0.13957061 );
-
-        // sort the candidate with vtxprob, and choose first N candidates.
-        int recordCandInEachEvent = 10;
-
         while ( iter != iend )
         {
             Clear();
             const pat::CompositeCandidate& cand = *(iter++->second);
-            if ( recordCandInEachEvent-- == 0 ) break;
 
             // first one is proton and second one is kaon ( consider bigger momentum with heavier particle )
             const GlobalVector* dPTR[2] = {nullptr};
@@ -85,33 +78,32 @@ void treeMain_Lam0::Process( fwlite::Event* ev )
             //{
                 if ( cand.hasUserFloat("Proton.dEdx.pixelHrm") )
                 {
-                    ptkMom = pTk.Momentum();
-                    ptkDEDX_pixelHrm = cand.userFloat( "Proton.dEdx.pixelHrm" );
+                    dataD[ptkMom] = pTk.Momentum();
+                    dataD[ptkDEDX_pixelHrm] = cand.userFloat( "Proton.dEdx.pixelHrm" );
                 }
                 if ( cand.hasUserFloat(  "Pion.dEdx.pixelHrm") )
                 {
-                    ntkMom = nTk.Momentum();
-                    ntkDEDX_pixelHrm = cand.userFloat( "Pion.dEdx.pixelHrm" );
+                    dataD[ntkMom] = nTk.Momentum();
+                    dataD[ntkDEDX_pixelHrm] = cand.userFloat( "Pion.dEdx.pixelHrm" );
                 }
                 if ( cand.hasUserFloat("Proton.dEdx.Harmonic") )
                 {
-                    ptkMom = pTk.Momentum();
-                    ptkDEDX_Harmonic = cand.userFloat( "Proton.dEdx.Harmonic" );
+                    dataD[ptkMom] = pTk.Momentum();
+                    dataD[ptkDEDX_Harmonic] = cand.userFloat( "Proton.dEdx.Harmonic" );
                 }
                 if ( cand.hasUserFloat(  "Pion.dEdx.Harmonic") )
                 {
-                    ntkMom = nTk.Momentum();
-                    ntkDEDX_Harmonic = cand.userFloat(   "Pion.dEdx.Harmonic" );
+                    dataD[ntkMom] = nTk.Momentum();
+                    dataD[ntkDEDX_Harmonic] = cand.userFloat(   "Pion.dEdx.Harmonic" );
                 }
             //}
 
-            lam0Mass = cand.userFloat( "fitMass" );
-            lam0FlightDistance2d = usefulFuncs::getFlightDistance ( cand, &bs );
-            lam0Cosa2d = usefulFuncs::getCosa2d( cand, &bs );
-            ptkIPt = cand.userFloat("Proton.IPt");
-            ntkIPt = cand.userFloat("Pion.IPt");
-            if ( ptkMom && ptkDEDX_Harmonic && ntkMom && ntkDEDX_Harmonic )
-                thisTree()->Fill();
+            dataD[lam0Mass] = cand.userFloat( "fitMass" );
+            dataD[lam0FlightDistance2d] = usefulFuncs::getFlightDistance ( cand, &bs );
+            dataD[lam0Cosa2d] = usefulFuncs::getCosa2d( cand, &bs );
+            dataD[ptkIPt] = cand.userFloat("Proton.IPt");
+            dataD[ntkIPt] = cand.userFloat("Pion.IPt");
+            thisTree()->Fill();
         }
     } catch (...) {}
 }
@@ -121,30 +113,32 @@ void treeMain_Lam0::Clear()
     //lam0Mass= lam0FlightDistance2d= lam0Cosa2d= 0.;
     //ptkMom= ptkDEDX_Harmonic= ptkDEDX_pixelHrm= ptkIPt= 0.;
     //ntkMom= ntkDEDX_Harmonic= ntkDEDX_pixelHrm= ntkIPt= 0.;
-    memset( &lam0Mass, 0x00, 11*sizeof( double ) );
-    if ( lam0Mass != 0 ) std::cout << "not cleared01\n";
-    if ( lam0FlightDistance2d != 0 ) std::cout << "not cleared02\n";
-    if ( lam0Cosa2d != 0 ) std::cout << "not cleared03\n";
-    if ( ptkMom != 0 ) std::cout << "not cleared04\n";
-    if ( ptkDEDX_Harmonic != 0 ) std::cout << "not cleared05\n";
-    if ( ptkDEDX_pixelHrm != 0 ) std::cout << "not cleared06\n";
-    if ( ptkIPt != 0 ) std::cout << "not cleared07\n";
-    if ( ntkMom != 0 ) std::cout << "not cleared08\n";
-    if ( ntkDEDX_Harmonic != 0 ) std::cout << "not cleared09\n";
-    if ( ntkDEDX_pixelHrm != 0 ) std::cout << "not cleared10\n";
-    if ( ntkIPt != 0 ) std::cout << "not cleared11\n";
+    //memset( &lam0Mass, 0x00, 11*sizeof( double ) );
+    memset( dataD, 0x00, totNumD*sizeof( double ) );
+    memset( dataI, 0x00, totNumI*sizeof( int ) );
 }
-void treeMain_Lam0::regTree()
+void treeMain_Lam0::RegTree()
 {
-    thisTree()->Branch( "lam0Mass", &lam0Mass, "lam0Mass/D" );
-    thisTree()->Branch( "lam0FlightDistance2d", &lam0FlightDistance2d, "lam0FlightDistance2d/D" );
-    thisTree()->Branch( "lam0Cosa2d", &lam0Cosa2d, "lam0Cosa2d/D" );
-    thisTree()->Branch( "ptkMom", &ptkMom, "ptkMom/D" );
-    thisTree()->Branch( "ptkDEDX.Harmonic", &ptkDEDX_Harmonic, "ptkDEDX.Harmonic/D" );
-    thisTree()->Branch( "ptkDEDX.pixelHrm", &ptkDEDX_pixelHrm, "ptkDEDX.pixelHrm/D" );
-    thisTree()->Branch( "ptkIPt", &ptkIPt, "ptkIPt/D" );
-    thisTree()->Branch( "ntkMom", &ntkMom, "ntkMom/D" );
-    thisTree()->Branch( "ntkDEDX.Harmonic", &ntkDEDX_Harmonic, "ntkDEDX.Harmonic/D" );
-    thisTree()->Branch( "ntkDEDX.pixelHrm", &ntkDEDX_pixelHrm, "ntkDEDX.pixelHrm/D" );
-    thisTree()->Branch( "ntkIPt", &ntkIPt, "ntkIPt/D" );
+    thisTree()->Branch( "lam0Mass", &dataD[lam0Mass], "lam0Mass/D" );
+    thisTree()->Branch( "lam0FlightDistance2d", &dataD[lam0FlightDistance2d], "lam0FlightDistance2d/D" );
+    thisTree()->Branch( "lam0Cosa2d", &dataD[lam0Cosa2d], "lam0Cosa2d/D" );
+    thisTree()->Branch( "ptkMom", &dataD[ptkMom], "ptkMom/D" );
+    thisTree()->Branch( "ptkDEDX.Harmonic", &dataD[ptkDEDX_Harmonic], "ptkDEDX.Harmonic/D" );
+    thisTree()->Branch( "ptkDEDX.pixelHrm", &dataD[ptkDEDX_pixelHrm], "ptkDEDX.pixelHrm/D" );
+    thisTree()->Branch( "ptkIPt", &dataD[ptkIPt], "ptkIPt/D" );
+    thisTree()->Branch( "ntkMom", &dataD[ntkMom], "ntkMom/D" );
+    thisTree()->Branch( "ntkDEDX.Harmonic", &dataD[ntkDEDX_Harmonic], "ntkDEDX.Harmonic/D" );
+    thisTree()->Branch( "ntkDEDX.pixelHrm", &dataD[ntkDEDX_pixelHrm], "ntkDEDX.pixelHrm/D" );
+    thisTree()->Branch( "ntkIPt", &dataD[ntkIPt], "ntkIPt/D" );
+
+    //thisTree()->Branch( "ptkPID", &dataI[ptkPID], "ptkPID/I" );
+    //thisTree()->Branch( "ntkPID", &dataI[ntkPID], "ntkPID/I" );
 }
+void treeMain_Lam0::GetByLabel( fwlite::Event* ev )
+{
+    getByLabel_Cand( ev );
+    getByLabel_BS( ev );
+}
+
+inline void treeMain_Lam0::getByLabel_BS( fwlite::Event* ev )
+{ beamSpotHandle.getByLabel( *ev,"offlineBeamSpot", "", "RECO"  ); return; }

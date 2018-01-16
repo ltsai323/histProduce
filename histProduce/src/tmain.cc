@@ -1,7 +1,16 @@
-#include "histProduce/histProduce/interface/tMain.h"
+#include "histProduce/histProduce/interface/tmain.h"
 
+treeMain::treeMain( TFileDirectory* d, Label l, const std::string& pName ) : _label( l ), dir( d ),  preName( pName )
+{
+    regName( preName );
+    _storageTree = dir->make<TTree>( preName.c_str(), preName.c_str() );
+}
+treeMain::~treeMain()
+{
+    // do something
+}
 
-inline std::string treeMain::getFullName( const std::string& name )
+std::string treeMain::getFullName( const std::string& name )
 { return (preName+"_"+name); }
 void treeMain::regName( const std::string& _preName )
 {
@@ -22,6 +31,8 @@ void treeMain::regName( const std::string& _preName )
     return;
 
 }
+void treeMain::getByLabel_Cand(fwlite::Event* ev)
+{ _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() ); return; }
 
 // initialization of static member
 std::vector< std::string > treeMain::nameReg;

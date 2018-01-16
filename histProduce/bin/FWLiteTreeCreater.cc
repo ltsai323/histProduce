@@ -25,27 +25,27 @@
 #include "PhysicsTools/FWLite/interface/CommandLineParser.h"
 #include "histProduce/histProduce/interface/histoMAP.h"
 #include "histProduce/histProduce/interface/generalCutList.h"
-#include "histProduce/histProduce/interface/tMain.h"
-//#include "histProduce/histProduce/interface/tMainLbL0.h"
-//#include "histProduce/histProduce/interface/tMainLbTk.h"
-//#include "histProduce/histProduce/interface/tMainBs.h"
-//#include "histProduce/histProduce/interface/tMainfindParDiff.h"
-//#include "histProduce/histProduce/interface/tMainfindIPdiff.h"
-//#include "histProduce/histProduce/interface/tMainParPlot.h"
-//#include "histProduce/histProduce/interface/tMainfindVtxprobDiff.h"
-//#include "histProduce/histProduce/interface/tMainfindFDdiff.h"
-//#include "histProduce/histProduce/interface/tMainfindTkTkFDdiff.h"
-//#include "histProduce/histProduce/interface/tMainfindLam0FDdiff.h"
-//#include "histProduce/histProduce/interface/tMainTkTk.h"
-#include "histProduce/histProduce/interface/tMainLam0.h"
-//#include "histProduce/histProduce/interface/tMainKshort.h"
-//#include "histProduce/histProduce/interface/tMainPV.h"
-//#include "histProduce/histProduce/interface/tMainGenInfo.h"
-//#include "histProduce/histProduce/interface/tMainTkTkGenParticle.h"
-#include "histProduce/histProduce/interface/tMainLam0GenParticle.h"
-//#include "histProduce/histProduce/interface/tMainLbTkGenParticle.h"
-//#include "histProduce/histProduce/interface/tMainLbL0GenParticle.h"
-//#include "histProduce/histProduce/interface/tMainJPsiGenParticle.h"
+#include "histProduce/histProduce/interface/tmain.h"
+//#include "histProduce/histProduce/interface/tmainLbL0.h"
+//#include "histProduce/histProduce/interface/tmainLbTk.h"
+//#include "histProduce/histProduce/interface/tmainBs.h"
+//#include "histProduce/histProduce/interface/tmainfindParDiff.h"
+//#include "histProduce/histProduce/interface/tmainfindIPdiff.h"
+//#include "histProduce/histProduce/interface/tmainParPlot.h"
+//#include "histProduce/histProduce/interface/tmainfindVtxprobDiff.h"
+//#include "histProduce/histProduce/interface/tmainfindFDdiff.h"
+//#include "histProduce/histProduce/interface/tmainfindTkTkFDdiff.h"
+//#include "histProduce/histProduce/interface/tmainfindLam0FDdiff.h"
+#include "histProduce/histProduce/interface/tmainTkTk.h"
+#include "histProduce/histProduce/interface/tmainLam0.h"
+//#include "histProduce/histProduce/interface/tmainKshort.h"
+//#include "histProduce/histProduce/interface/tmainPV.h"
+//#include "histProduce/histProduce/interface/tmainGenInfo.h"
+#include "histProduce/histProduce/interface/tmainGenTkTk.h"
+#include "histProduce/histProduce/interface/tmainGenLam0.h"
+//#include "histProduce/histProduce/interface/tmainLbTkGenParticle.h"
+//#include "histProduce/histProduce/interface/tmainLbL0GenParticle.h"
+//#include "histProduce/histProduce/interface/tmainJPsiGenParticle.h"
 
 // create histograms from CMSSW based data.
 // use FWLIte to load data.
@@ -159,7 +159,7 @@ int main(int argc, char* argv[])
 
     // set main code.
     std::vector<treeMain*> mainCode;
-    //mainCode.push_back( new treeMain_TkTk(&dir) );
+    mainCode.push_back( new treeMain_TkTk(&dir) );
     mainCode.push_back( new treeMain_Lam0(&dir) );
     //mainCode.push_back( new treeMain_Kshort(&dir) );
     //mainCode.push_back( new treeMain_LbTk(&dir) );
@@ -175,10 +175,10 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new treeMain_PV(&dir) );
     //mainCode.push_back( new treeMain_GenInformation(&dir) );
     //mainCode.push_back( new treeMain_JPsiGenParticle(&dir) );
-    mainCode.push_back( new treeMain_Lam0GenParticle(&dir) );
-    //mainCode.push_back( new treeMain_TkTkGenParticle(&dir) );
-    //mainCode.push_back( new treeMain_LbTkGenParticle(&dir) );
-    //mainCode.push_back( new treeMain_LbL0GenParticle(&dir) );
+    mainCode.push_back( new treeMainGen_Lam0(&dir) );
+    mainCode.push_back( new treeMainGen_TkTk(&dir) );
+    //mainCode.push_back( new treeMainGen_LbTk(&dir) );
+    //mainCode.push_back( new treeMainGen_LbL0(&dir) );
 
     int ievt=0;
     for ( const auto& file : inputFiles_ )

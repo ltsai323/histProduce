@@ -67,7 +67,7 @@ template< typename myParticle >
         double val1 = cand->eta() - gpCand->eta();
         double val2 = TVector2::Phi_mpi_pi( cand->phi() - gpCand->phi() );
         double deltaR2 = val1*val1+val2*val2;
-        return sqrt(deltaR2) ; 
+        return sqrt(deltaR2) ;
     }
 
 

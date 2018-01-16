@@ -11,9 +11,6 @@
 #include "TTree.h"
 
 
-
-
-
 class treeMain
 {
 public:
@@ -23,30 +20,29 @@ public:
         Label( const std::string& m, const std::string& l, const std::string& p ) :
             module( m ), label( l ), process( p ) {}
     };
-    treeMain( TFileDirectory* d, Label l, const std::string& pName ) : _label( l ), dir( d ),  preName( pName )
-    {
-        regName( preName );
-        _storageTree = dir->make<TTree>( preName.c_str(), preName.c_str() );
-    }
-    virtual ~treeMain() {}
+
+    // constructors & destructors
+    treeMain( TFileDirectory* d, Label l, const std::string& pName );
+    virtual ~treeMain();
+
+    // functions needs to be redefined in further class
     virtual void Process( fwlite::Event* ev ) = 0;
     virtual void Clear() = 0;
+    virtual void RegTree() = 0;
+    virtual void GetByLabel( fwlite::Event* ev ) = 0;
 
-    virtual void regTree() = 0;
     virtual TTree* thisTree() final { return _storageTree; }
     // add general cuts in the whole analysis
     static void setCutList( std::vector<myCut::generalCutList*>* in ) { _cutLists = in; }
     static std::vector<myCut::generalCutList*>* getCutList()  { return _cutLists; }
     virtual std::string getFullName( const std::string& name ) final;
     virtual void regName( const std::string& _preName ) final;
-
-
+    void getByLabel_Cand( fwlite::Event* ev );
 
 
     fwlite::Handle< std::vector<pat::CompositeCandidate> > _handle;
-    const Label _label;
-
 private:
+    const Label _label;
     TFileDirectory* dir;
     const std::string preName;
     static std::vector< std::string > nameReg;
