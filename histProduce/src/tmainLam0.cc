@@ -101,6 +101,7 @@ void treeMain_Lam0::Process( fwlite::Event* ev )
             dataD[lam0Mass] = cand.userFloat( "fitMass" );
             dataD[lam0FlightDistance2d] = usefulFuncs::getFlightDistance ( cand, &bs );
             dataD[lam0Cosa2d] = usefulFuncs::getCosa2d( cand, &bs );
+            dataD[lam0Pt] = cand.userData<GlobalVector>( "fitMomentum" ) -> transverse();
             dataD[ptkIPt] = cand.userFloat("Proton.IPt");
             dataD[ntkIPt] = cand.userFloat("Pion.IPt");
             thisTree()->Fill();

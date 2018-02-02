@@ -17,7 +17,7 @@ private:
     fwlite::Handle< reco::BeamSpot > beamSpotHandle;
     enum dataVarD
     {
-        lam0Mass, lam0FlightDistance2d, lam0Cosa2d,
+        lam0Mass, lam0FlightDistance2d, lam0Cosa2d, lam0Pt,
         ptkMom, ptkDEDX_Harmonic, ptkDEDX_pixelHrm, ptkIPt,
         ntkMom, ntkDEDX_Harmonic, ntkDEDX_pixelHrm, ntkIPt,
         totNumD

@@ -90,7 +90,7 @@ void treeMainGen_Lam0::Process( fwlite::Event* ev )
             daug.reserve( 2 );
             daug.emplace_back( pTk );
             daug.emplace_back( nTk );
-            MatchRes mcRes = matchMC_CompositeCand( cand, daug, 0.3 );
+            MatchRes mcRes = matchMC_CompositeCand( cand, daug, 0.05 );
 
             if ( !mcRes.isValid() ) continue;
             for ( unsigned int i=0; i< mcRes.getNDaughterRecorded(); ++i )

@@ -9,46 +9,17 @@
 #include <TROOT.h>
 #include <TFile.h>
 #include <TSystem.h>
-#include <TNtupleD.h>
 #include <TTree.h>
 
 #include "FWCore/FWLite/interface/AutoLibraryLoader.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/PythonParameterSet/interface/MakeParameterSets.h"
-
-#include "DataFormats/FWLite/interface/Event.h"
-#include "DataFormats/MuonReco/interface/Muon.h"
-#include "DataFormats/FWLite/interface/Handle.h"
-#include "DataFormats/PatCandidates/interface/Muon.h"
-#include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
-#include "PhysicsTools/FWLite/interface/TFileService.h"
 #include "PhysicsTools/FWLite/interface/CommandLineParser.h"
-#include "histProduce/histProduce/interface/histoMAP.h"
-#include "histProduce/histProduce/interface/generalCutList.h"
-#include "histProduce/histProduce/interface/tmain.h"
-#include "histProduce/histProduce/interface/tmainLbL0.h"
-#include "histProduce/histProduce/interface/tmainLbTk.h"
-//#include "histProduce/histProduce/interface/tmainBs.h"
-//#include "histProduce/histProduce/interface/tmainfindParDiff.h"
-//#include "histProduce/histProduce/interface/tmainfindIPdiff.h"
-//#include "histProduce/histProduce/interface/tmainParPlot.h"
-//#include "histProduce/histProduce/interface/tmainfindVtxprobDiff.h"
-//#include "histProduce/histProduce/interface/tmainfindFDdiff.h"
-//#include "histProduce/histProduce/interface/tmainfindTkTkFDdiff.h"
-//#include "histProduce/histProduce/interface/tmainfindLam0FDdiff.h"
-#include "histProduce/histProduce/interface/tmainTkTk.h"
-#include "histProduce/histProduce/interface/tmainLam0.h"
-//#include "histProduce/histProduce/interface/tmainKshort.h"
-//#include "histProduce/histProduce/interface/tmainPV.h"
-//#include "histProduce/histProduce/interface/tmainGenInfo.h"
-#include "histProduce/histProduce/interface/tmainGenTkTk.h"
-#include "histProduce/histProduce/interface/tmainGenLam0.h"
-//#include "histProduce/histProduce/interface/tmainLbTkGenParticle.h"
-//#include "histProduce/histProduce/interface/tmainLbL0GenParticle.h"
-//#include "histProduce/histProduce/interface/tmainJPsiGenParticle.h"
-#include "histProduce/histProduce/interface/tmainGenList.h"
 
-// create trees from CMSSW based data.
+#include "histProduce/histProduce/interface/rooTHMain.h"
+#include "histProduce/histProduce/interface/rooTHMainTkTk.h"
+
+// create trees from.tree based file.
 // use FWLIte to load data.
 // this file just write down:
 // 1. the argument you should or can input.
@@ -94,13 +65,13 @@ int main(int argc, char* argv[])
     // initialize command line parser
     optutl::CommandLineParser parser ("Analyze FWLite Histograms");
 
-    parser.addOption("testFile",optutl::CommandLineParser::kString,"test input file, recommend to use fileList_cfi.py to put files","");
-    parser.addOption("fileList",optutl::CommandLineParser::kString,"input the python file records file list.","fileList");
-    parser.addOption("configFile",optutl::CommandLineParser::kString,"the plot options recorded in python file","histogramPlotParameter");
+    parser.addOption("testFile"     ,optutl::CommandLineParser::kString,"test input file, recommend to use fileList_cfi.py to put files"    ,"");
+    parser.addOption("fileList"     ,optutl::CommandLineParser::kString,"input the python file records file list."                          ,"fileList");
+    parser.addOption("configFile"   ,optutl::CommandLineParser::kString,"the plot options recorded in python file"                          ,"histogramPlotParameter");
     // set defaults for testFile is assigned
     parser.integerValue ("maxEvents"  ) = -1;
 
-    // if the value smaller than zero, do not print anything on the screen.
+    // if the value smaller than 0, do not print anything on screen
     parser.integerValue ("outputEvery") = 100;
     parser.stringValue  ("outputFile" ) = "histTestOutput.root";
 
@@ -151,20 +122,12 @@ int main(int argc, char* argv[])
     TFileDirectory dir = fs.mkdir("lbSpecificDecay");
 
 
-    using namespace myCut;
-    // general cut applied
-    std::vector<generalCutList*> cutLists;
-    //cutLists.push_back( new           vtxprobCut(0.15,-99. ) );
-    cutLists.push_back( new              massCut(5.0 ,  6.0) );
-    cutLists.push_back( new            cosa2dCut(0.99      ) );
-    cutLists.push_back( new                ptCut(15  ,-99. ) );
-    cutLists.push_back( new flightDist2DSigmaCut( 2., -99. ) );
-    treeMain::setCutList( &cutLists );
+    //root_TreeHistoMain::setCutList( &cutLists );
 
     // set main code.
-    std::vector<treeMain*> mainCode;
-    mainCode.push_back( new treeMain_TkTk(&dir) );
-    //mainCode.push_back( new treeMain_Lam0(&dir) );
+    std::vector<root_TreeHistoMain*> mainCode;
+    mainCode.push_back( new root_TreeHistoMain_TkTk(&dir) );
+    //mainCode.push_back( new rootTHMain_Lam0(&dir) );
     //mainCode.push_back( new treeMain_Kshort(&dir) );
     //mainCode.push_back( new treeMain_LbTk(&dir) );
     //mainCode.push_back( new treeMain_LbL0(&dir) );
@@ -185,12 +148,18 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new treeMainGen_LbL0(&dir) );
     //mainCode.push_back( new treeMainGen_List(&dir) );
 
-    int ievt=0;
+    // if maxEvent = -1, MEvent to be MAX of unsigned.
+    unsigned MEvent = maxEvents_;
+
+
+    // useless code
+    if ( !outputEvery_ )
+        outputEvery_ = outputEvery_;
     for ( const auto& file : inputFiles_ )
     {
-        bool terminateLoop = false;
         TFile* inFile = TFile::Open( ("file://"+file).c_str() );
         if( !inFile ) continue;
+
         // ----------------------------------------------------------------------
         // Second Part:
         //
@@ -199,40 +168,28 @@ int main(int argc, char* argv[])
         //  * fill the histograms
         //  * after the loop close the input file
         // ----------------------------------------------------------------------
-        fwlite::Event ev(inFile);
-        for(ev.toBegin(); !ev.atEnd(); ++ev, ++ievt)
+
+        for ( const auto& _main : mainCode )
         {
-	        //edm::EventBase const & event = ev;
-	        // break loop if maximal number of events is reached
-	        if(maxEvents_>0 ? ievt+1>maxEvents_ : false)
-            { terminateLoop = true; break; }
-	        // simple event counter
-            if ( outputEvery_ > 0 )
-                if ( ievt > 0 && ievt%outputEvery_ == 0 )
-            {
-                printf( "\r  processing event: %i", ievt );
-                fflush( stdout );
-            }
-
-
-            for ( const auto& _main : mainCode )
-                _main->Process( &ev );
-
+            _main->SetInputFile( inFile );
+            // use MEvent to be the counter, if MEvent to be 0, stop the code.
+            _main->LoopEvents( MEvent );
         }
+        fs.file().Write();
         inFile->Close();
-        if ( terminateLoop ) break;
+        if ( MEvent == 0 ) break;
         // break loop if maximal number of events is reached:
         // this has to be done twice to stop the file loop as well
     }
 
-    for ( auto& cut : cutLists )
-        delete cut;
+    // for general cuts
+    //for ( auto& cut : cutLists )
+    //    delete cut;
     for ( auto& _main : mainCode )
     {
         _main->Clear();
         delete _main;
     }
 
-    printf("\n");
     return 0;
 }

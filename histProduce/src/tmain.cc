@@ -1,6 +1,7 @@
 #include "histProduce/histProduce/interface/tmain.h"
+#include <iostream>
 
-treeMain::treeMain( TFileDirectory* d, Label l, const std::string& pName ) : _label( l ), dir( d ),  preName( pName )
+treeMain::treeMain( TFileDirectory* d, Label l, const std::string& pName ) : _label( l ), dir( d ), preName( pName )
 {
     regName( preName );
     _storageTree = dir->make<TTree>( preName.c_str(), preName.c_str() );

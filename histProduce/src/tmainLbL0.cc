@@ -35,10 +35,10 @@ void treeMain_LbL0::Process( fwlite::Event* ev )
         {
             const pat::CompositeCandidate& cand = *handleIter++;
             if ( !cand.hasUserFloat("fitMass") ) continue;
-            if ( !cand.hasUserData("Proton.fitMom") ) continue;
-            if ( !cand.hasUserData("Pion.fitMom") ) continue;
-            if ( !cand.hasUserFloat("Proton.IPt") ) continue;
-            if ( !cand.hasUserFloat(  "Pion.IPt") ) continue;
+            if ( !cand.hasUserData("Lam0/Proton.fitMom") ) continue;
+            if ( !cand.hasUserData("Lam0/Pion.fitMom") ) continue;
+            if ( !cand.hasUserFloat("Lam0/Proton.IPt") ) continue;
+            if ( !cand.hasUserFloat(  "Lam0/Pion.IPt") ) continue;
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) continue;
             double fd = usefulFuncs::getFlightDistance ( cand, &bs );
