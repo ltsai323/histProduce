@@ -8,7 +8,7 @@
 
 
 histMain_LbL0GenParticle::histMain_LbL0GenParticle( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToLam0Fitted", "bphAnalysis") ),
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToLam0Fitted", "bphAnalysis"), "LbL0GenInfo" ),
     protonMass( 0.9382720813 ), pionMass( 0.13957061 )
 {
     createHisto("parLbL0Gen_PDGID_ptk", 10000, -5000, 5000 );

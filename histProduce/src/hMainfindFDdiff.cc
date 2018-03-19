@@ -18,7 +18,7 @@ namespace myMass
 };
 
 histMain_findFlightDistanceDiff::histMain_findFlightDistanceDiff( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis") )
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis"), "FDdiff" )
 {
     using namespace myCut;
 
@@ -50,17 +50,17 @@ histMain_findFlightDistanceDiff::histMain_findFlightDistanceDiff( TFileDirectory
 }
 void histMain_findFlightDistanceDiff::Process( fwlite::Event* ev )
 {
-    try 
+    try
     {
         if ( !ev->isValid() ) return;
-        
+
         _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
         fwlite::Handle< reco::BeamSpot > beamSpotHandle;
         beamSpotHandle.getByLabel( *ev,"offlineBeamSpot", "", "RECO"  );
         if ( !beamSpotHandle.isValid() ) return;
         if ( _handle->size()  == 0 ) return;
         const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
-    
+
         std::vector< std::pair<double, const pat::CompositeCandidate*> > candsSorted;
         candsSorted.reserve( _handle->size() );
         std::vector<pat::CompositeCandidate>::const_iterator handleIter = _handle->begin();
@@ -102,7 +102,7 @@ void histMain_findFlightDistanceDiff::Process( fwlite::Event* ev )
         {
             const pat::CompositeCandidate& cand = *(iter++->second);
             if ( ++vtxprobSortLimit > 20 ) break;
-    
+
             const reco::Vertex* tktkVtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             double transFD = ( tktkVtx->x() - bs.x() )*( tktkVtx->x()-bs.x() ) + (tktkVtx->y()-bs.y())*(tktkVtx->y()-bs.y());
             fillHisto( "flightDistTkTkinLb", sqrt( transFD ) );

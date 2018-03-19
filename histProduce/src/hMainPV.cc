@@ -7,13 +7,13 @@
 
 
 histMain_PV::histMain_PV( TFileDirectory* d ) :
-    histMain( d, histMain::Label( "offlinePrimaryVertices", "", "RECO" ) )
+    histMain( d, histMain::Label( "offlinePrimaryVertices", "", "RECO" ), "PV" )
 {
     createHisto( "parPV_PVdistribution",  80, -0.8, 0.8,  80, -0.8, 0.8 );
 }
 void histMain_PV::Process( fwlite::Event* ev )
 {
-    try 
+    try
     {
         if ( !ev->isValid() ) return;
         fwlite::Handle< std::vector<reco::Vertex> > pvHandle;
@@ -33,7 +33,7 @@ void histMain_PV::Process( fwlite::Event* ev )
             fillHisto(  "parPV_PVdistribution", ( _pv.x()-bs.x() ), ( _pv.y()-bs.y() )  );
         }
 
-    
+
     } catch (...) {}
 }
 

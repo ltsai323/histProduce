@@ -7,7 +7,7 @@
 
 
 histMain_GenInformation::histMain_GenInformation( TFileDirectory* d ) :
-    histMain( d, histMain::Label("", "", "") )
+    histMain( d, histMain::Label("", "", ""), "GenInfo" )
 {
     createHisto( "ptGenInfo_kaonAll"   ,  70, 0.,  7. );
     createHisto( "ptGenInfo_pionAll"   ,  70, 0.,  7. );
@@ -24,7 +24,7 @@ histMain_GenInformation::histMain_GenInformation( TFileDirectory* d ) :
 }
 void histMain_GenInformation::Process( fwlite::Event* ev )
 {
-    try 
+    try
     {
         if ( !ev->isValid() ) return;
         genHandle.getByLabel( *ev, "genParticles", "", "HLT" );
@@ -53,12 +53,12 @@ void histMain_GenInformation::Process( fwlite::Event* ev )
                     fillHisto( "momGenInfo_protonAll", gParticle.p() );
                 }
                 if ( fabs( gParticle.pdgId() ) == 321 )
-                    if ( fabs( gParticle.mother()->pdgId() ) == 5122 && 
+                    if ( fabs( gParticle.mother()->pdgId() ) == 5122 &&
                     gParticle.mother()->numberOfDaughters() == 3
                    )
                     fillHisto( "momGenInfo_kaonSignal", gParticle.p() );
                 if ( fabs( gParticle.pdgId() ) == 2212 &&
-                     fabs( gParticle.mother()->pdgId() ) == 5122 && 
+                     fabs( gParticle.mother()->pdgId() ) == 5122 &&
                     gParticle.mother()->numberOfDaughters() == 3
                    )
                     fillHisto( "momGenInfo_protonSignal", gParticle.p() );

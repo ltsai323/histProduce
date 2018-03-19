@@ -7,7 +7,7 @@
 
 
 histMain_findLam0FlightDistanceDiff::histMain_findLam0FlightDistanceDiff( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "Lam0Cand", "bphAnalysis") )
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "Lam0Cand", "bphAnalysis"), "Lam0FDdiff" )
 {
     _nMap[fd030] = "fd030";
     _nMap[fd060] = "fd060";
@@ -27,7 +27,7 @@ histMain_findLam0FlightDistanceDiff::histMain_findLam0FlightDistanceDiff( TFileD
 }
 void histMain_findLam0FlightDistanceDiff::Process( fwlite::Event* ev )
 {
-    try 
+    try
     {
         if ( !ev->isValid() ) return;
         _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
@@ -37,7 +37,7 @@ void histMain_findLam0FlightDistanceDiff::Process( fwlite::Event* ev )
         beamSpotHandle.getByLabel( *ev,"offlineBeamSpot", "", "RECO"  );
         if ( !beamSpotHandle.isValid() ) return;
         const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
-    
+
         std::map< double, const pat::CompositeCandidate*> vtxprobChooser;
         std::vector<pat::CompositeCandidate>::const_iterator handleIter = _handle->begin();
         std::vector<pat::CompositeCandidate>::const_iterator handleIend = _handle->end  ();

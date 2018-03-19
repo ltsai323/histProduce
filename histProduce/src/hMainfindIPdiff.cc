@@ -6,7 +6,7 @@
 #include <math.h>
 
 histMain_findIPdiff::histMain_findIPdiff( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis") )
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis"), "IPdiff" )
 {
     using namespace myCut;
 
@@ -59,7 +59,7 @@ histMain_findIPdiff::histMain_findIPdiff( TFileDirectory* d ) :
     //createHisto( "parIPt_ntk", 200, 0, 0.4 );
     createHisto( "par_ptk_IPt/Err", 200, 0, 5. );
     createHisto( "par_ntk_IPt/Err", 200, 0, 5. );
-    
+
     myCutLists.push_back( new      vtxprobCut(0.15,-99. ) );
     myCutLists.push_back( new         massCut(5.0 ,  6.0) );
     myCutLists.push_back( new       cosa2dCut(0.99      ) );
@@ -67,7 +67,7 @@ histMain_findIPdiff::histMain_findIPdiff( TFileDirectory* d ) :
 }
 void histMain_findIPdiff::Process( fwlite::Event* ev )
 {
-    try 
+    try
     {
         if ( !ev->isValid() ) return;
         _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
@@ -87,7 +87,7 @@ void histMain_findIPdiff::Process( fwlite::Event* ev )
                 { cutTag = true; break; }
             }
             if ( cutTag ) continue;
-   
+
 
             if ( !cand.hasUserFloat("TkTk/Proton.IPt") ) continue;
             if ( !cand.hasUserFloat("TkTk/Kaon.IPt") ) continue;
@@ -154,7 +154,7 @@ void histMain_findIPdiff::Process( fwlite::Event* ev )
                 nmu.setMass( 0.1056583715 );
 
                 fourMom fourTk = pTk + nTk + pmu + nmu;
-    
+
                 pTk.setMass( 0.493667 );
                 nTk.setMass( 0.13957061 );
                 fourTk = pTk + nTk + pmu + nmu;
@@ -184,7 +184,7 @@ void histMain_findIPdiff::Process( fwlite::Event* ev )
                     if ( twoTag )
                         fillHisto( dirname+"_both_"+"massFakeK892", twoTk.Mag() );
                 }
-    
+
                 pTk.setMass( 0.493667 );
                 nTk.setMass( 0.493667 );
                 fourTk = pTk + nTk + pmu + nmu;
@@ -214,7 +214,7 @@ void histMain_findIPdiff::Process( fwlite::Event* ev )
                     if ( twoTag )
                         fillHisto( dirname+"_both_"+"massFakePhi1020", twoTk.Mag() );
                 }
-    
+
                 pTk.setMass( 0.13957061 );
                 nTk.setMass( 0.13957061 );
                 twoTk = pTk + nTk;
@@ -250,4 +250,3 @@ void histMain_findIPdiff::Clear()
     for ( auto& testcuts : testCuts )
         delete testcuts.second;
 }
-

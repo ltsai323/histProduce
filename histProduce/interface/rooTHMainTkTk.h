@@ -1,0 +1,56 @@
+#ifndef __rooTHMainTkTk_h__
+#define __rooTHMainTkTk_h__
+#include "histProduce/histProduce/interface/rooTHMain.h"
+#include "histProduce/histProduce/interface/usefulFuncs.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include <vector>
+#include <utility> // std::pair
+
+class root_TreeHistoMain_TkTk : public root_TreeHistoMain
+{
+public:
+    root_TreeHistoMain_TkTk (TFileDirectory* d);
+    virtual void Process( unsigned int i ) override;
+    virtual void Clear() override;
+    virtual void RegTree() override;
+    virtual void LoadSourceBranch() override;
+private:
+    const double kaonMass, protonMass, pionMass;
+
+    // tree structure in loaded data. And create new file also with the same structure
+    enum readVarD
+    {
+        tktkMass, tktkFlightDistance2d, tktkVtxprob, tktkPt,
+        fake_Lam0Mass, fake_KstarMass, fake_KshortMass, fake_PhiMass,
+        ptkMom, ptkDEDX_Harmonic, ptkDEDX_pixelHrm, ptkIPt, ptkIPtErr,
+        ntkMom, ntkDEDX_Harmonic, ntkDEDX_pixelHrm, ntkIPt, ntkIPtErr,
+        totNumD
+    };
+    enum readVarI
+    {
+        totNumI
+    };
+
+    // if it is needed to add addiditional branch to new tree. added in this
+    enum addVarD
+    {
+        addNumD
+    };
+    enum addVarI
+    {
+        //ptkPID,
+        //ntkPID,
+        addNumI
+    };
+
+    double readD[totNumD];
+    int readI[totNumI];
+
+    // double data to store variables
+    double dataD[totNumD+addNumD];
+    // int data to store variables
+    int dataI[totNumI+addNumI];
+};
+
+
+#endif

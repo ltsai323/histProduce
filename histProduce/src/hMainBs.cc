@@ -4,7 +4,7 @@
 
 
 histMain_Bs::histMain_Bs( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "bsFitted", "bphAnalysis") )
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "bsFitted", "bphAnalysis"), "Bs" )
 {
     createHisto( "massBs", 50, 5.0, 6.0 );
     createHisto( "ptBs",  20, 0., 20. );
@@ -12,10 +12,10 @@ histMain_Bs::histMain_Bs( TFileDirectory* d ) :
 }
 void histMain_Bs::Process( fwlite::Event* ev )
 {
-    try 
+    try
     {
         _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
-    
+
         std::vector<pat::CompositeCandidate>::const_iterator iter = _handle->begin();
         std::vector<pat::CompositeCandidate>::const_iterator iend = _handle->end  ();
         while ( iter != iend )
@@ -29,12 +29,12 @@ void histMain_Bs::Process( fwlite::Event* ev )
                 if ( !( (*iter++)->accept(cand) ) )
                 { cutTag = true; break; }
             if ( cutTag ) continue;
-    
+
             if ( cand.hasUserFloat("fitMass") )
                 fillHisto( "massBs", cand.userFloat("fitMass") );
             if ( cand.hasUserData("fitMomentum") )
                 fillHisto( "ptBs", cand.userData<GlobalVector>("fitMomentum")->transverse() );
-    
+
             if ( cand.hasUserData("Phi/KPos.fitMom") )
                 fillHisto( "ptKaon", cand.userData<GlobalVector>("Phi/KPos.fitMom")->transverse() );
         }

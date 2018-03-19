@@ -8,7 +8,7 @@
 
 
 histMain_JPsiGenParticle::histMain_JPsiGenParticle( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "oniaFitted", "bphAnalysis") ),
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "oniaFitted", "bphAnalysis"), "JPsiGenInfo" ),
     protonMass( 0.9382720813 ), pionMass( 0.13957061 )
 {
 
@@ -24,7 +24,7 @@ histMain_JPsiGenParticle::histMain_JPsiGenParticle( TFileDirectory* d ) :
 }
 void histMain_JPsiGenParticle::Process( fwlite::Event* ev )
 {
-    try 
+    try
     {
         if ( !ev->isValid() ) return;
         _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() );
@@ -34,7 +34,7 @@ void histMain_JPsiGenParticle::Process( fwlite::Event* ev )
         if ( !genHandle.isValid() ) return;
         if ( _handle->size()  == 0 ) return;
         if ( genHandle->size() == 0 ) return;
-    
+
         //std::map< double, const pat::CompositeCandidate*> vtxprobChooser;
         std::vector< std::pair< double, const pat::CompositeCandidate*> > candsSorted;
         candsSorted.reserve( _handle->size() );
@@ -57,7 +57,7 @@ void histMain_JPsiGenParticle::Process( fwlite::Event* ev )
         } // preselection end }}}
         usefulFuncs::sortingByFirstValue( candsSorted );
         if ( candsSorted.size() == 0 ) return;
-        
+
 
         std::vector< std::pair<double, const pat::CompositeCandidate*> >::const_iterator iter = candsSorted.begin();
         std::vector< std::pair<double, const pat::CompositeCandidate*> >::const_iterator iend = candsSorted.end  ();
@@ -65,14 +65,14 @@ void histMain_JPsiGenParticle::Process( fwlite::Event* ev )
         while ( iter != iend )
         {
             const pat::CompositeCandidate& cand = *(iter++->second);
-            
+
             // first one is proton and second one is kaon ( consider bigger momentum with heavier particle )
             const GlobalVector* dPTR[2] = {nullptr};
             dPTR[0] = cand.userData<GlobalVector>("MuPos.fitMom");
             dPTR[1] = cand.userData<GlobalVector>("MuNeg.fitMom");
             //fillHisto("ptTkTk_MuPos", dPTR[0]->transverse() );
             //fillHisto("ptTkTk_MuNeg"  , dPTR[1]->transverse() );
-            
+
             fourMom pTk ( dPTR[0]->x(), dPTR[0]->y(), dPTR[0]->z() );
             fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
             const std::pair< double, reco::GenParticle>& pParticle = searchForGenParticle( &pTk );

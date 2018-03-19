@@ -7,13 +7,13 @@
 
 
 histMain_ParPlot::histMain_ParPlot( TFileDirectory* d ) :
-    histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis") )
+    histMain( d, histMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis"), "parPlots" )
 {
     createHisto( "parQValueLbTk", 200, 0, 20. );
     createHisto( "parQValueFakeBd", 200, 0, 20. );
     createHisto( "parQValueFakeBs", 200, 0, 20. );
     createHisto( "parQValueFakePiPi", 200, 0, 20. );
-    
+
     createHisto( "parmassFakeBs_twoIP", 50, 5.0, 6.0 );
     createHisto( "parmassFakeBd_twoIP", 50, 5.0, 6.0 );
     createHisto( "paretaLbTk", 50, 5.0, 6.0 );
