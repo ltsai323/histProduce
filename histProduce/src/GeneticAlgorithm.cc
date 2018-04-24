@@ -29,16 +29,12 @@ inline void GeneticAlgorithm::ApplyCrossOver()
 }
 void GeneticAlgorithm::Evolution()
 {
-    std::cout << "Evolution: 01\n";
     if ( !BasicCheck() )
     { printf( "error: something error in each branch!.\n" ); exit(1); }
-    std::cout << "Evolution: 02\n";
 
     PrepareChromosomes();
-    std::cout << "Evolution: 03\n";
     for(unsigned i=0;i<nchromos;i++)
         CalculateFitness(i, fitness[i], fitnessErr[i] );
-    std::cout << "Evolution: 04\n";
 
     // Evolution loop
     for ( unsigned gen = 0; gen < maxGen; ++gen )
@@ -80,9 +76,12 @@ void GeneticAlgorithm::Evolution()
         PrintSummary( f_avg, f_rms, gen, false );
 
 
-        if (f_rms<f_avg*0.00001) break;
+        if (f_rms<f_avg*0.00001)
+        {
+            printf( "process terminated due to convergent result\n" );
+            break;
+        }
     }
-    std::cout << "Evolution: 05\n";
 }
 void GeneticAlgorithm::SetLogFile( const char* txt )
 { logFile = fopen( txt, "w" ); return; }

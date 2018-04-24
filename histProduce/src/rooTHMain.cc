@@ -43,7 +43,7 @@ inline void root_TreeHistoMain::createHisto( const std::string& name, int nbin, 
         return;
     }
     hMap[name] = dir->make<TH1D>( getFullName(name).c_str(), name.c_str(), nbin, min, max );
-    std::cout << "appened histogram name : " << getFullName( name ) << std::endl;
+    printf( "appened histogram name : %s\n", getFullName(name).c_str() );
     return;
 }
 inline void root_TreeHistoMain::createHisto( const std::string& name, int nbin, double min, double max, int nbin2, double min2, double max2 )

@@ -48,7 +48,7 @@ void histMain_findLam0FlightDistanceDiff::Process( fwlite::Event* ev )
             if ( _vtx == nullptr ) continue;
             vtxprobChooser.insert( std::make_pair( TMath::Prob( _vtx->chi2(), _vtx->ndof() ), &cand ) );
         }
-        if ( vtxprobChooser.size() == 0 ) std::cout << "warining nothing in the event\n";
+        if ( vtxprobChooser.size() == 0 ) printf( "warining nothing in the event\n" );
         fillHisto("candInEvent", vtxprobChooser.size() );
 
         std::map< double, const pat::CompositeCandidate*>::const_reverse_iterator iter = vtxprobChooser.rbegin();

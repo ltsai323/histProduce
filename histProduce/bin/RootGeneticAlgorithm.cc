@@ -77,13 +77,10 @@ int main(int argc, char* argv[])
     // parser setting end }}}
 
 
-    std::cout << "hi 01 \n";
 
     // set main code.
     std::vector<GeneticAlgorithm*> mainCode;
-    std::cout << "hi 01.5 \n";
     mainCode.push_back( new GeneticAlgorithm_LbTk(1000, 1000) );
-    std::cout << "hi 02 \n";
 
         // ----------------------------------------------------------------------
         // Second Part:
@@ -94,26 +91,19 @@ int main(int argc, char* argv[])
         //  * after the loop close the input file
         // ----------------------------------------------------------------------
     TFile* inFile = TFile::Open( ("file://"+inputFile_).c_str() );
-    std::cout << "hi 03 \n";
     if ( !inFile )
     { printf( "test file not found! check it\n" ); exit(1); }
-    std::cout << "hi 04 \n";
+    printf( "check end, start to evolution\n" );
     for ( auto& _main : mainCode )
     {
-    std::cout << "hi 05 \n";
         _main->SetData( inFile );
-    std::cout << "hi 06 \n";
         _main->SetLogFile( outLog.c_str() );
-    std::cout << "hi 07 \n";
         _main->Evolution();
-    std::cout << "hi 08 \n";
     }
     inFile->Close();
-    std::cout << "hi 09 \n";
 
     for ( auto& _main : mainCode )
     { delete _main; }
-    std::cout << "hi 10 \n";
 
     return 0;
 }

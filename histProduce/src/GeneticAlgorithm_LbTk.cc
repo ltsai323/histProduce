@@ -144,7 +144,7 @@ bool GeneticAlgorithm_LbTk::BasicCheck()
     { printf( "\tdataTree not load!\n" ); return false; }
     if ( !lbtk.readTree()->GetEntries() )
     { printf( "\tthere is no entries in the tree!\n" ); return false; }
-    printf( "\tLbTk part checking Done!\n" );
+    printf( "\tLbTk part checking : Done!\n" );
 
     return true;
 }

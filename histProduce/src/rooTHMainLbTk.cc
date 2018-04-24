@@ -114,9 +114,7 @@ void root_TreeHistoMain_LbTk::RegTree()
 {
     // don't reg tree.
     // return;
-    std::cout << "hi regiiing LbTk tree!\n";
     if ( NoOutput() ) return;
-    std::cout << "hi reg LbTk tree!\n";
 
     TTree* t = thisTree();
     t->Branch( "lbtkMass", &dataD[lbtkMass], "lbtkMass/D" );
@@ -247,7 +245,6 @@ void root_TreeHistoMain_LbTk::SummaryCalc()
         const std::string hname = hName;
         iter = myMap.find( hname );
         if ( iter == iend ) continue;
-        std::cout << hName << " created!\n";
 
         TH1D* histo = iter->second;
         c1->Clear();

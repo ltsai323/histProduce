@@ -15,16 +15,11 @@ class GeneticAlgorithm
 public:
     GeneticAlgorithm( const unsigned Nvars, const unsigned NChromo=10000, const unsigned MaxGen=1000 ) : nvariables(Nvars), Nentries(0), nchromos(NChromo), maxGen(MaxGen), rnd(1234), logFile( nullptr )
     {
-        std::cout << "GA main constructor 01\n";
         chromos = new double*[nchromos*2];
-        std::cout << "GA main constructor 02\n";
         for ( unsigned i=0; i<nchromos*2; ++i )
             chromos[i] = new double[nvariables];
-        std::cout << "GA main constructor 03\n";
         fitness = new double[nchromos*2];
-        std::cout << "GA main constructor 04\n";
         fitnessErr = new double[nchromos*2];
-        std::cout << "GA main constructor 05 final\n";
         return;
     }
     virtual ~GeneticAlgorithm()
