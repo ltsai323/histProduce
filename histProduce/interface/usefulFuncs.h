@@ -5,6 +5,7 @@
 #include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "TVector2.h"
+#include "TH1.h"
 
 namespace usefulFuncs
 {
@@ -72,7 +73,11 @@ template< typename myParticle >
 
 
 
+    struct SNRes { int Nsig, N; double ErrSig; };
+
+    SNRes SignalNumberCalculator( TH1* data, const double sigMin, const double sigMax );
     double getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
+    double getFlightDistanceSignificance( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
     double getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
 
 }

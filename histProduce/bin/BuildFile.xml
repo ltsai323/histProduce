@@ -10,6 +10,7 @@
 <use   name="PhysicsTools/SelectorUtils"/>
 <use   name="histProduce/histProduce"/>
 <environment>
+  <bin name="geneticAlgorithm"          file="RootGeneticAlgorithm.cc"></bin>
   <bin name="tReduce"                   file="RootReadTreeToTreeHisto.cc"></bin>
   <bin name="hCreate"                   file="FWLiteHistoCreater.cc"></bin>
   <bin name="tCreate"                   file="FWLiteTreeCreater.cc"></bin>

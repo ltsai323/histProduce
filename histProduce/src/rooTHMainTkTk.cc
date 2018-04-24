@@ -13,8 +13,7 @@ root_TreeHistoMain_TkTk::root_TreeHistoMain_TkTk( TFileDirectory* d ) :
 {
     setInputTreeName( "lbSpecificDecay/TkTk" );
     RegTree();
-
-    createHisto( "mass_fakelam0", 50, 1., 1.2 );
+    RegHisto();
 }
 void root_TreeHistoMain_TkTk::Process( unsigned int i )
 {
@@ -43,6 +42,7 @@ void root_TreeHistoMain_TkTk::RegTree()
 {
     // don't reg tree.
     return;
+    if ( NoOutput() ) return;
 
     TTree* t = thisTree();
     t->Branch( "tktkMass", &dataD[tktkMass], "tktkMass/D" );
@@ -65,6 +65,11 @@ void root_TreeHistoMain_TkTk::RegTree()
     t->Branch( "ntkIPtErr", &dataD[ntkIPtErr], "ntkIPtErr/D" );
 
     // t->Branch("newBranch", &dataD[totNumD+newBranch], "newBranch/D" );
+}
+void root_TreeHistoMain_TkTk::RegHisto()
+{
+    if ( NoOutput() ) return;
+    createHisto( "mass_fakelam0", 50, 1., 1.2 );
 }
 
 
@@ -89,4 +94,8 @@ void root_TreeHistoMain_TkTk::LoadSourceBranch()
     t->SetBranchAddress( "ntkDEDX.pixelHrm", &readD[ntkDEDX_pixelHrm] );
     t->SetBranchAddress( "ntkIPt", &readD[ntkIPt] );
     t->SetBranchAddress( "ntkIPtErr", &readD[ntkIPtErr] );
+}
+void root_TreeHistoMain_TkTk::SummaryCalc()
+{
+    return;
 }
