@@ -20,7 +20,7 @@ namespace
 GeneticAlgorithm_LbTk::GeneticAlgorithm_LbTk( unsigned Nchromo = 10000, unsigned maxGen = 1000 ) :
     GeneticAlgorithm( NVAR, Nchromo, maxGen ), lbtk(nullptr)
 {
-    setSignalRegion( 5.6195, 0.04 );
+    setSignalRegion( 5.6195, 0.08 );
     chromosRange = new double*[NVAR];
     for ( int i=0; i<NVAR; ++i )
         chromosRange[i] = new double[2];

@@ -110,7 +110,7 @@ inline void GeneticAlgorithm::PrintSummary( const double avg, const double rms, 
         {
             fprintf ( logFile, "%2d: fitness = %.4f +- %.4f, choromos : ", i, fitness[i], fitnessErr[i] );
             for ( unsigned j = 0; j < nvariables; ++j )
-                fprintf ( logFile, "%.2f ", chromos[i][j] );
+                fprintf ( logFile, "%4.2f,", chromos[i][j] );
             fprintf( logFile, "\n" );
         }
         fflush( logFile );

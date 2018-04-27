@@ -57,6 +57,8 @@ private:
     double dataD[totNumD+addNumD];
     // int data to store variables
     int dataI[totNumI+addNumI];
+    // store result of genetic algorithm, the values are written in constructor
+    std::vector<double> gaRes;
 };
 
 
