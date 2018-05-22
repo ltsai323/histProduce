@@ -16,7 +16,7 @@
 #include "FWCore/PythonParameterSet/interface/MakeParameterSets.h"
 #include "PhysicsTools/FWLite/interface/CommandLineParser.h"
 
-#include "histProduce/histProduce/interface/GeneticAlgorithm_LbTk.h"
+#include "histProduce/histProduce/interface/GeneticAlgorithmLbTk.h"
 
 // load data and use generic algorithm to get cuts:
 // use TTree to load data
