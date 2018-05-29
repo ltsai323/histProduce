@@ -43,6 +43,7 @@
 //#include "histProduce/histProduce/interface/tmainGenInfo.h"
 #include "histProduce/histProduce/interface/tmainGenTkTk.h"
 #include "histProduce/histProduce/interface/tmainGenLam0.h"
+#include "histProduce/histProduce/interface/tmainGenLbTk.h"
 //#include "histProduce/histProduce/interface/tmainLbTkGenParticle.h"
 //#include "histProduce/histProduce/interface/tmainLbL0GenParticle.h"
 //#include "histProduce/histProduce/interface/tmainJPsiGenParticle.h"
@@ -105,7 +106,7 @@ int main(int argc, char* argv[])
 
     // if the value smaller than zero, do not print anything on the screen.
     parser.integerValue ("outputEvery") = 100;
-    parser.stringValue  ("outputFile" ) = "histTestOutput.root";
+    parser.stringValue  ("outputFile" ) = "outputToTreeFromEDA.root";
 
     // parse arguments
     parser.parseArguments (argc, argv);
@@ -168,10 +169,10 @@ int main(int argc, char* argv[])
 
     // set main code.
     std::vector<treeMain*> mainCode;
-    mainCode.push_back( new treeMain_TkTk(&dir) );
+    //mainCode.push_back( new treeMain_TkTk(&dir) );
     //mainCode.push_back( new treeMain_Lam0(&dir) );
     //mainCode.push_back( new treeMain_Kshort(&dir) );
-    mainCode.push_back( new treeMain_LbTk(&dir) );
+    //mainCode.push_back( new treeMain_LbTk(&dir) );
     //mainCode.push_back( new treeMain_LbL0(&dir) );
     //mainCode.push_back( new treeMain_Bs(&dir) );
     //mainCode.push_back( new treeMain_findParDiff(&dir) );
@@ -186,7 +187,7 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new treeMain_JPsiGenParticle(&dir) );
     //mainCode.push_back( new treeMainGen_Lam0(&dir) );
     //mainCode.push_back( new treeMainGen_TkTk(&dir) );
-    //mainCode.push_back( new treeMainGen_LbTk(&dir) );
+    mainCode.push_back( new treeMainGen_LbTk(&dir) );
     //mainCode.push_back( new treeMainGen_LbL0(&dir) );
     //mainCode.push_back( new treeMainGen_List(&dir) );
 

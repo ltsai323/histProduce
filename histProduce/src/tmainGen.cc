@@ -35,6 +35,7 @@ MatchRes treeMainGen::matchMC_CompositeCand( const pat::CompositeCandidate& cand
     ccList.reserve(15);
 
     // find for composite candidate {{{
+    // use pt ratio & status() (cand&daug) to roughly find out gpCand
     while ( iter != iend )
     {
         const reco::GenParticle& _genParticle = *iter++;
@@ -42,10 +43,10 @@ MatchRes treeMainGen::matchMC_CompositeCand( const pat::CompositeCandidate& cand
         // find for composite candidate.
         if ( _genParticle.status() != 2 ) continue;
         if ( _genParticle.numberOfDaughters() < daugs.size() ) continue;
-        bool daughterCheck = false;
-        for ( unsigned int i = 0; i < _genParticle.numberOfDaughters(); ++i )
-            if ( _genParticle.daughter(i)->status() != 1 ) daughterCheck = true;
-        if ( daughterCheck ) continue;
+        bool ownFinalStateParticle = false;
+        for ( unsigned i = 0; i < _genParticle.numberOfDaughters(); ++i )
+            if ( _genParticle.daughter(i)->status() == 1 ) ownFinalStateParticle = true;
+        if ( !ownFinalStateParticle ) continue;
 
         double deltaPTRatio = fabs( cand.pt() - _genParticle.pt() ) / cand.pt();
         if ( deltaPTRatio > 0.5 ) continue;
@@ -68,13 +69,13 @@ MatchRes treeMainGen::matchMC_CompositeCand( const pat::CompositeCandidate& cand
     {
         std::vector<MatchRes> result;
         result.reserve( 10 );
-        std::vector<int> tmpIdx;
+        std::vector<unsigned> tmpIdx;
         calculateAllDeltaR( ccPair, daugs, tmpIdx, result, minDeltaR );
 
         // from result to find out the smallest deltaR product daughter combination.
-        unsigned int idx_smallestDR = 99;
+        unsigned idx_smallestDR = 99;
         double smallestDR = 999.;
-        for ( unsigned int i=0; i<result.size();++i )
+        for ( unsigned i=0; i<result.size();++i )
         {
             if ( result[i].getNDaughterRecorded() < daugs.size() ) continue;
             double tmpDR = result[i].getDeltaR();
@@ -89,9 +90,9 @@ MatchRes treeMainGen::matchMC_CompositeCand( const pat::CompositeCandidate& cand
     }
 
     // find out the smallest deltaR candidate from ccDeltaRresult
-    unsigned int idx_smallestDR = 99;
+    unsigned idx_smallestDR = 99;
     double smallestDR = 999.;
-    for ( unsigned int i=0; i<ccDeltaRresult.size(); ++i )
+    for ( unsigned i=0; i<ccDeltaRresult.size(); ++i )
     {
         double tmpDR = ccDeltaRresult[i].getDeltaR();
         if ( tmpDR < smallestDR )
@@ -107,34 +108,46 @@ MatchRes treeMainGen::matchMC_CompositeCand( const pat::CompositeCandidate& cand
 
 
 // recursive function to check deltaR for all candidates.
-inline void treeMainGen::calculateAllDeltaR( const std::pair<double, const reco::GenParticle*> compCand, const std::vector<fourMom>& daugs, const std::vector<int>& idxs, std::vector<MatchRes>& res, const double minDeltaR=0.1 )
+// if you want to find lambdaB(with 3 daughters JPsi,p,K). Then you need to put 3 daughters!
+// if you put 2 daughters (p,K). Most probably you will get a JPsi(with 2 daughters).
+inline void treeMainGen::calculateAllDeltaR( const std::pair<double, const reco::GenParticle*> compCand, const std::vector<fourMom>& daugs, const std::vector<unsigned>& idxs, std::vector<MatchRes>& res, const double minDeltaR=0.1 )
 {
     if ( idxs.size() == daugs.size() )
     {
         // calculate for deltaR_tot = deltaR1 * deltaR2 * ...
         double deltaR = compCand.first;
-        for ( unsigned int i=0; i<idxs.size(); ++i )
+        const reco::GenParticle* gpCompCand = compCand.second;
+
+
+        for ( unsigned i=0; i!=idxs.size(); ++i )
         {
-            double dDeltaR =  mcMatchVal( &(daugs[i]), compCand.second->daughter(idxs[i]) );
-            // cut for minDeltaR
-            if ( dDeltaR > minDeltaR ) continue;
+            const fourMom* __d__ = &daugs[i];
+            const reco::Candidate* __mcDau__ = gpCompCand->daughter(idxs[i]);
+            //double dDeltaR =  mcMatchVal( &(daugs[i]), gpCompCand->daughter(idxs[i]) );
+            double dDeltaR =  mcMatchVal( __d__, __mcDau__ );
+            // cut for minDeltaR to each daughter
+            if ( dDeltaR > minDeltaR ) return;
             deltaR *= dDeltaR;
         }
-        MatchRes result( deltaR, compCand.second );
-        for ( unsigned int i=0; i<idxs.size(); ++i )
+        MatchRes result( deltaR, gpCompCand );
+        for ( unsigned i=0; i<idxs.size(); ++i )
             result.storeMatchRes( i, idxs[i] );
         res.push_back( result );
     }
+    else if ( idxs.size() > daugs.size() ) return;
     else
     {
         // collect for daughters.
-        // this algorithm not only for (0,1,3), (0,2,4). It also calculates for (3,0,1) , (2,5,0) ...
+        // for example, if you have 4 daughters in the gpCompCand, but the daugs you input only 3
+        // this algorithm calculates the combination:
+        // (0,1,2), (0,1,3), (0,2,1), (0,2,3), (0,3,1), (0,3,2), ... and so on
         // the only constriant is to forbid the same index.
-        int N = daugs.size();
-        for ( int i=0; i<N; ++i )
+        //int N = daugs.size();
+        unsigned N = compCand.second->numberOfDaughters();
+        for ( unsigned i=0; i<N; ++i )
         {
             bool sameIdx = false;
-            for ( const int idx : idxs )
+            for ( const unsigned idx : idxs )
                 if ( i == idx )
                 {
                     sameIdx = true;
@@ -142,8 +155,9 @@ inline void treeMainGen::calculateAllDeltaR( const std::pair<double, const reco:
                 }
             if ( sameIdx ) continue;
 
-            std::vector<int> tmpIdx = idxs;
+            std::vector<unsigned> tmpIdx = idxs;
             tmpIdx.push_back( i );
+
             calculateAllDeltaR( compCand, daugs, tmpIdx, res, minDeltaR );
         }
     }

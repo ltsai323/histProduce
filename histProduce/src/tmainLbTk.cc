@@ -55,6 +55,7 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
             fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
             //fourMom tktk = pTk+nTk;
             fourMom fourTk = pTk+nTk+pMu+nMu;
+            // preselection
             if ( pMu.transverse() < 5.0 ) continue;
             if ( nMu.transverse() < 5.0 ) continue;
             if ( pMu.Momentum()   < 5.0 ) continue;
@@ -67,6 +68,7 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
             if ( fourTk.transverse()< 12. ) continue;
             if ( fourTk.Momentum()  < 12. ) continue;
 
+
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) continue;
             double fd = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
@@ -78,7 +80,6 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
 
             candsSorted.emplace_back( vtxprob, &cand );
         }
-        //if ( vtxprobChooser.size() == 0 ) return;
         if ( candsSorted.size() == 0 ) return;
 
         std::vector< std::pair<double, const pat::CompositeCandidate*> >::const_iterator iter = candsSorted.begin();
@@ -262,4 +263,5 @@ void treeMain_LbTk::setBranchAddress( TTree* inputTree )
     inputTree->SetBranchAddress( "ntkDEDX.pixelHrm", &dataD[ntkDEDX_pixelHrm] );
     inputTree->SetBranchAddress( "ntkIPt", &dataD[ntkIPt] );
     inputTree->SetBranchAddress( "ntkIPtErr", &dataD[ntkIPtErr] );
+    return;
 }

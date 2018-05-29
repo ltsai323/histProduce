@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
 
     // if the value smaller than 0, do not print anything on screen
     parser.integerValue ("outputEvery") = 100;
-    parser.stringValue  ("outputFile" ) = "histTestOutput.root";
+    parser.stringValue  ("outputFile" ) = "reducedTHOutput.root";
 
     // parse arguments
     parser.parseArguments (argc, argv);

@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     // initialize command line parser
     optutl::CommandLineParser parser ("print out all of histograms in the root file");
 
-    parser.stringValue  ("outputFile" ) = "histTestOutput";
+    parser.stringValue  ("outputFile" ) = "histTot";
 
     // parse arguments
     parser.parseArguments (argc, argv);

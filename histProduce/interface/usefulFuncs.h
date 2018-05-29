@@ -48,7 +48,9 @@ template< typename key, typename val >
                 }
             }
     }
-template< typename myParticle >
+
+    // mc matching, return boolean
+    template< typename myParticle >
     bool mcMatch( const myParticle* cand, const reco::GenParticle* gpCand, double minDeltaR )
     {
         // test for deltaR == (eta)^2+(phi)^2
@@ -59,7 +61,9 @@ template< typename myParticle >
         double deltaR2 = val1*val1+val2*val2;
         return (deltaR2 < minDeltaR*minDeltaR) ? true : false;
     }
-template< typename myParticle >
+
+    // mc matching, return deltaR
+    template< typename myParticle >
     double mcMatchVal( const myParticle* cand, const reco::GenParticle* gpCand )
     {
         // test for deltaR == (eta)^2+(phi)^2

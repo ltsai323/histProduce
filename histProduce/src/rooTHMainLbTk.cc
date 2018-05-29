@@ -11,19 +11,22 @@
 #include "TH1D.h"
 #include "TLine.h"
 
-#define NUM_TESTHIST 20
-const char* testingCut = "FDSig>";
-const double cutInit = 100;
-const double cutInterval = 50;
+namespace
+{
+    //const unsigned NUM_TESTHIST = 20;
+    const int NUM_TESTHIST = 20;
+    const char* testingCut = "FDSig>";
+    const double cutInit = 100;
+    const double cutInterval = 50;
+}
 
 root_TreeHistoMain_LbTk::root_TreeHistoMain_LbTk( TFileDirectory* d ) :
     root_TreeHistoMain( d, "LbTk" ),
     kaonMass ( 0.493667 ), protonMass ( 0.9382720813 ), pionMass ( 0.13957061 )
 {
     setInputTreeName( "lbSpecificDecay/LbTk" );
-    gaRes = { 0.00, -0.69, 11.50, 12.47, 6.50, 5.67, 4.48, 4.51, 2.00, 2.11, 2.47, 18.95, -0.21, 15.05, -12.17, 11.88, -16.30, 19.57 };
-    //gaRes = { 11.26, 0.29, 18.71, 19.09, 4.12, 6.25, 3.92, 4.08, 1.91, 1.95, -0.39, 9.69, 0.04, 14.49, -11.56, 5.03, -6.41, 4.77 };
-    
+    // gaRes = { 0.00, -0.69, 11.50, 12.47, 6.50, 5.67, 4.48, 4.51, 2.00, 2.11, 2.47, 18.95, -0.21, 15.05, -12.17, 11.88, -16.30, 19.57 };
+
     if ( !d ) return;
     RegTree();
     RegHisto();
@@ -50,16 +53,16 @@ void root_TreeHistoMain_LbTk::Process( unsigned int i )
         // preselection end }}}
 
         // for smaller tree for GA use.
-        if ( readD[lbtkMass] < 5.6195+0.08 )
-            if ( readD[lbtkMass] > 5.6195-0.08 )
-                if ( readD[ptkPt] > 2.00 )
-                    if ( readD[ntkPt] > 1.00 )
-                        if ( readD[lbtkVtxprob] > 0.13 )
+        if ( readD[lbtkMass] < 5.70 )
+            if ( readD[lbtkMass] > 5.55 )
+//                if ( readD[ptkPt] > 2.00 )
+//                    if ( readD[ntkPt] > 1.00 )
+//                        if ( readD[lbtkVtxprob] > 0.13 )
         {
 
             for ( int i=0; i<totNumD; ++i )
                 dataD[i] = readD[i];
-            //thisTree()->Fill();
+            thisTree()->Fill();
         }
 
         // for histogram part
@@ -67,35 +70,28 @@ void root_TreeHistoMain_LbTk::Process( unsigned int i )
     if ( readD[lbtkFlightDistanceSig  ] < gaRes[ 0] ) return;
     if ( readD[lbtkVtxprob            ] < gaRes[ 1] ) return;
     if ( readD[lbtkPt                 ] < gaRes[ 2] ) return;
-    if ( readD[lbtkMom                ] < gaRes[ 3] ) return;
+    //if ( readD[lbtkMom                ] < gaRes[ 3] ) return;
     if ( readD[tktkPt                 ] < gaRes[ 4] ) return;
-    if ( readD[tktkMom                ] < gaRes[ 5] ) return;
+    //if ( readD[tktkMom                ] < gaRes[ 5] ) return;
     if ( readD[ptkPt                  ] < gaRes[ 6] ) return;
-    if ( readD[ptkMom                 ] < gaRes[ 7] ) return;
+    //if ( readD[ptkMom                 ] < gaRes[ 7] ) return;
     if ( readD[ntkPt                  ] < gaRes[ 8] ) return;
-    if ( readD[ntkMom                 ] < gaRes[ 9] ) return;
+    //if ( readD[ntkMom                 ] < gaRes[ 9] ) return;
     //if ( readD[ptkDEDX_Mom_ratio] < gaRes[10] ) return;
     //if ( readD[ptkDEDX_Mom_ratio] > gaRes[11] ) return;
     //if ( readD[ntkDEDX_Mom_ratio] < gaRes[12] ) return;
     //if ( readD[ntkDEDX_Mom_ratio] > gaRes[13] ) return;
-    if ( readD[ptkIPt]/readD[ptkIPtErr] < gaRes[14] ) return;
-    if ( readD[ptkIPt]/readD[ptkIPtErr] > gaRes[15] ) return;
-    if ( readD[ntkIPt]/readD[ntkIPtErr] < gaRes[16] ) return;
-    if ( readD[ntkIPt]/readD[ntkIPtErr] > gaRes[17] ) return;
+    //if ( readD[ptkIPt]/readD[ptkIPtErr] < gaRes[14] ) return;
+    //if ( readD[ptkIPt]/readD[ptkIPtErr] > gaRes[15] ) return;
+    //if ( readD[ntkIPt]/readD[ntkIPtErr] < gaRes[16] ) return;
+    //if ( readD[ntkIPt]/readD[ntkIPtErr] > gaRes[17] ) return;
     /*
         if ( readD[ptkPt] < 2.60 ) return;
         if ( readD[ntkPt] < 1.30 ) return;
         if ( readD[lbtkFlightDistanceSig] < 0.111 ) return;
-        //if ( readD[lbtkFlightDistanceSig] < 500. ) return;
-        if ( readD[lbtkVtxprob] < 0.15 ) return; 
+        if ( readD[lbtkVtxprob] < 0.15 ) return;
         if ( readD[lbtkPt] < 15. ) return;
-        //if ( readD[lbtkPt] > 65. ) return;
-        if ( readD[lbtkMom]< 15.95 ) return;
-        //if ( readD[lbtkMom]> 98.   ) return;
         if ( readD[tktkPt] < 4.3  ) return;
-        //if ( readD[tktkPt] > 19.9 ) return;
-        if ( readD[tktkMom]< 4.52 ) return;
-        //if ( readD[tktkMom]> 60.0 ) return;
         */
         fillHisto( "mass_LbTk", readD[lbtkMass] );
 

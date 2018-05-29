@@ -22,15 +22,15 @@ public:
     virtual void GetByLabel( fwlite::Event* ev ) override = 0;
 
     virtual MatchRes matchMC_CompositeCand( const pat::CompositeCandidate& cand, const std::vector<fourMom>& daugs, const double minDeltaR );
-    virtual void calculateAllDeltaR( const std::pair<double, const reco::GenParticle*> compCand, const std::vector<fourMom>& daugs, const std::vector<int>& idxs, std::vector<MatchRes>& res, const double minDeltaR ) final;
+    virtual void calculateAllDeltaR( const std::pair<double, const reco::GenParticle*> compCand, const std::vector<fourMom>& daugs, const std::vector<unsigned>& idxs, std::vector<MatchRes>& res, const double minDeltaR ) final;
 
 // tmplate function
 template< typename myParticle >
     double mcMatchVal( const myParticle* cand, const reco::Candidate* targetCand )
     {
         // test for deltaR == (eta)^2+(phi)^2
-        if ( cand == nullptr ) return 9999.;
-        if ( targetCand == nullptr ) return 9999.;
+        if ( cand == nullptr ) return 99999.;
+        if ( targetCand == nullptr ) return 99999.;
         double val1 = cand->eta() - targetCand->eta();
         // Phi_mpi_pi is to change phi=[a,b] -> phi=[-pi,pi]. don't chanbe the degree to radius degree
         double val2 = TVector2::Phi_mpi_pi( cand->phi() - targetCand->phi() );
@@ -49,18 +49,18 @@ struct MatchRes
         matchedDaugIdx.reserve( cand->numberOfDaughters() );
     }
     ~MatchRes() {}
-    void storeMatchRes( int dId, int gpdId )
+    void storeMatchRes( unsigned dId, unsigned gpdId )
     {
         daugIdx.push_back( dId );
         matchedDaugIdx.push_back( gpdId );
     }
     double getDeltaR() const
     { return deltaRProduct; }
-    int getDaugID( int i ) const
+    unsigned getDaugID( unsigned i ) const
     { return daugIdx[i]; }
-    int getmcDaugID( int i ) const
+    unsigned getmcDaugID( unsigned i ) const
     { return matchedDaugIdx[i]; }
-    unsigned int getNDaughterRecorded() const
+    unsigned getNDaughterRecorded() const
     { return matchedDaugIdx.size(); }
     bool isValid() const
     { return _flag; }
