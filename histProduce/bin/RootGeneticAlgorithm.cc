@@ -17,6 +17,7 @@
 #include "PhysicsTools/FWLite/interface/CommandLineParser.h"
 
 #include "histProduce/histProduce/interface/GeneticAlgorithmLbTk.h"
+#include "histProduce/histProduce/interface/GeneticAlgorithmMC.LbTk.h"
 
 // load data and use generic algorithm to get cuts:
 // use TTree to load data
@@ -59,7 +60,8 @@ int main(int argc, char* argv[])
     // initialize command line parser
     optutl::CommandLineParser parser ("Analyze FWLite Histograms");
 
-    parser.addOption("testFile"     ,optutl::CommandLineParser::kString,"test input file, recommend to use fileList_cfi.py to put files"    ,"");
+    parser.addOption("dataFile"     ,optutl::CommandLineParser::kString,"input data root file name"    ,"");
+    parser.addOption("mcFile"       ,optutl::CommandLineParser::kString,"input mc   root file name"    ,"");
     parser.stringValue  ("outputFile" ) = "log_GA.txt";
 
     // parse arguments
@@ -67,20 +69,31 @@ int main(int argc, char* argv[])
 
 
 
-    if ( parser.stringValue("testFile").empty() )
+    if ( parser.stringValue("dataFile").empty() )
     {
-        printf( "you need to input a file for training! use 'testFile' option \n" );
+        printf( "you need to input a data file for training! use 'dataFile' option \n" );
         exit(0);
     }
-    const std::string inputFile_ = parser.stringValue("testFile");
+    if ( parser.stringValue("mcFile").empty() )
+    {
+        printf( "you need to input a mc file for training! use 'mcFile' option \n" );
+        exit(0);
+    }
+    const std::string dataFile_ = parser.stringValue("dataFile");
+    const std::string mcFile_ = parser.stringValue("mcFile");
     const std::string outLog = parser.stringValue("outputFile");
     // parser setting end }}}
 
 
 
     // set main code.
-    std::vector<GeneticAlgorithm*> mainCode;
-    mainCode.push_back( new GeneticAlgorithm_LbTk(1000, 1000) );
+
+    // used without MC
+    //std::vector<GeneticAlgorithm*> mainCode;
+    //mainCode.push_back( new GeneticAlgorithm_LbTk(1000, 1000) );
+    // used with MC
+    std::vector<GeneticAlgorithmMC*> mainCode;
+    mainCode.push_back( new GeneticAlgorithmMC_LbTk(1000, 1000) );
 
         // ----------------------------------------------------------------------
         // Second Part:
@@ -90,17 +103,22 @@ int main(int argc, char* argv[])
         //  * fill the histograms
         //  * after the loop close the input file
         // ----------------------------------------------------------------------
-    TFile* inFile = TFile::Open( ("file://"+inputFile_).c_str() );
-    if ( !inFile )
-    { printf( "test file not found! check it\n" ); exit(1); }
+    TFile* dFile = TFile::Open( ("file://"+dataFile_).c_str() );
+    if ( !dFile )
+    { printf( "data file not found! check it\n" ); exit(1); }
+    TFile* mFile = TFile::Open( ("file://"+mcFile_).c_str() );
+    if ( !mFile )
+    { printf( "mc file not found! check it\n" ); exit(1); }
     printf( "check end, start to evolution\n" );
     for ( auto& _main : mainCode )
     {
-        _main->SetData( inFile );
+        _main->SetData( dFile );
+        _main->SetSignalMC( mFile );
         _main->SetLogFile( outLog.c_str() );
         _main->Evolution();
     }
-    inFile->Close();
+    dFile->Close();
+    mFile->Close();
 
     for ( auto& _main : mainCode )
     { delete _main; }

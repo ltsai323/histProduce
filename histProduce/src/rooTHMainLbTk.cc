@@ -13,8 +13,7 @@
 
 namespace
 {
-    //const unsigned NUM_TESTHIST = 20;
-    const int NUM_TESTHIST = 20;
+    const int NUM_TESTHIST = 1;
     const char* testingCut = "FDSig>";
     const double cutInit = 100;
     const double cutInterval = 50;
@@ -25,7 +24,8 @@ root_TreeHistoMain_LbTk::root_TreeHistoMain_LbTk( TFileDirectory* d ) :
     kaonMass ( 0.493667 ), protonMass ( 0.9382720813 ), pionMass ( 0.13957061 )
 {
     setInputTreeName( "lbSpecificDecay/LbTk" );
-    // gaRes = { 0.00, -0.69, 11.50, 12.47, 6.50, 5.67, 4.48, 4.51, 2.00, 2.11, 2.47, 18.95, -0.21, 15.05, -12.17, 11.88, -16.30, 19.57 };
+    // gaRes = { 0.57,0.38,18.33,-0.01,4.94,-0.43,4.07,0.32,2.12,0.63,0.00,-0.87,-0.49,0.00,-0.88,0.52,-0.28,0.62 };
+    gaRes = { 0.63,-1.10,19.24,0.00,3.06,1.06,3.64,0.71,2.61,0.92,0.00,0.06,0.13,-0.47,-0.80,3.42,-2.84,1.94 };
 
     if ( !d ) return;
     RegTree();
@@ -62,30 +62,33 @@ void root_TreeHistoMain_LbTk::Process( unsigned int i )
 
             for ( int i=0; i<totNumD; ++i )
                 dataD[i] = readD[i];
-            thisTree()->Fill();
+            // save reduced tree
+            // thisTree()->Fill();
         }
 
         // for histogram part
         // test for GA result
-    if ( readD[lbtkFlightDistanceSig  ] < gaRes[ 0] ) return;
-    if ( readD[lbtkVtxprob            ] < gaRes[ 1] ) return;
-    if ( readD[lbtkPt                 ] < gaRes[ 2] ) return;
-    //if ( readD[lbtkMom                ] < gaRes[ 3] ) return;
-    if ( readD[tktkPt                 ] < gaRes[ 4] ) return;
-    //if ( readD[tktkMom                ] < gaRes[ 5] ) return;
-    if ( readD[ptkPt                  ] < gaRes[ 6] ) return;
-    //if ( readD[ptkMom                 ] < gaRes[ 7] ) return;
-    if ( readD[ntkPt                  ] < gaRes[ 8] ) return;
-    //if ( readD[ntkMom                 ] < gaRes[ 9] ) return;
-    //if ( readD[ptkDEDX_Mom_ratio] < gaRes[10] ) return;
-    //if ( readD[ptkDEDX_Mom_ratio] > gaRes[11] ) return;
-    //if ( readD[ntkDEDX_Mom_ratio] < gaRes[12] ) return;
-    //if ( readD[ntkDEDX_Mom_ratio] > gaRes[13] ) return;
-    //if ( readD[ptkIPt]/readD[ptkIPtErr] < gaRes[14] ) return;
-    //if ( readD[ptkIPt]/readD[ptkIPtErr] > gaRes[15] ) return;
-    //if ( readD[ntkIPt]/readD[ntkIPtErr] < gaRes[16] ) return;
-    //if ( readD[ntkIPt]/readD[ntkIPtErr] > gaRes[17] ) return;
-    /*
+        if ( readD[lbtkFlightDistanceSig  ] < gaRes[ 0] ) return;
+        if ( readD[lbtkVtxprob            ] < gaRes[ 1] ) return;
+        if ( readD[lbtkPt                 ] < gaRes[ 2] ) return;
+        //if ( readD[lbtkMom                ] < gaRes[ 3] ) return;
+        if ( readD[tktkPt                 ] < gaRes[ 4] ) return;
+        //if ( readD[tktkMom                ] < gaRes[ 5] ) return;
+        if ( readD[ptkPt                  ] < gaRes[ 6] ) return;
+        //if ( readD[ptkMom                 ] < gaRes[ 7] ) return;
+        if ( readD[ntkPt                  ] < gaRes[ 8] ) return;
+        //if ( readD[ntkMom                 ] < gaRes[ 9] ) return;
+        //if ( readD[ptkDEDX_Mom_ratio] < gaRes[10] ) return;
+        //if ( readD[ptkDEDX_Mom_ratio] > gaRes[11] ) return;
+        //if ( readD[ntkDEDX_Mom_ratio] < gaRes[12] ) return;
+        //if ( readD[ntkDEDX_Mom_ratio] > gaRes[13] ) return;
+        //if ( readD[ptkIPt]/readD[ptkIPtErr] < gaRes[14] ) return;
+        //if ( readD[ptkIPt]/readD[ptkIPtErr] > gaRes[15] ) return;
+        //if ( readD[ntkIPt]/readD[ntkIPtErr] < gaRes[16] ) return;
+        //if ( readD[ntkIPt]/readD[ntkIPtErr] > gaRes[17] ) return;
+        
+        // cut for drawing histogram
+        /*
         if ( readD[ptkPt] < 2.60 ) return;
         if ( readD[ntkPt] < 1.30 ) return;
         if ( readD[lbtkFlightDistanceSig] < 0.111 ) return;
@@ -166,7 +169,7 @@ void root_TreeHistoMain_LbTk::RegTree()
 void root_TreeHistoMain_LbTk::RegHisto()
 {
     if ( NoOutput() ) return;
-    createHisto( "mass_LbTk", 45, 5.5, 5.8 );
+    createHisto( "mass_LbTk", 30, 5.5, 5.7 );
     createHisto( "mass_LbTk_testcut", 45, 5.5, 5.8 );
     createHisto( "mass_Lbtk_lowPtHighFDSig", 45, 5.5, 5.8 );
     createHisto( "mass_LbTk_highPtLowFDSig", 45, 5.5, 5.8 );

@@ -3,6 +3,16 @@
 
 #include "TRandom3.h"
 #include "TTree.h"
+
+#include "RooRealVar.h"
+#include "RooDataHist.h"
+#include "RooArgList.h"
+#include "RooGaussian.h"
+#include "RooPolynomial.h"
+#include "RooArgSet.h"
+#include "RooAddPdf.h"
+#include "RooAbsReal.h"
+#include "RooGlobalFunc.h" // Minos command
     // use bin-fit in calculate fitness.
     // to fit background shape and estimate the background number
 
@@ -55,9 +65,9 @@ GeneticAlgorithmMC_LbTk::GeneticAlgorithmMC_LbTk( unsigned Nchromo = 10000, unsi
 //    chromosRange[MntkIPtSig        ][0] =   0.   ;
 //    chromosRange[MntkIPtSig        ][1] =  10.   ;
 
-    hData  = new TH1D("hData" , "hData" , 30, 5.55, 5.70 );
-    hSigMC = new TH1D("hSigMC", "hSigMC", 30, 5.55, 5.70 );
-    hbkgMC = new TH1D("hBkgMC", "hBkgMC", 30, 5.55, 5.70 );
+    hData  = new TH1D("hData" , "hData" , 75, 5.2, 5.95 );
+    hSigMC = new TH1D("hSigMC", "hSigMC", 75, 5.2, 5.95 );
+    hbkgMC = new TH1D("hBkgMC", "hBkgMC", 75, 5.2, 5.95 );
     return;
 }
 GeneticAlgorithmMC_LbTk::~GeneticAlgorithmMC_LbTk()
@@ -169,8 +179,8 @@ inline void GeneticAlgorithmMC_LbTk::CalculateFitness( const unsigned idx, doubl
             hData->Fill(candMass);
         }
     } // data part end }}}
-    if ( hSigMC->GetEntries() == 0 ) return;
-    if ( hData ->GetEntries() == 0 ) return;
+    if ( hSigMC->GetEntries() < 300 ) return;
+    if ( hData ->GetEntries() < 300 ) return;
 //
 //    // result calculation
 //    RooRealVar varMass( "varMass", "varMass", 5.55, 5.7 );
@@ -199,15 +209,47 @@ inline void GeneticAlgorithmMC_LbTk::CalculateFitness( const unsigned idx, doubl
 //    model.fitTo( binnedData, RooFit::Minos(true) );
 //
 //
+    RooRealVar varMass( "varMass", "#Lambda^{0}_{b} mass(GeV)", 5.2, 5.95 );
+    RooDataHist binnedMC("binnedMC", "lbMass in MC", RooArgList(varMass), hSigMC);
+    RooDataHist binnedData("binnedData", "lbMass in Data", RooArgList(varMass), hData);
+
+    // start to fit MC
+    RooRealVar par_mean( "mean", "parameter to gaussian: mean", 5.637, 5.55, 5.7 );
+    RooRealVar par_width("width","parameter to gaussian: width",0.01, 0.000001, 10. );
+    RooGaussian pdf_gaus("gaus", "PDF : gaussian", varMass, par_mean, par_width );
+    RooRealVar par_mean2( "mean2", "parameter to gaussian: mean", 5.6142, 5.55, 5.7 );
+    RooRealVar par_width2("width2","parameter to gaussian: width", 0.0342, 0.000001, 1. );
+    RooGaussian pdf_gaus2("gaus2", "PDF : gaussian", varMass, par_mean2, par_width2 );
+    RooRealVar frac( "frac", "fraction to gaussian & polynomial", 0.7, 0.001, 1.00 );
+    RooAddPdf mcModel( "mcModel", "model to MC", RooArgList(pdf_gaus, pdf_gaus2), RooArgList(frac) );
+    mcModel.fitTo(binnedMC);
+
+    // keep the MC fitting result.
+    par_mean.setConstant(true);
+    par_width.setConstant(true);
+    par_mean2.setConstant(true);
+    par_width2.setConstant(true);
+    frac.setConstant(true);
+
+    // start to fit Data
+    RooRealVar par_c1("c1", "parameter to polynomial : 1st order", -0.02, -10., 10. );
+    RooRealVar par_c2("c2", "parameter to polynomial : 2nd order", -0.02, -10., 10. );
+    RooPolynomial pdf_poly("poly", "PDF : polynomial", varMass, RooArgSet(par_c1, par_c2) );
+    double maxevent = (double)hData->GetEntries();
+    RooRealVar ns( "nSig", "number of signal", maxevent/1000., 0., maxevent );
+    RooRealVar nb( "nBkg", "number of background", maxevent, 0., maxevent);
+    RooAddPdf totModel( "totModel", "PDF : data + MC", RooArgList(mcModel, pdf_poly), RooArgList(ns,nb));
+    totModel.fitTo(binnedData);
 
 
 
-
-    unsigned nsig = 0;
-    unsigned nbkg = 0;
-    nsig++;
-    nbkg++;
-    fitness = double( nsig-nbkg ) / sqrt( double(nsig) );
+    varMass.setRange("signalRegion", mSig, MSig);
+    //RooAbsReal* mcIntegral   = pdf_gaus.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
+    RooAbsReal* mcIntegral   = mcModel.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
+    RooAbsReal* dataIntegral = pdf_poly.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
+    double nsig = mcIntegral->getVal() * ns.getVal();
+    double nbkg = dataIntegral->getVal() * nb.getVal();
+    fitness = nsig / sqrt(nsig+nbkg);
     fitnessErr = 0.;
     return;
 }

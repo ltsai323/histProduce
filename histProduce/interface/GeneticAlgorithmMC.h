@@ -15,11 +15,11 @@ public:
     }
 
     // needed to be inherited
-    virtual void PrepareChromosomes() = 0;
-    virtual void CalculateFitness( const unsigned idx, double& fitness, double& fitnessErr ) = 0;
-    virtual bool BasicCheck() = 0;
+    virtual void PrepareChromosomes() override = 0;
+    virtual void CalculateFitness( const unsigned idx, double& fitness, double& fitnessErr ) override = 0;
+    virtual bool BasicCheck() override = 0;
     // main function of GA
-    virtual void SetData( TFile* file ) = 0;
+    virtual void SetData( TFile* file ) override = 0;
     virtual void SetSignalMC( TFile* file ) = 0;
     virtual void SetBackgroundMC( TFile* file ) = 0;
 };
