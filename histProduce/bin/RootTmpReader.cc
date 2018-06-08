@@ -30,7 +30,9 @@ int main()
     //gaRes = { -0.88,-1.10,16.91,0.00,4.68,-1.04,4.68,-0.06,1.85,-0.33,0.12,-1.38,-0.56,-0.26,-0.64,3.42,-2.71,5.69 };
     //gaRes = { 1.23,0.16,15.18,0.00,4.39,0.74,3.92,-0.12,1.98,-0.02,0.00,0.00,0.00,-1.09,-0.76,2.23,-2.41,3.01 };
     //gaRes = { -1.94,0.16,13.21,0.00,4.85,0.25,4.14,-1.04,2.32,-0.42,-0.26,0.66,0.00,1.51,-1.03,3.47,-2.89,3.81 };
-    gaRes = { 1.58,0.31,13.44,0.00,4.12,0.00,4.56,0.00,2.29,0.00,0.00,0.00,0.00,0.00,-0.53,0.75,-0.32,0.45 };
+    //gaRes = { 1.58,0.31,13.44,0.00,4.12,0.00,4.56,0.00,2.29,0.00,0.00,0.00,0.00,0.00,-0.53,0.75,-0.32,0.45 };
+    //gaRes = {-0.08,-1.10,13.23,0.00,4.72,-0.63,5.59,0.00,2.34,0.37,0.00,0.45,0.37,0.49,-1.41,2.49,-1.11,2.30 };
+    gaRes = { -0.53,-0.32,13.31,0.16,4.23,-1.22,5.24,0.00,3.58,-0.51,-0.36,-0.59,0.22,-0.25,-2.41,3.48,-2.65,3.03 };
 
     TFile* mcFile = TFile::Open("tree_LbToJPsipK_MC_13TeV_noPU.root");
     readMC mc(nullptr);
@@ -84,7 +86,7 @@ int main()
 
     std::cout << "data entries: " << h_Data->GetEntries() << ", mc entries: " << h_MC->GetEntries() << std::endl;
     //RooRealVar varMass( "mass", "", 5.6, 5.55, 5.7 );
-    RooRealVar varMass( "mass", "", 5.6, 5.2, 5.95 );
+    RooRealVar varMass( "mass", "", 5.6, 5.4, 5.95 );
     RooDataHist binnedData("histData", "data histogram", RooArgList(varMass), h_Data);
     RooDataHist binnedMC("histMC", "MC histogram", RooArgList(varMass), h_MC);
 
@@ -177,8 +179,13 @@ int main()
     c1->SaveAs("storefig/h_fittingResult.Data.eps");
     c1->SaveAs("storefig/resultHisto.pdf");
 
-    std::cout << "number of signal : " << ns.getVal() << std::endl;
-    std::cout << "number of bkg : " << nb.getVal() << std::endl;
+    varMass.setRange("signalRegion", 5.58, 5.64);
+    //RooAbsReal* mcIntegral   = pdf_gaus.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
+    RooAbsReal* mcIntegral   = mcModel.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
+    RooAbsReal* dataIntegral = pdf_poly.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
+    std::cout << "number of signal : " << ns.getVal() << ", in signal Region: " << ns.getVal()*mcIntegral->getVal() << std::endl;
+    std::cout << "number of bkg    : " << nb.getVal() << ", in signal Region: " << nb.getVal()*dataIntegral->getVal() << std::endl;
+    std::cout << "significance: " << (ns.getVal()*mcIntegral->getVal())/sqrt(nb.getVal()*dataIntegral->getVal()) << std::endl;
     c1->SaveAs("storefig/resultHisto.pdf]");
     delete c1;
     delete h_Data;

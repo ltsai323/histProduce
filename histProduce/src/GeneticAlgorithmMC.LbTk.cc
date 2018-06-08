@@ -13,6 +13,7 @@
 #include "RooAddPdf.h"
 #include "RooAbsReal.h"
 #include "RooGlobalFunc.h" // Minos command
+
     // use bin-fit in calculate fitness.
     // to fit background shape and estimate the background number
 
@@ -109,6 +110,12 @@ inline void GeneticAlgorithmMC_LbTk::CalculateFitness( const unsigned idx, doubl
     fitness = fitnessErr = 0;
     hSigMC->Reset();
     hData ->Reset();
+    if ( hSigMC->GetEntries() != 0 )
+    { printf("histo MC not cleared!\n"); return(); }
+    if ( hData->GetEntries() != 0 )
+    { printf("histo MC not cleared!\n"); return(); }
+
+
 
     // sigMC part {{{
     if ( sigMC.readTree() )
@@ -138,9 +145,6 @@ inline void GeneticAlgorithmMC_LbTk::CalculateFitness( const unsigned idx, doubl
             // if ( chromos[idx][MntkIPtSig        ] < sigMC.readD[readData::ntkIPt          ]/sigMC.readD[readData::ntkIPtErr] ) continue;
 
             double candMass = sigMC.readD[readData::lbtkMass];
-            // if ( !inCalculationRegion(candMass) ) continue;
-            // if ( inSignalRegion(candMass) ) ++nsig;
-            // else                            ++nbkg;
             hSigMC->Fill(candMass);
         }
     } // sigMC part end }}}
@@ -173,47 +177,18 @@ inline void GeneticAlgorithmMC_LbTk::CalculateFitness( const unsigned idx, doubl
             if ( chromos[idx][MntkIPtSig        ] < lbData.readD[readData::ntkIPt          ]/lbData.readD[readData::ntkIPtErr] ) continue;
 
             double candMass = lbData.readD[readData::lbtkMass];
-            // if ( !inCalculationRegion(candMass) ) continue;
-            // if ( inSignalRegion(candMass) ) ++nsig;
-            // else                            ++nbkg;
             hData->Fill(candMass);
         }
     } // data part end }}}
     if ( hSigMC->GetEntries() < 300 ) return;
     if ( hData ->GetEntries() < 300 ) return;
-//
-//    // result calculation
-//    RooRealVar varMass( "varMass", "varMass", 5.55, 5.7 );
-//    // to read data stored in dHistogram
-//    RooDataHist binnedData("binnedData", "bindata", RooArgList(varMass), hData  );
-//    RooDataHist binnedMC  ("binnedMC"  , "binmc"  , RooArgList(varMass), hSigMC );
-//
-//    // start to fit
-//    RooRealVar par_mean( "mean", "parameter to gaussian: mean", 5.619, 5.6, 5.64 );
-//    RooRealVar par_width("width","parameter to gaussian: width",0.1, 0.0001, 1. );
-//    RooGaussian pdf_gaus("gaus", "PDF : gaussian", varMass, par_mean, par_width );
-//    pdf_gaus.fitTo( binnedMC );
-//
-//    // use the result of fitting MC to fit data.
-//    par_mean.setConstant(true);
-//    par_width.setConstant(true);
-//
-//
-//    RooRealVar par_c1( "c1", "parameter to polynomial 1st order", 0.3, -10., 10. );
-//    RooRealVar par_c2( "c2", "parameter to polynomial 2nd order", 0.3, -10., 10. );
-//    RooPolynomial pdf_poly( "pdf_poly", "PDF : polynomial", varMass, RooArgSet(par_c1, par_c2) );
-//
-//    RooRealVar frac ( "frac", "fraction to gaus/poly", 0.15, 0.000001, 1.0 );
-//    RooAddPdf model( "model", "PDF : poly + gaus", RooArgList( pdf_gaus, pdf_poly ), RooArgList( frac ) );
-//
-//    model.fitTo( binnedData, RooFit::Minos(true) );
-//
-//
+
+    // start fitting
     RooRealVar varMass( "varMass", "#Lambda^{0}_{b} mass(GeV)", 5.2, 5.95 );
     RooDataHist binnedMC("binnedMC", "lbMass in MC", RooArgList(varMass), hSigMC);
     RooDataHist binnedData("binnedData", "lbMass in Data", RooArgList(varMass), hData);
 
-    // start to fit MC
+    // fit MC
     RooRealVar par_mean( "mean", "parameter to gaussian: mean", 5.637, 5.55, 5.7 );
     RooRealVar par_width("width","parameter to gaussian: width",0.01, 0.000001, 10. );
     RooGaussian pdf_gaus("gaus", "PDF : gaussian", varMass, par_mean, par_width );
@@ -231,7 +206,7 @@ inline void GeneticAlgorithmMC_LbTk::CalculateFitness( const unsigned idx, doubl
     par_width2.setConstant(true);
     frac.setConstant(true);
 
-    // start to fit Data
+    // fit Data with MC result
     RooRealVar par_c1("c1", "parameter to polynomial : 1st order", -0.02, -10., 10. );
     RooRealVar par_c2("c2", "parameter to polynomial : 2nd order", -0.02, -10., 10. );
     RooPolynomial pdf_poly("poly", "PDF : polynomial", varMass, RooArgSet(par_c1, par_c2) );
