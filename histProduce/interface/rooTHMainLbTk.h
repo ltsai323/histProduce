@@ -1,15 +1,15 @@
-#ifndef __rooTHMainTkTk_h__
-#define __rooTHMainTkTk_h__
+#ifndef __rooTHMainLbTk_h__
+#define __rooTHMainLbTk_h__
 #include "histProduce/histProduce/interface/rooTHMain.h"
 #include "histProduce/histProduce/interface/usefulFuncs.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include <vector>
 #include <utility> // std::pair
 
-class root_TreeHistoMain_TkTk : public root_TreeHistoMain
+class root_TreeHistoMain_LbTk : public root_TreeHistoMain
 {
 public:
-    root_TreeHistoMain_TkTk (TFileDirectory* d);
+    root_TreeHistoMain_LbTk (TFileDirectory* d);
     virtual void Process( unsigned int i ) override;
     virtual void Clear() override;
     virtual void RegTree() override;
@@ -23,10 +23,13 @@ public:
     // tree structure in loaded data. And create new file also with the same structure
     enum readVarD
     {
-        tktkMass, tktkFlightDistance2d, tktkVtxprob, tktkPt,
-        fake_Lam0Mass, fake_KstarMass, fake_KshortMass, fake_PhiMass,
-        ptkMom, ptkDEDX_Harmonic, ptkDEDX_pixelHrm, ptkIPt, ptkIPtErr,
-        ntkMom, ntkDEDX_Harmonic, ntkDEDX_pixelHrm, ntkIPt, ntkIPtErr,
+        lbtkMass, lbtkFlightDistance2d, lbtkFlightDistanceSig, lbtkVtxprob,
+        lbtkPt, lbtkMom,
+        tktkPt, tktkMom,
+        fake_Lam0Mass, fake_KstarMass, fake_PhiMass, fake_KshortMass,
+        fake_LbL0Mass, fake_BdMass   , fake_BsMass, fake_mumupipiMass,
+        ptkPt, ptkMom, ptkDEDX_Harmonic, ptkDEDX_pixelHrm, ptkIPt, ptkIPtErr,
+        ntkPt, ntkMom, ntkDEDX_Harmonic, ntkDEDX_pixelHrm, ntkIPt, ntkIPtErr,
         totNumD
     };
     enum readVarI
@@ -50,11 +53,12 @@ private:
         addNumI
     };
 
-
     // double data to store variables
     double dataD[totNumD+addNumD];
     // int data to store variables
     int dataI[totNumI+addNumI];
+    // store result of genetic algorithm, the values are written in constructor
+    std::vector<double> gaRes;
 };
 
 

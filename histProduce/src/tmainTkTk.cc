@@ -43,6 +43,17 @@ void treeMain_TkTk::Process( fwlite::Event* ev )
             if ( !cand.hasUserFloat(  "Kaon.dEdx.pixelHrm") ) continue;
             if ( cand.userFloat("Proton.IPt") < 0.01230) continue;
             if ( cand.userFloat(  "Kaon.IPt") >-0.03968) continue;
+
+            const GlobalVector* dPTR[2] = {nullptr};
+            dPTR[0] = cand.userData<GlobalVector>("Proton.fitMom");
+            dPTR[1] = cand.userData<GlobalVector>("Kaon.fitMom");
+            fourMom pTk ( dPTR[0]->x(), dPTR[0]->y(), dPTR[0]->z() );
+            fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
+            fourMom tktk = pTk+nTk;
+            if ( tktk.transverse() < 3. ) continue;
+            if ( tktk.Momentum()   < 3. ) continue;
+
+
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) continue;
             double fd = usefulFuncs::getFlightDistance ( cand, &bs );
@@ -86,7 +97,7 @@ void treeMain_TkTk::Process( fwlite::Event* ev )
 
             fourMom pTk ( dPTR[0]->x(), dPTR[0]->y(), dPTR[0]->z() );
             fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
-            fourMom tktk;
+            fourMom tktk = pTk+nTk;
 
             // search for lam0
             pTk.setMass( protonMass );

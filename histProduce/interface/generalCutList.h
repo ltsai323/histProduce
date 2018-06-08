@@ -73,7 +73,7 @@ namespace myCut
             //if the particle doesn't contain JPsi, give up this cut?
             if ( _jpsi == nullptr ) 
             {
-                std::cout << "jpsi not found! cannot find pv\n";
+                printf( "jpsi not found! cannot find pv\n" );
                 return true; // return false;
             }
             const reco::Vertex* _pvx = usefulFuncs::getByRef<reco::Vertex>( *_jpsi, "primaryVertex" );
@@ -98,7 +98,7 @@ namespace myCut
             //if the particle doesn't contain JPsi, give up this cut?
             if ( _jpsi == nullptr ) 
             {
-                std::cout << "jpsi not found! cannot find pv\n";
+                printf( "jpsi not found! cannot find pv\n" );
                 return true; // return false;
             }
             const reco::Vertex* _pvx = usefulFuncs::getByRef<reco::Vertex>( *_jpsi, "primaryVertex" );

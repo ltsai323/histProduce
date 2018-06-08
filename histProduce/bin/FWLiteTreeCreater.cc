@@ -43,10 +43,14 @@
 //#include "histProduce/histProduce/interface/tmainGenInfo.h"
 #include "histProduce/histProduce/interface/tmainGenTkTk.h"
 #include "histProduce/histProduce/interface/tmainGenLam0.h"
+#include "histProduce/histProduce/interface/tmainGenLbTk.h"
 //#include "histProduce/histProduce/interface/tmainLbTkGenParticle.h"
 //#include "histProduce/histProduce/interface/tmainLbL0GenParticle.h"
 //#include "histProduce/histProduce/interface/tmainJPsiGenParticle.h"
 #include "histProduce/histProduce/interface/tmainGenList.h"
+
+#include <stdlib.h>
+#include <stdio.h>
 
 // create trees from CMSSW based data.
 // use FWLIte to load data.
@@ -102,7 +106,7 @@ int main(int argc, char* argv[])
 
     // if the value smaller than zero, do not print anything on the screen.
     parser.integerValue ("outputEvery") = 100;
-    parser.stringValue  ("outputFile" ) = "histTestOutput.root";
+    parser.stringValue  ("outputFile" ) = "outputToTreeFromEDA.root";
 
     // parse arguments
     parser.parseArguments (argc, argv);
@@ -147,7 +151,9 @@ int main(int argc, char* argv[])
     }
 
     // book a root file to store data.
-    fwlite::TFileService fs = fwlite::TFileService(outputFile_.c_str());
+    char tmpFileName[128];
+    sprintf( tmpFileName, "stillRunning_%s.root", outputFile_.c_str() );
+    fwlite::TFileService fs = fwlite::TFileService(tmpFileName);
     TFileDirectory dir = fs.mkdir("lbSpecificDecay");
 
 
@@ -163,7 +169,7 @@ int main(int argc, char* argv[])
 
     // set main code.
     std::vector<treeMain*> mainCode;
-    mainCode.push_back( new treeMain_TkTk(&dir) );
+    //mainCode.push_back( new treeMain_TkTk(&dir) );
     //mainCode.push_back( new treeMain_Lam0(&dir) );
     //mainCode.push_back( new treeMain_Kshort(&dir) );
     //mainCode.push_back( new treeMain_LbTk(&dir) );
@@ -181,7 +187,7 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new treeMain_JPsiGenParticle(&dir) );
     //mainCode.push_back( new treeMainGen_Lam0(&dir) );
     //mainCode.push_back( new treeMainGen_TkTk(&dir) );
-    //mainCode.push_back( new treeMainGen_LbTk(&dir) );
+    mainCode.push_back( new treeMainGen_LbTk(&dir) );
     //mainCode.push_back( new treeMainGen_LbL0(&dir) );
     //mainCode.push_back( new treeMainGen_List(&dir) );
 
@@ -233,6 +239,9 @@ int main(int argc, char* argv[])
         delete _main;
     }
 
+    char mvCommand[100];
+    sprintf( mvCommand, "mv %s %s", tmpFileName, outputFile_.c_str() );
+    system( mvCommand );
     printf("\n");
     return 0;
 }

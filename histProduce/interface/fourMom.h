@@ -45,8 +45,14 @@ struct fourMom
     { return sqrt( x1*x1+x2*x2+x3*x3 ); }
     double eta() const
     {
-        double mom = sqrt( this->Momentum() );
-        if ( (mom - x3) < 0 ) return -9999.;
+        double mom = this->Momentum();
+        //if ( (mom - x3) < 0 ) return -9999.;
+        if ( (mom - x3) < 0 )
+        {
+            std::cout << ".................. in fourMom : there is a problem. mom-pz < 0, p = " << mom << "px,py,pz = " << x1 << ","<<x2<<","<< x3 << "\n";
+            return -9999.;
+        }
+        // eta == 0.5 log [ (p+pz) / (p-pz) ]
         return 0.5 * log( (mom+x3)/(mom-x3) );
     }
     // return phi in radius. not degree

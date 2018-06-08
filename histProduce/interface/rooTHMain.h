@@ -26,9 +26,12 @@ public:
     virtual void Process( unsigned int i ) = 0;
     virtual void Clear() = 0;
     virtual void RegTree() = 0;
+    virtual void RegHisto() = 0;
     virtual void LoadSourceBranch() = 0;
+    virtual void SummaryCalc() = 0;
     virtual bool SetInputFile( TFile* input );
     virtual void LoopEvents( unsigned& maxEvents ) final;
+    virtual bool NoOutput() const;
 
     virtual TTree* thisTree() final { return outputTree; }
     virtual TTree* readTree() final { return  inputTree; }
@@ -41,14 +44,20 @@ public:
     virtual void fillHisto( const std::string& name, double value ) final;
     virtual void fillHisto( const std::string& name, double valueX, double valueY ) final;
 
+    virtual const std::map<std::string, TH1D*>& getHistos() const final;
+    virtual const std::map<std::string, TH2D*>& getHistos2D() const final;
     // add general cuts in the whole analysis
     static void setCutList( std::vector<myCut::generalCutList*>* in ) { _cutLists = in; }
     static std::vector<myCut::generalCutList*>* getCutList() { return _cutLists; }
 
-    std::string getFullName( const std::string& name );
+    std::string getFullName( const std::string& name ) const;
+    const std::string getPreName() const { return preName; };
     void regName( const std::string& _preName );
     void setInputTreeName( const std::string& name );
+    void setOutputAlive( bool tag );
 private:
+    // check if the output directory is set or not.
+    bool noOutputFile;
     // information to output data
     TFileDirectory* dir;
     const std::string preName;

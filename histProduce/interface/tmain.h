@@ -9,6 +9,8 @@
 #include "PhysicsTools/FWLite/interface/TFileService.h"
 #include "histProduce/histProduce/interface/generalCutList.h"
 #include "TTree.h"
+#include "TH1D.h"
+#include "TH2D.h"
 
 
 class treeMain
@@ -39,6 +41,8 @@ public:
     virtual void regName( const std::string& _preName ) final;
     void getByLabel_Cand( fwlite::Event* ev );
 
+    virtual TH1D* createHisto( const std::string& name, int nbin, double xmin, double xmax ) final;
+    virtual TH2D* createHisto( const std::string& name, int nbin, double xmin, double xmax, int mbin, double ymin, double ymax ) final;
 
     fwlite::Handle< std::vector<pat::CompositeCandidate> > _handle;
 private:

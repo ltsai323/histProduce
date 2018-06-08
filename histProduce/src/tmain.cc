@@ -35,6 +35,11 @@ void treeMain::regName( const std::string& _preName )
 void treeMain::getByLabel_Cand(fwlite::Event* ev)
 { _handle.getByLabel( *ev, _label.module.c_str(), _label.label.c_str(), _label.process.c_str() ); return; }
 
+TH1D* treeMain::createHisto( const std::string& name, int nbin, double xmin, double xmax )
+{ return dir->make<TH1D>( name.c_str(), name.c_str(), nbin, xmin, xmax ); }
+TH2D* treeMain::createHisto( const std::string& name, int nbin, double xmin, double xmax, int mbin, double ymin, double ymax )
+{ return dir->make<TH2D>( name.c_str(), name.c_str(), nbin, xmin, xmax, mbin, ymin, ymax ); }
+
 // initialization of static member
 std::vector< std::string > treeMain::nameReg;
 std::vector<myCut::generalCutList*>* treeMain::_cutLists = nullptr;

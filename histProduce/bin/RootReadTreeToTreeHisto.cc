@@ -17,7 +17,8 @@
 #include "PhysicsTools/FWLite/interface/CommandLineParser.h"
 
 #include "histProduce/histProduce/interface/rooTHMain.h"
-#include "histProduce/histProduce/interface/rooTHMainTkTk.h"
+//#include "histProduce/histProduce/interface/rooTHMainTkTk.h"
+#include "histProduce/histProduce/interface/rooTHMainLbTk.h"
 
 // create trees from.tree based file.
 // use FWLIte to load data.
@@ -30,7 +31,7 @@
 // every tMain??? decides what to do in each event.
 // Normally, create a tree and fill it. Save it into root file.
 //
-// usage:
+// usage: modification is needed!. this is old illustration
 //     tCreate filelist=data_RunG maxEvents=1000
 //     tCreate testfile=a.root maxEvents=1000 outputEvery=1 outputFile=b.root
 //
@@ -73,7 +74,7 @@ int main(int argc, char* argv[])
 
     // if the value smaller than 0, do not print anything on screen
     parser.integerValue ("outputEvery") = 100;
-    parser.stringValue  ("outputFile" ) = "histTestOutput.root";
+    parser.stringValue  ("outputFile" ) = "reducedTHOutput.root";
 
     // parse arguments
     parser.parseArguments (argc, argv);
@@ -126,27 +127,8 @@ int main(int argc, char* argv[])
 
     // set main code.
     std::vector<root_TreeHistoMain*> mainCode;
-    mainCode.push_back( new root_TreeHistoMain_TkTk(&dir) );
-    //mainCode.push_back( new rootTHMain_Lam0(&dir) );
-    //mainCode.push_back( new treeMain_Kshort(&dir) );
-    //mainCode.push_back( new treeMain_LbTk(&dir) );
-    //mainCode.push_back( new treeMain_LbL0(&dir) );
-    //mainCode.push_back( new treeMain_Bs(&dir) );
-    //mainCode.push_back( new treeMain_findParDiff(&dir) );
-    //mainCode.push_back( new treeMain_findIPdiff(&dir) );
-    //mainCode.push_back( new treeMain_findVtxprobDiff(&dir) );
-    //mainCode.push_back( new treeMain_ParPlot(&dir) );
-    //mainCode.push_back( new treeMain_findFlightDistanceDiff(&dir) );
-    //mainCode.push_back( new treeMain_findTkTkFlightDistanceDiff(&dir) );
-    //mainCode.push_back( new treeMain_findLam0FlightDistanceDiff(&dir) );
-    //mainCode.push_back( new treeMain_PV(&dir) );
-    //mainCode.push_back( new treeMain_GenInformation(&dir) );
-    //mainCode.push_back( new treeMain_JPsiGenParticle(&dir) );
-    //mainCode.push_back( new treeMainGen_Lam0(&dir) );
-    //mainCode.push_back( new treeMainGen_TkTk(&dir) );
-    //mainCode.push_back( new treeMainGen_LbTk(&dir) );
-    //mainCode.push_back( new treeMainGen_LbL0(&dir) );
-    //mainCode.push_back( new treeMainGen_List(&dir) );
+    //mainCode.push_back( new root_TreeHistoMain_TkTk(&dir) );
+    mainCode.push_back( new root_TreeHistoMain_LbTk(&dir) );
 
     // if maxEvent = -1, MEvent to be MAX of unsigned.
     unsigned MEvent = maxEvents_;
@@ -168,25 +150,32 @@ int main(int argc, char* argv[])
         //  * fill the histograms
         //  * after the loop close the input file
         // ----------------------------------------------------------------------
-
+        
+        if ( !mainCode.size() ) break;
+        unsigned Mevent[ mainCode.size() ];
+        for ( unsigned int i=0; i< mainCode.size(); ++i )
+            Mevent[i]=MEvent;
+        unsigned j=0;
         for ( const auto& _main : mainCode )
         {
             _main->SetInputFile( inFile );
             // use MEvent to be the counter, if MEvent to be 0, stop the code.
-            _main->LoopEvents( MEvent );
+            _main->LoopEvents( Mevent[++j] );
         }
-        fs.file().Write();
         inFile->Close();
-        if ( MEvent == 0 ) break;
+        if ( Mevent[0] == 0 ) break;
+        MEvent = Mevent[0];
         // break loop if maximal number of events is reached:
         // this has to be done twice to stop the file loop as well
     }
 
+    fs.file().Write();
     // for general cuts
     //for ( auto& cut : cutLists )
     //    delete cut;
     for ( auto& _main : mainCode )
     {
+        _main->SummaryCalc();
         _main->Clear();
         delete _main;
     }

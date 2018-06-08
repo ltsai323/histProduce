@@ -17,7 +17,6 @@ void treeMainGen_List::Process( fwlite::Event* ev )
 {
     try
     {
-        // preselect events {{{
         if ( !ev->isValid() ) return;
         GetByLabel( ev );
 

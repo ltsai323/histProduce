@@ -3,6 +3,12 @@
 
 root_TreeHistoMain::root_TreeHistoMain( TFileDirectory* d,  const std::string& pName ) : dir(d), preName( pName )
 {
+    if ( d == nullptr )
+    {
+        setOutputAlive( false );
+        return;
+    }
+    setOutputAlive( true );
     if ( preName.empty() ) return;
     regName( preName );
     outputTree = dir->make<TTree>( preName.c_str(), preName.c_str() );
@@ -14,15 +20,19 @@ root_TreeHistoMain::~root_TreeHistoMain()
 
 void root_TreeHistoMain::LoopEvents( unsigned& maxEvents)
 {
+    if ( NoOutput() ) return;
     unsigned i = 0;
     unsigned N = readTree()->GetEntries();
     while ( i != N )
     {
-        if ( --maxEvents ) return;
+        if ( !--maxEvents ) return;
         Process( i++ );
     }
     return;
 }
+
+inline bool root_TreeHistoMain::NoOutput() const
+{ return noOutputFile; }
 
 
 inline void root_TreeHistoMain::createHisto( const std::string& name, int nbin, double min, double max )
@@ -33,7 +43,7 @@ inline void root_TreeHistoMain::createHisto( const std::string& name, int nbin, 
         return;
     }
     hMap[name] = dir->make<TH1D>( getFullName(name).c_str(), name.c_str(), nbin, min, max );
-    std::cout << "appened name :" << getFullName( name ) << std::endl;
+    printf( "appened histogram name : %s\n", getFullName(name).c_str() );
     return;
 }
 inline void root_TreeHistoMain::createHisto( const std::string& name, int nbin, double min, double max, int nbin2, double min2, double max2 )
@@ -62,8 +72,12 @@ inline void root_TreeHistoMain::fillHisto( const std::string& name, double value
     iter->second->Fill( valueX, valueY );
     return;
 }
+const std::map<std::string,TH1D*>& root_TreeHistoMain::getHistos() const
+{ return hMap; }
+const std::map<std::string,TH2D*>& root_TreeHistoMain::getHistos2D() const
+{ return hMap2D; }
 
-std::string root_TreeHistoMain::getFullName( const std::string& name )
+std::string root_TreeHistoMain::getFullName( const std::string& name ) const
 { return (preName+"_"+name); }
 void root_TreeHistoMain::regName( const std::string& _preName )
 {
@@ -87,12 +101,15 @@ bool root_TreeHistoMain::SetInputFile( TFile* inputFile )
 {
     if ( !inputFile ) return false;
     if ( inputFile->IsZombie() ) return false;
-    outputTree = (TTree*) inputFile->Get( inputTreeName.c_str() );
+    inputTree = (TTree*) inputFile->Get( inputTreeName.c_str() );
     LoadSourceBranch();
     return true;
 }
+//bool root_TreeHistoMain::SetInputFile( const std::vector<const char*>
 void root_TreeHistoMain::setInputTreeName( const std::string& name )
 { inputTreeName = name; return; }
+void root_TreeHistoMain::setOutputAlive( bool tag )
+{ noOutputFile = !tag; }
 
 
 

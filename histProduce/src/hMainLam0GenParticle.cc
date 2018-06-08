@@ -54,25 +54,13 @@ void histMain_Lam0GenParticle::Process( fwlite::Event* ev )
             //if ( !cand.hasUserFloat("Proton.dEdx.pixelHrm") ) continue;
             //if ( !cand.hasUserFloat(  "Pion.dEdx.pixelHrm") ) continue;
             if ( !cand.hasUserFloat("Proton.dEdx.Harmonic") )
-            {
-                std::cout << "owns Proton Harmonic\n";
-                continue;
-            }
+            { printf( "owns Proton Harmonic\n" ); continue; }
             if ( !cand.hasUserFloat(  "Pion.dEdx.Harmonic") )
-            {
-                std::cout << "owns Pion Harmonic\n";
-                continue;
-            }
+            { printf( "owns Pion Harmonic\n" ); continue; }
             if ( !cand.hasUserFloat("Proton.dEdx.pixelHrm") )
-            {
-                std::cout << "owns Proton pixelHrm\n";
-                //continue;
-            }
+            { printf( "owns Proton pixelHrm\n" ); /*continue;*/ }
             if ( !cand.hasUserFloat(  "Pion.dEdx.pixelHrm") )
-            {
-                std::cout << "owns Pion pixelHrm\n";
-                //continue;
-            }
+            { printf( "owns Pion pixelHrm\n" ); /*continue;*/ }
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) continue;
             double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );

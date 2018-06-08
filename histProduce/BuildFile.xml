@@ -1,5 +1,6 @@
 <use   name="boost"/>
 <use   name="rootcore"/>
+<use   name="roofit"/>
 <use   name="roothistmatrix"/>
 <use   name="CommonTools/Utils"/>
 <use   name="DataFormats/FWLite"/>
