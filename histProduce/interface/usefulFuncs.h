@@ -81,8 +81,13 @@ template< typename key, typename val >
 
     SNRes SignalNumberCalculator( TH1* data, const double sigMin, const double sigMax );
     double getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
+    double getFlightDistance( const pat::CompositeCandidate& cand, const reco::BeamSpot* bs=nullptr );
+    double getFlightDistanceSignificance( const pat::CompositeCandidate& cand, const reco::BeamSpot* bs=nullptr );
     double getFlightDistanceSignificance( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
+    double getCosa2d( const pat::CompositeCandidate& cand, const reco::BeamSpot* bs=nullptr );
     double getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
+    double getCosa3d( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
 
+    double getCosAngleToVtx_PV_BS( const pat::CompositeCandidate& cand, const reco::Vertex& pv, const reco::BeamSpot& bs);
 }
 #endif

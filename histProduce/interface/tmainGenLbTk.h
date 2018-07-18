@@ -19,15 +19,29 @@ public:
 
     // used for final analysis
     void setBranchAddress( TTree* inputTree );
+
+    // get the angle of cand-PV to PV-BS.
 private:
     const double kaonMass, protonMass, pionMass;
     void getByLabel_BS( fwlite::Event* ev );
+    void getByLabel_PV( fwlite::Event* ev );
     fwlite::Handle< std::vector<reco::GenParticle> > genHandle;
     fwlite::Handle< reco::BeamSpot > beamSpotHandle;
+    fwlite::Handle< std::vector<reco::Vertex> > primaryVHandle;
     TH2D* hSummary;
+    TH1D* hParEta  ;
+    TH1D* hParCos2D;
+    TH1D* hParCos2D_2;
+    TH1D* hParCos2D_3;
+    TH1D* hParCos3D;
+
+
     enum dataVarD
     {
-        lbtkMass, lbtkFlightDistance2d, lbtkFlightDistanceSig, lbtkVtxprob,
+        lbtkMass, lbtkFlightDistance2d, lbtkFlightDistanceSig, lbtkVtxprob, lbtkCosa2d,
+        targetJpsiP_mass, targetJpsiP_pt,
+        targetJpsiPBar_mass, targetJpsiPBar_pt,
+        lbtkCosAngleToVtx_PV_BS,
         lbtkMom, lbtkPt,
         tktkPt, tktkMom,
         fake_Lam0Mass, fake_KstarMass, fake_PhiMass, fake_KshortMass,

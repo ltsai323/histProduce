@@ -21,7 +21,9 @@ private:
     fwlite::Handle< reco::BeamSpot > beamSpotHandle;
     enum dataVarD
     {
-        lbtkMass, lbtkFlightDistance2d, lbtkFlightDistanceSig, lbtkVtxprob,
+        lbtkMass, lbtkFlightDistance2d, lbtkFlightDistanceSig, lbtkVtxprob, lbtkCosa2d,
+        targetJpsiP_mass, targetJpsiP_pt,
+        targetJpsiPBar_mass, targetJpsiPBar_pt,
         lbtkMom, lbtkPt,
         tktkPt, tktkMom,
         fake_Lam0Mass, fake_KstarMass, fake_PhiMass, fake_KshortMass,
@@ -38,5 +40,10 @@ private:
     double dataD[totNumD];
     // int data to store variables
     int dataI[totNumI];
+    TH1D* hParEta  ;
+    TH1D* hParCos2D;
+    TH1D* hParCos3D;
+    TH1D* hParCos2D_2;
+    TH1D* hParCos2D_3;
 };
 #endif

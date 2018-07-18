@@ -25,7 +25,8 @@ root_TreeHistoMain_LbTk::root_TreeHistoMain_LbTk( TFileDirectory* d ) :
 {
     setInputTreeName( "lbSpecificDecay/LbTk" );
     // gaRes = { 0.57,0.38,18.33,-0.01,4.94,-0.43,4.07,0.32,2.12,0.63,0.00,-0.87,-0.49,0.00,-0.88,0.52,-0.28,0.62 };
-    gaRes = { 0.63,-1.10,19.24,0.00,3.06,1.06,3.64,0.71,2.61,0.92,0.00,0.06,0.13,-0.47,-0.80,3.42,-2.84,1.94 };
+    //gaRes = { 0.63,-1.10,19.24,0.00,3.06,1.06,3.64,0.71,2.61,0.92,0.00,0.06,0.13,-0.47,-0.80,3.42,-2.84,1.94 };
+    gaRes = { 3.87,0.15,17.43,0.04,4.33,0.14,2.77,0.00,1.29,-0.13,0.14,0.08,-0.02,0.09,0.02,0.34,0.01,0.00 };
 
     if ( !d ) return;
     RegTree();
@@ -41,8 +42,8 @@ void root_TreeHistoMain_LbTk::Process( unsigned int i )
         readTree()->GetEntry( i );
 
         // preselection {{{
-        if ( readD[ lbtkMass ] < 5.5 ) return;
-        if ( readD[ lbtkMass ] > 5.8 ) return;
+        if ( readD[ lbtkMass ] < 5.2 ) return;
+        if ( readD[ lbtkMass ] > 5.95) return;
         // remove Bd
         if ( (readD[fake_BdMass]>5.22&&readD[fake_BdMass]<5.32
            && readD[fake_KstarMass]>0.85&&readD[fake_KstarMass]<0.95) ) return;
@@ -53,8 +54,8 @@ void root_TreeHistoMain_LbTk::Process( unsigned int i )
         // preselection end }}}
 
         // for smaller tree for GA use.
-        if ( readD[lbtkMass] < 5.70 )
-            if ( readD[lbtkMass] > 5.55 )
+//        if ( readD[lbtkMass] < 5.70 )
+//            if ( readD[lbtkMass] > 5.55 )
 //                if ( readD[ptkPt] > 2.00 )
 //                    if ( readD[ntkPt] > 1.00 )
 //                        if ( readD[lbtkVtxprob] > 0.13 )
@@ -63,7 +64,7 @@ void root_TreeHistoMain_LbTk::Process( unsigned int i )
             for ( int i=0; i<totNumD; ++i )
                 dataD[i] = readD[i];
             // save reduced tree
-            // thisTree()->Fill();
+            thisTree()->Fill();
         }
 
         // for histogram part
@@ -135,6 +136,7 @@ void root_TreeHistoMain_LbTk::RegTree()
     t->Branch( "lbtkFD2d", &dataD[lbtkFlightDistance2d], "lbtkFD2d/D" );
     t->Branch( "lbtkFDSig", &dataD[lbtkFlightDistanceSig], "lbtkFDSig/D" );
     t->Branch( "lbtkVtxprob", &dataD[lbtkVtxprob], "lbtkVtxprob/D" );
+    t->Branch( "lbtkCosa2d", &dataD[lbtkCosa2d], "lbtkCosa2d/D" );
 
     t->Branch( "lbtkMom", &dataD[lbtkMom], "lbtkMom/D" );
     t->Branch( "lbtkPt", &dataD[lbtkPt], "lbtkPt/D" );
@@ -206,6 +208,7 @@ void root_TreeHistoMain_LbTk::LoadSourceBranch()
     t->SetBranchAddress( "lbtkFD2d", &readD[lbtkFlightDistance2d] );
     t->SetBranchAddress( "lbtkFDSig", &readD[lbtkFlightDistanceSig] );
     t->SetBranchAddress( "lbtkVtxprob", &readD[lbtkVtxprob] );
+    t->SetBranchAddress( "lbtkCosa2d", &readD[lbtkCosa2d] );
 
     t->SetBranchAddress( "lbtkMom", &readD[lbtkMom] );
     t->SetBranchAddress( "lbtkPt", &readD[lbtkPt] );

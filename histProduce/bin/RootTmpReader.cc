@@ -20,9 +20,15 @@
 #include "RooAddPdf.h"
 #include "RooArgList.h"
 #include "RooGlobalFunc.h"
+#include "RooChebychev.h"
+#include "RooExtendPdf.h"
+#include "RooWorkspace.h"
+#include "RooRandom.h"
+
 typedef root_TreeHistoMain_GenInfo_LbTk readMC;
 typedef root_TreeHistoMain_LbTk readData;
 
+TH1D* CalcBkgPullDist( RooWorkspace& wspace, RooRealVar& var, RooExtendPdf& expdf, RooRealVar& nsig );
 int main()
 {
     std::vector<double> gaRes;
@@ -32,24 +38,36 @@ int main()
     //gaRes = { -1.94,0.16,13.21,0.00,4.85,0.25,4.14,-1.04,2.32,-0.42,-0.26,0.66,0.00,1.51,-1.03,3.47,-2.89,3.81 };
     //gaRes = { 1.58,0.31,13.44,0.00,4.12,0.00,4.56,0.00,2.29,0.00,0.00,0.00,0.00,0.00,-0.53,0.75,-0.32,0.45 };
     //gaRes = {-0.08,-1.10,13.23,0.00,4.72,-0.63,5.59,0.00,2.34,0.37,0.00,0.45,0.37,0.49,-1.41,2.49,-1.11,2.30 };
-    gaRes = { -0.53,-0.32,13.31,0.16,4.23,-1.22,5.24,0.00,3.58,-0.51,-0.36,-0.59,0.22,-0.25,-2.41,3.48,-2.65,3.03 };
+    //gaRes = { -0.53,-0.32,13.31,0.16,4.23,-1.22,5.24,0.00,3.58,-0.51,-0.36,-0.59,0.22,-0.25,-2.41,3.48,-2.65,3.03 };
+    //gaRes = { -0.24,-0.54,13.31,-0.98,1.96,2.00,5.42,0.30,3.48,0.00,-0.73,0.75,0.54,-0.25,-6.00,6.06,-5.47,5.30 }; 
+    //gaRes = {1.21,0.37,18.81,0.00,3.47,0.00,3.66,0.00,2.89,0.18,0.00,0.00,0.00,0.00,-0.47,0.00,-0.65,0.00 };
+    //gaRes = { 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0, 0., 0., 0., 0., 0. };
+    gaRes = { 3.87,0.15,17.43,0.04,4.33,0.14,2.77,0.00,1.29,-0.13,0.14,0.08,-0.02,0.09,0.02,0.34,0.01,0.00 };
+ 
 
-    TFile* mcFile = TFile::Open("tree_LbToJPsipK_MC_13TeV_noPU.root");
+    TFile* mcFile = TFile::Open("tmpSpace/tree_LbToJPsipK_MC_13TeV_noPU_noPreSelection.root");
     readMC mc(nullptr);
     mc.SetInputFile( mcFile );
     mc.LoadSourceBranch();
+
     TTree* mcTree = mc.readTree();
 
     // TH1D* h_MC   = new TH1D("h_signal", "#Lambda^{0}_{b} signal MC", 30, 5.55, 5.7);
     // TH1D* h_Data = new TH1D("h_data"  , "#Lambda^{0}_{b} data"     , 30, 5.55, 5.7);
-    TH1D* h_MC   = new TH1D("h_signal", "#Lambda^{0}_{b} signal MC", 75, 5.2, 5.95);
-    TH1D* h_Data = new TH1D("h_data"  , "#Lambda^{0}_{b} data"     , 75, 5.2, 5.95);
+    TH1D* h_MC   = new TH1D("h_signal", "#Lambda^{0}_{b} signal MC", 300, 5.2, 5.95);
+    TH1D* h_Data = new TH1D("h_data"  , "#Lambda^{0}_{b} data"     , 300, 5.2, 5.95);
+    TH1D* h_dFDSig= new TH1D("h_dFDSig" , "", 70, 3., 10.);
+    TH1D* h_mFDSig= new TH1D("h_mFDSig" , "", 70, 3., 10.);
+    //h_Data->SetDirectory( nullptr );
     TGaxis::SetMaxDigits(3);
     unsigned i = 0;
     unsigned N = mcTree->GetEntries();
     while ( i != N )
     {
         mcTree->GetEntry(i++);
+        if ( mc.readD[readMC::lbtkMass             ] > 5.95 ) continue; 
+        if ( mc.readD[readMC::lbtkMass             ] < 5.2  ) continue; 
+
         if ( mc.readD[readMC::lbtkFlightDistanceSig] < gaRes[ 0] ) continue;
         if ( mc.readD[readMC::lbtkVtxprob          ] < gaRes[ 1] ) continue;
         if ( mc.readD[readMC::lbtkPt               ] < gaRes[ 2] ) continue;
@@ -57,11 +75,12 @@ int main()
         if ( mc.readD[readMC::ptkPt                ] < gaRes[ 6] ) continue;
         if ( mc.readD[readMC::ntkPt                ] < gaRes[ 8] ) continue;
         h_MC->Fill(mc.readD[readMC::lbtkMass]);
+        if ( mc.readD[readMC::lbtkFlightDistanceSig] < 3.0  ) continue;
+        h_mFDSig->Fill(mc.readD[readMC::lbtkFlightDistanceSig]);
     }
 
 
-
-    TFile* dataFile = TFile::Open("tmpSpace/tree_2016RunH_07Aug2017ReRecot.root");
+    TFile* dataFile = TFile::Open("tmpSpace/tree_2016RunH_07Aug2017ReReco.removeBsBd.root");
     readData data(nullptr);
     data.SetInputFile( dataFile );
     data.LoadSourceBranch();
@@ -72,20 +91,27 @@ int main()
     while ( i != N )
     {
         dataTree->GetEntry(i++);
-        //if ( data.readD[readData::lbtkFlightDistanceSig] < gaRes[ 0] ) continue;
-        //if ( data.readD[readData::lbtkVtxprob          ] < gaRes[ 1] ) continue;
-        //if ( data.readD[readData::lbtkPt               ] < gaRes[ 2] ) continue;
-        //if ( data.readD[readData::tktkPt               ] < gaRes[ 4] ) continue;
-        //if ( data.readD[readData::ptkPt                ] < gaRes[ 6] ) continue;
-        //if ( data.readD[readData::ntkPt                ] < gaRes[ 8] ) continue;
+        if ( data.readD[readData::lbtkMass             ] > 5.95 ) continue; 
+        if ( data.readD[readData::lbtkMass             ] < 5.2  ) continue; 
+
+        if ( data.readD[readData::lbtkFlightDistanceSig] < gaRes[ 0] ) continue;
+        if ( data.readD[readData::lbtkVtxprob          ] < gaRes[ 1] ) continue;
+        if ( data.readD[readData::lbtkPt               ] < gaRes[ 2] ) continue;
+        if ( data.readD[readData::tktkPt               ] < gaRes[ 4] ) continue;
+        if ( data.readD[readData::ptkPt                ] < gaRes[ 6] ) continue;
+        if ( data.readD[readData::ntkPt                ] < gaRes[ 8] ) continue;
         h_Data->Fill(data.readD[readData::lbtkMass]);
+        if ( data.readD[readData::lbtkFlightDistanceSig] < 3.0  ) continue;
+        h_dFDSig->Fill(data.readD[readData::lbtkFlightDistanceSig]);
     }
 
     TCanvas* c1 = new TCanvas("c1","",1600,1000);
     c1->SaveAs("storefig/resultHisto.pdf[");
+    h_mFDSig->Draw();
+    c1->SaveAs("storefig/resultHisto.pdf");
+    h_dFDSig->Draw();
+    c1->SaveAs("storefig/resultHisto.pdf");
 
-    std::cout << "data entries: " << h_Data->GetEntries() << ", mc entries: " << h_MC->GetEntries() << std::endl;
-    //RooRealVar varMass( "mass", "", 5.6, 5.55, 5.7 );
     RooRealVar varMass( "mass", "", 5.6, 5.4, 5.95 );
     RooDataHist binnedData("histData", "data histogram", RooArgList(varMass), h_Data);
     RooDataHist binnedMC("histMC", "MC histogram", RooArgList(varMass), h_MC);
@@ -107,6 +133,7 @@ int main()
     mcModel.plotOn(mcFrame, RooFit::Name("mTot")  );
     mcModel.plotOn(mcFrame, RooFit::Name("mGaus1"), RooFit::Components(pdf_gaus ), RooFit::LineStyle(7), RooFit::LineColor(30));
     mcModel.plotOn(mcFrame, RooFit::Name("mGaus2"), RooFit::Components(pdf_gaus2), RooFit::LineStyle(7), RooFit::LineColor(40));
+    double mcChi2 = mcFrame->chiSquare("mGaus1", "mHist");
 
     TGraph* tg_mHist  = (TGraph*)mcFrame->findObject("mHist");
     TGraph* tg_mTot   = (TGraph*)mcFrame->findObject("mTot");
@@ -134,13 +161,40 @@ int main()
     frac.setConstant(true);
 
     // start to fit Data
-    RooRealVar par_c1("c1", "parameter to polynomial : 1st order", -0.02, -100., 100. );
-    RooRealVar par_c2("c2", "parameter to polynomial : 2nd order", -0.02, -100., 100. );
-    RooPolynomial pdf_poly("poly", "PDF : polynomial", varMass, RooArgSet(par_c1, par_c2) );
+    //RooRealVar par_c1("c1", "parameter to polynomial : 1st order", -0.02, -100., 100. );
+    //RooRealVar par_c2("c2", "parameter to polynomial : 2nd order", -0.02, -100., 100. );
+    //RooPolynomial pdf_poly("poly", "PDF : polynomial", varMass, RooArgSet(par_c1, par_c2) );
+    RooRealVar par_ch1("ch1", "parameter to chebychev : 1st order",  0.5, -10., 10. );
+    RooRealVar par_ch2("ch2", "parameter to chebychev : 2nd order", -0.2, -10., 10. );
+    RooRealVar par_ch3("ch3", "parameter to chebychev : 3rd order", -0.2, -10., 10. );
+    RooRealVar par_ch4("ch4", "parameter to chebychev : 4th order", -0.2, -10., 10. );
+    //RooChebychev pdf_cheb("cheb", "PDF : chebychev", varMass, RooArgSet(par_ch1, par_ch2) );
+    RooChebychev pdf_cheb("cheb", "PDF : chebychev", varMass, RooArgSet(par_ch1, par_ch2, par_ch3, par_ch4) );
+    RooRealVar N_cheb("N_cheb", "extend number : chebchev", (double)h_Data->GetEntries(), 0., 2.*(double)h_Data->GetEntries());
+    RooExtendPdf extend_pdf_cheb("ext_cheb", "PDF: chebychev", pdf_cheb, N_cheb);
+
+    double constr_mean  = par_mean .getVal();
+    double constr_width = par_width.getVal();
+    varMass.setRange("sR1", 5.4, constr_mean - 5.*constr_width);
+    varMass.setRange("sR2", constr_mean + 5.*constr_width, 5.95);
+    varMass.setRange("tot", 5.4, 5.95);
+    varMass.setRange("signalRegion", constr_mean - 3.*constr_width, constr_mean + 3.*constr_width);
+    //pdf_cheb.fitTo(binnedData);
+    //pdf_cheb.fitTo(binnedData, RooFit::Range("sR1,sR2"), RooFit::Minos(kTRUE));
+    extend_pdf_cheb.fitTo(binnedData, RooFit::Minos(kTRUE));
+    RooPlot* tmpFrame = varMass.frame(RooFit::Title("d"));
+    binnedData.plotOn(tmpFrame, RooFit::Name("a"));
+    pdf_cheb.plotOn( tmpFrame , RooFit::Name("b"));
+    double tmpChi2 = tmpFrame->chiSquare("b", "a");
+    tmpFrame->Draw();
+    c1->SaveAs("storefig/resultHisto.pdf");
+    c1->SaveAs("storefig/h_fittingResult.intermediate.eps");
+
+
     double maxevent = (double)h_Data->GetEntries();
     RooRealVar ns( "nSig", "number of signal", maxevent/1000., 0., maxevent );
     RooRealVar nb( "nBkg", "number of background", maxevent, 0., maxevent);
-    RooAddPdf totModel( "totModel", "PDF : data + MC", RooArgList(mcModel, pdf_poly), RooArgList(ns,nb));
+    RooAddPdf totModel( "totModel", "PDF : data + MC", RooArgList(mcModel, pdf_cheb), RooArgList(ns,nb));
     totModel.fitTo(binnedData);
 
     RooPlot* dataFrame = varMass.frame(RooFit::Title("data : #Lambda^{0}_{b} #rightarrow J/#Psi p K"));
@@ -149,7 +203,8 @@ int main()
     binnedData.plotOn(dataFrame,RooFit::Name("dHist"));
     totModel.plotOn(dataFrame, RooFit::Name("dTot"));
     totModel.plotOn(dataFrame, RooFit::Name("dPart1"), RooFit::Components(mcModel), RooFit::LineStyle(7), RooFit::LineColor(2));
-    totModel.plotOn(dataFrame, RooFit::Name("dPart2"), RooFit::Components(pdf_poly),RooFit::LineStyle(7), RooFit::LineColor(40));
+    totModel.plotOn(dataFrame, RooFit::Name("dPart2"), RooFit::Components(pdf_cheb),RooFit::LineStyle(7), RooFit::LineColor(40));
+    double dataChi2 = dataFrame->chiSquare("dPart2", "dHist");
 
 
     TGraph* tg_dHist = (TGraph*)dataFrame->findObject("dHist");
@@ -179,13 +234,15 @@ int main()
     c1->SaveAs("storefig/h_fittingResult.Data.eps");
     c1->SaveAs("storefig/resultHisto.pdf");
 
-    varMass.setRange("signalRegion", 5.58, 5.64);
+    //varMass.setRange("signalRegion", 5.58, 5.64);
     //RooAbsReal* mcIntegral   = pdf_gaus.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
     RooAbsReal* mcIntegral   = mcModel.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
-    RooAbsReal* dataIntegral = pdf_poly.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
+    RooAbsReal* dataIntegral = pdf_cheb.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
     std::cout << "number of signal : " << ns.getVal() << ", in signal Region: " << ns.getVal()*mcIntegral->getVal() << std::endl;
     std::cout << "number of bkg    : " << nb.getVal() << ", in signal Region: " << nb.getVal()*dataIntegral->getVal() << std::endl;
     std::cout << "significance: " << (ns.getVal()*mcIntegral->getVal())/sqrt(nb.getVal()*dataIntegral->getVal()) << std::endl;
+    std::cout << "mc chi2 : " << mcChi2 << ", data chi2 : " << dataChi2 << std::endl;
+    std::cout << "intermediate chi2 = " << tmpChi2 << std::endl;
     c1->SaveAs("storefig/resultHisto.pdf]");
     delete c1;
     delete h_Data;
@@ -193,6 +250,8 @@ int main()
     mcFile->Close();
     dataFile->Close();
 }
+
+
 
 
 

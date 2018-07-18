@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new treeMain_TkTk(&dir) );
     //mainCode.push_back( new treeMain_Lam0(&dir) );
     //mainCode.push_back( new treeMain_Kshort(&dir) );
-    //mainCode.push_back( new treeMain_LbTk(&dir) );
+    mainCode.push_back( new treeMain_LbTk(&dir) );
     //mainCode.push_back( new treeMain_LbL0(&dir) );
     //mainCode.push_back( new treeMain_Bs(&dir) );
     //mainCode.push_back( new treeMain_findParDiff(&dir) );

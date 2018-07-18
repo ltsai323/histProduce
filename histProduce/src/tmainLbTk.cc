@@ -12,6 +12,9 @@ treeMain_LbTk::treeMain_LbTk( TFileDirectory* d ) :
     kaonMass ( 0.493667 ), protonMass ( 0.9382720813 ), pionMass ( 0.13957061 )
 {
     RegTree();
+    hParEta =   createHisto("par_eta", 100, -5., 5.);
+    hParCos2D = createHisto("par_cosTheta2D", 210, -1.05, 1.05);
+    hParCos3D = createHisto("par_cosTheta3D", 210, -1.05, 1.05);
 }
 void treeMain_LbTk::Process( fwlite::Event* ev )
 {
@@ -23,7 +26,8 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
         // pv not recorded, use BS
         if ( !beamSpotHandle.isValid() ) return;
         if ( _handle->size()  == 0 ) return;
-        const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
+        //const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
+        const reco::BeamSpot& bs = *beamSpotHandle;
 
         std::vector< std::pair< double, const pat::CompositeCandidate*> > candsSorted;
         candsSorted.clear();
@@ -71,10 +75,10 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
 
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) continue;
-            double fd = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
+            double fdSig = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
+            if ( fdSig < 3.0 ) continue;
             double cos2d = usefulFuncs::getCosa2d( cand, &bs );
             double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
-            //if ( fd < 4.0 ) continue;
             if ( cos2d < 0.99 ) continue;
             if ( vtxprob < 0.15 ) continue;
 
@@ -107,6 +111,14 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
             fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
             fourMom tktk;
             fourMom fourTk;
+
+            // search for pentaQuark
+            // jpsip = jpsi + proton, jpsiP = jpsi + anti-proton
+            fourMom jpsip, jpsipBar;
+            pTk.setMass( protonMass );
+            nTk.setMass( protonMass );
+            jpsip = pMu + nMu + pTk;
+            jpsipBar = pMu + nMu + nTk;
 
             // search for lam0
             pTk.setMass( protonMass );
@@ -149,10 +161,16 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
             const reco::Vertex* pv = usefulFuncs::get<reco::Vertex>( *jpsi, "fitVertex" );
 
             dataD[lbtkMass] = cand.userFloat( "fitMass" );
-            dataD[lbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( cand, pv );
-            dataD[lbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( cand, pv );
+            dataD[lbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( cand, &bs );
+            dataD[lbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             dataD[lbtkVtxprob] = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
+            dataD[lbtkCosa2d] = usefulFuncs::getCosa2d(cand,&bs);
+
+            dataD[targetJpsiP_mass] = jpsip.Mag();
+            dataD[targetJpsiP_pt] = jpsip.transverse();
+            dataD[targetJpsiPBar_mass] = jpsipBar.Mag();
+            dataD[targetJpsiPBar_pt] = jpsipBar.transverse();
 
             dataD[lbtkMom]= fourTk.Momentum();
             dataD[lbtkPt] = fourTk.transverse();
@@ -175,6 +193,10 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
             if ( cand.hasUserFloat(  "TkTk/Kaon.dEdx.Harmonic") )
                 dataD[ntkDEDX_Harmonic] = cand.userFloat(   "TkTk/Kaon.dEdx.Harmonic" );
             thisTree()->Fill();
+
+            hParEta  ->Fill(fourTk.eta());
+            hParCos2D->Fill(usefulFuncs::getCosa2d(cand,pv));
+            hParCos3D->Fill(usefulFuncs::getCosa3d(cand,pv));
         }
     } catch (...) {}
 }
@@ -190,6 +212,12 @@ void treeMain_LbTk::RegTree()
     thisTree()->Branch( "lbtkFD2d", &dataD[lbtkFlightDistance2d], "lbtkFD2d/D" );
     thisTree()->Branch( "lbtkFDSig", &dataD[lbtkFlightDistanceSig], "lbtkFDSig/D" );
     thisTree()->Branch( "lbtkVtxprob", &dataD[lbtkVtxprob], "lbtkVtxprob/D" );
+    thisTree()->Branch( "lbtkCosa2d", &dataD[lbtkCosa2d], "lbtkCosa2d/D" );
+
+    thisTree()->Branch( "targetJpsiP_mass", &dataD[targetJpsiP_mass], "targetJpsiP_mass/D" );
+    thisTree()->Branch( "targetJpsiP_pt", &dataD[targetJpsiP_pt], "targetJpsiP_pt/D" );
+    thisTree()->Branch( "targetJpsiPBar_mass", &dataD[targetJpsiPBar_mass], "targetJpsiPBar_mass/D" );
+    thisTree()->Branch( "targetJpsiPBar_pt", &dataD[targetJpsiPBar_pt], "targetJpsiPBar_pt/D" );
 
     thisTree()->Branch( "lbtkMom", &dataD[lbtkMom], "lbtkMom/D" );
     thisTree()->Branch( "lbtkPt", &dataD[lbtkPt], "lbtkPt/D" );
@@ -235,6 +263,12 @@ void treeMain_LbTk::setBranchAddress( TTree* inputTree )
     inputTree->SetBranchAddress( "lbtkFD2d", &dataD[lbtkFlightDistance2d] );
     inputTree->SetBranchAddress( "lbtkFDSig", &dataD[lbtkFlightDistanceSig] );
     inputTree->SetBranchAddress( "lbtkVtxprob", &dataD[lbtkVtxprob] );
+    inputTree->SetBranchAddress( "lbtkCosa2d", &dataD[lbtkCosa2d] );
+
+    inputTree->SetBranchAddress( "targetJpsiP_mass", &dataD[targetJpsiP_mass] );
+    inputTree->SetBranchAddress( "targetJpsiP_pt", &dataD[targetJpsiP_pt] );
+    inputTree->SetBranchAddress( "targetJpsiPBar_mass", &dataD[targetJpsiPBar_mass] );
+    inputTree->SetBranchAddress( "targetJpsiPBar_pt", &dataD[targetJpsiPBar_pt] );
 
     inputTree->SetBranchAddress( "lbtkMom", &dataD[lbtkMom] );
     inputTree->SetBranchAddress( "lbtkPt", &dataD[lbtkPt] );

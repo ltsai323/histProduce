@@ -8,7 +8,7 @@ inline void GeneticAlgorithm::ApplyMutation()
     for(unsigned i=nchromos;i<nchromos*2;i++) {
         for(unsigned j=0;j<18;j++) {
             if (rndNum->Uniform()<0.10)
-                chromos[i][j] += rndNum->Gaus(0.,0.5);
+                chromos[i][j] += rndNum->Gaus(0.,0.1);
         }
     }
 }

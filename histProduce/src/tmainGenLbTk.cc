@@ -13,6 +13,9 @@ treeMainGen_LbTk::treeMainGen_LbTk( TFileDirectory* d ) :
 {
     RegTree();
     hSummary = createHisto( "selCand_totCand", 10, 0., 10., 10, 0., 10. );
+    hParEta  = createHisto("par_eta", 100, -5., 5.);
+    hParCos2D= createHisto("par_cosTheta2D", 210, -1.05, 1.05);
+    hParCos3D= createHisto("par_cosTheta3D", 210, -1.05, 1.05);
 }
 void treeMainGen_LbTk::Process( fwlite::Event* ev )
 {
@@ -26,7 +29,9 @@ void treeMainGen_LbTk::Process( fwlite::Event* ev )
         if ( !_genHandle.isValid() ) return;
         if ( _handle->size()  == 0 ) return;
         if ( _genHandle->size() == 0 ) return;
-        const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
+        //if (  primaryVHandle.isValid() ) std::cout << "number of pv in this event: " << primaryVHandle->size() << "\n";
+        //const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
+        const reco::BeamSpot& bs = *beamSpotHandle;
 
         std::vector< std::pair< double, const pat::CompositeCandidate*> > candsSorted;
         candsSorted.reserve( _handle->size() );
@@ -75,10 +80,10 @@ void treeMainGen_LbTk::Process( fwlite::Event* ev )
 
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) continue;
-            double fd = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
+            double fdSig = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
             double cos2d = usefulFuncs::getCosa2d( cand, &bs );
             double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
-            //if ( fd < 4.0 ) continue;
+            if ( fdSig < 3.0 ) continue;
             if ( cos2d < 0.99 ) continue;
             if ( vtxprob < 0.15 ) continue;
 
@@ -127,6 +132,8 @@ void treeMainGen_LbTk::Process( fwlite::Event* ev )
             MatchRes mcRes = matchMC_CompositeCand( cand, daug, 1.0 );
 
             if ( !mcRes.isValid() ) continue;
+            // only choose lambda0_b
+            if ( mcRes.getCand()->pdgId() != 5122 ) continue;
             for ( unsigned int i=0; i< mcRes.getNDaughterRecorded(); ++i )
             {
                 unsigned mcDaugID = mcRes.getmcDaugID(i);
@@ -144,6 +151,15 @@ void treeMainGen_LbTk::Process( fwlite::Event* ev )
                 }
             } // find for pID end }}}
             if ( !(dataI[ptkPID]&&dataI[ntkPID]) ) continue;
+
+            // search for pentaQuark
+            // jpsip = jpsi + proton, jpsipBar = jpsi + anti-proton
+            fourMom jpsip, jpsipBar;
+            pTk.setMass( protonMass );
+            nTk.setMass( protonMass );
+            jpsip = pMu + nMu + pTk;
+            jpsipBar = pMu + nMu + nTk;
+
             // search for lam0
             pTk.setMass( protonMass );
             nTk.setMass(   pionMass );
@@ -185,10 +201,17 @@ void treeMainGen_LbTk::Process( fwlite::Event* ev )
             const reco::Vertex* pv = usefulFuncs::get<reco::Vertex>( *jpsi, "fitVertex" );
 
             dataD[lbtkMass] = cand.userFloat( "fitMass" );
-            dataD[lbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( cand, pv );
-            dataD[lbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( cand, pv );
+            dataD[lbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( cand, &bs );
+            dataD[lbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             dataD[lbtkVtxprob] = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
+            dataD[lbtkCosa2d] = usefulFuncs::getCosa2d(cand,&bs);
+            dataD[lbtkCosAngleToVtx_PV_BS] = usefulFuncs::getCosAngleToVtx_PV_BS( cand, *pv, bs );
+
+            dataD[targetJpsiP_mass] = jpsip.Mag();
+            dataD[targetJpsiP_pt] = jpsip.transverse();
+            dataD[targetJpsiPBar_mass] = jpsipBar.Mag();
+            dataD[targetJpsiPBar_pt] = jpsipBar.transverse();
 
             dataD[lbtkMom]= fourTk.Momentum();
             dataD[lbtkPt] = fourTk.transverse();
@@ -212,8 +235,13 @@ void treeMainGen_LbTk::Process( fwlite::Event* ev )
                 dataD[ntkDEDX_Harmonic] = cand.userFloat(   "TkTk/Kaon.dEdx.Harmonic" );
             ++selCand;
             thisTree()->Fill();
+
+            hParEta  ->Fill(fourTk.eta());
+            hParCos2D->Fill(usefulFuncs::getCosa2d(cand,pv));
+            hParCos3D->Fill(usefulFuncs::getCosa3d(cand,pv));
         }
         hSummary->Fill( selCand, totCand );
+
     } catch (...) {}
 }
 
@@ -229,7 +257,14 @@ void treeMainGen_LbTk::RegTree()
     t->Branch( "lbtkFD2d", &dataD[lbtkFlightDistance2d], "lbtkFD2d/D" );
     t->Branch( "lbtkFDSig", &dataD[lbtkFlightDistanceSig], "lbtkFDSig/D" );
     t->Branch( "lbtkVtxprob", &dataD[lbtkVtxprob], "lbtkVtxprob/D" );
+    t->Branch( "lbtkCosa2d", &dataD[lbtkCosa2d], "lbtkCosa2d/D" );
+    t->Branch( "lbtkCosAngleToVtx_PV_BS", &dataD[lbtkCosAngleToVtx_PV_BS], "lbtkCosAngleToVtx_PV_BS/D" );
 
+    t->Branch( "targetJpsiP_mass", &dataD[targetJpsiP_mass], "targetJpsiP_mass/D" );
+    t->Branch( "targetJpsiP_pt", &dataD[targetJpsiP_pt], "targetJpsiP_pt/D" );
+    t->Branch( "targetJpsiPBar_mass", &dataD[targetJpsiPBar_mass], "targetJpsiPBar_mass/D" );
+    t->Branch( "targetJpsiPBar_pt", &dataD[targetJpsiPBar_pt], "targetJpsiPBar_pt/D" );
+    
     t->Branch( "lbtkMom", &dataD[lbtkMom], "lbtkMom/D" );
     t->Branch( "lbtkPt", &dataD[lbtkPt], "lbtkPt/D" );
     t->Branch( "tktkPt", &dataD[tktkPt], "tktkPt/D" );
@@ -268,16 +303,26 @@ void treeMainGen_LbTk::GetByLabel( fwlite::Event* ev )
     getByLabel_Cand( ev );
     getByLabel_genParticle( ev );
     getByLabel_BS( ev );
+    getByLabel_PV( ev );
 }
 
 inline void treeMainGen_LbTk::getByLabel_BS( fwlite::Event* ev )
 { beamSpotHandle.getByLabel( *ev,"offlineBeamSpot", "", "RECO"  ); return; }
+inline void treeMainGen_LbTk::getByLabel_PV( fwlite::Event* ev )
+{ primaryVHandle.getByLabel( *ev,"offlinePrimaryVertices", "", "RECO"  ); return; }
 void treeMainGen_LbTk::setBranchAddress( TTree* inputTree )
 {
     inputTree->SetBranchAddress( "lbtkMass", &dataD[lbtkMass] );
     inputTree->SetBranchAddress( "lbtkFD2d", &dataD[lbtkFlightDistance2d] );
     inputTree->SetBranchAddress( "lbtkFDSig", &dataD[lbtkFlightDistanceSig] );
     inputTree->SetBranchAddress( "lbtkVtxprob", &dataD[lbtkVtxprob] );
+    inputTree->SetBranchAddress( "lbtkCosa2d", &dataD[lbtkCosa2d] );
+    inputTree->SetBranchAddress( "lbtkCosAngleToVtx_PV_BS", &dataD[lbtkCosAngleToVtx_PV_BS] );
+
+    inputTree->SetBranchAddress( "targetJpsiP_mass", &dataD[targetJpsiP_mass] );
+    inputTree->SetBranchAddress( "targetJpsiP_pt", &dataD[targetJpsiP_pt] );
+    inputTree->SetBranchAddress( "targetJpsiPBar_mass", &dataD[targetJpsiPBar_mass] );
+    inputTree->SetBranchAddress( "targetJpsiPBar_pt", &dataD[targetJpsiPBar_pt] );
 
     inputTree->SetBranchAddress( "lbtkMom", &dataD[lbtkMom] );
     inputTree->SetBranchAddress( "lbtkPt", &dataD[lbtkPt] );

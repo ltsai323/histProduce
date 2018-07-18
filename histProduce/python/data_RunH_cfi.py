@@ -6788,6 +6788,6 @@ process.runSetting = cms.PSet(
         #maxEvents = cms.int32(50000),
         maxEvents = cms.int32(-1),
         outEvery  = cms.uint32(5000),
-        outName   = cms.string('tree_2016RunH_07Aug2017ReRecot.root'),
+        outName   = cms.string('tree_2016RunH_07Aug2017ReReco.root'),
         )
 process.inputFiles = cms.PSet( fileNames  = files )

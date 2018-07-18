@@ -23,7 +23,7 @@ public:
     // tree structure in loaded data. And create new file also with the same structure
     enum readVarD
     {
-        lbtkMass, lbtkFlightDistance2d, lbtkFlightDistanceSig, lbtkVtxprob,
+        lbtkMass, lbtkFlightDistance2d, lbtkFlightDistanceSig, lbtkVtxprob, lbtkCosa2d,
         lbtkPt, lbtkMom,
         tktkPt, tktkMom,
         fake_Lam0Mass, fake_KstarMass, fake_PhiMass, fake_KshortMass,

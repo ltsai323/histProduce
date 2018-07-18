@@ -26,6 +26,7 @@ root_TreeHistoMain_GenInfo_LbTk::root_TreeHistoMain_GenInfo_LbTk( TFileDirectory
 {
     setInputTreeName( "lbSpecificDecay/LbTkGenInfo" );
     // gaRes = { 0.00, -0.69, 11.50, 12.47, 6.50, 5.67, 4.48, 4.51, 2.00, 2.11, 2.47, 18.95, -0.21, 15.05, -12.17, 11.88, -16.30, 19.57 };
+    gaRes = { 3.87,0.15,17.43,0.04,4.33,0.14,2.77,0.00,1.29,-0.13,0.14,0.08,-0.02,0.09,0.02,0.34,0.01,0.00 };
 
     if ( !d ) return;
     RegTree();
@@ -70,15 +71,15 @@ void root_TreeHistoMain_GenInfo_LbTk::Process( unsigned int i )
 
         // for histogram part
         // test for GA result
-    //     if ( readD[lbtkFlightDistanceSig  ] < gaRes[ 0] ) return;
-    //     if ( readD[lbtkVtxprob            ] < gaRes[ 1] ) return;
-    //     if ( readD[lbtkPt                 ] < gaRes[ 2] ) return;
-    //     //if ( readD[lbtkMom                ] < gaRes[ 3] ) return;
-    //     if ( readD[tktkPt                 ] < gaRes[ 4] ) return;
-    //     //if ( readD[tktkMom                ] < gaRes[ 5] ) return;
-    //     if ( readD[ptkPt                  ] < gaRes[ 6] ) return;
-    //     //if ( readD[ptkMom                 ] < gaRes[ 7] ) return;
-    //     if ( readD[ntkPt                  ] < gaRes[ 8] ) return;
+        if ( readD[lbtkFlightDistanceSig  ] < gaRes[ 0] ) return;
+        if ( readD[lbtkVtxprob            ] < gaRes[ 1] ) return;
+        if ( readD[lbtkPt                 ] < gaRes[ 2] ) return;
+        //if ( readD[lbtkMom                ] < gaRes[ 3] ) return;
+        if ( readD[tktkPt                 ] < gaRes[ 4] ) return;
+        //if ( readD[tktkMom                ] < gaRes[ 5] ) return;
+        if ( readD[ptkPt                  ] < gaRes[ 6] ) return;
+        //if ( readD[ptkMom                 ] < gaRes[ 7] ) return;
+        if ( readD[ntkPt                  ] < gaRes[ 8] ) return;
     //if ( readD[ntkMom                 ] < gaRes[ 9] ) return;
     //if ( readD[ptkDEDX_Mom_ratio] < gaRes[10] ) return;
     //if ( readD[ptkDEDX_Mom_ratio] > gaRes[11] ) return;
@@ -89,6 +90,12 @@ void root_TreeHistoMain_GenInfo_LbTk::Process( unsigned int i )
     //if ( readD[ntkIPt]/readD[ntkIPtErr] < gaRes[16] ) return;
     //if ( readD[ntkIPt]/readD[ntkIPtErr] > gaRes[17] ) return;
         fillHisto( "mass_LbTk", readD[lbtkMass] );
+        {
+            for ( int i=0; i<totNumD; ++i )
+                dataD[i] = readD[i];
+            // save reduced tree
+            thisTree()->Fill();
+        }
 
         for ( int i=0; i<NUM_TESTHIST; ++i )
         {
@@ -127,6 +134,7 @@ void root_TreeHistoMain_GenInfo_LbTk::RegTree()
     t->Branch( "lbtkFD2d", &dataD[lbtkFlightDistance2d], "lbtkFD2d/D" );
     t->Branch( "lbtkFDSig", &dataD[lbtkFlightDistanceSig], "lbtkFDSig/D" );
     t->Branch( "lbtkVtxprob", &dataD[lbtkVtxprob], "lbtkVtxprob/D" );
+    t->Branch( "lbtkCosa2d", &dataD[lbtkCosa2d], "lbtkCosa2d/D" );
 
     t->Branch( "lbtkMom", &dataD[lbtkMom], "lbtkMom/D" );
     t->Branch( "lbtkPt", &dataD[lbtkPt], "lbtkPt/D" );
@@ -203,6 +211,7 @@ void root_TreeHistoMain_GenInfo_LbTk::LoadSourceBranch()
     t->SetBranchAddress( "lbtkFD2d", &readD[lbtkFlightDistance2d] );
     t->SetBranchAddress( "lbtkFDSig", &readD[lbtkFlightDistanceSig] );
     t->SetBranchAddress( "lbtkVtxprob", &readD[lbtkVtxprob] );
+    t->SetBranchAddress( "lbtkCosa2d", &readD[lbtkCosa2d] );
 
     t->SetBranchAddress( "lbtkMom", &readD[lbtkMom] );
     t->SetBranchAddress( "lbtkPt", &readD[lbtkPt] );

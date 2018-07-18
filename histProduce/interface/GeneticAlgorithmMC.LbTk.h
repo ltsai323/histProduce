@@ -22,6 +22,8 @@ public:
 
     // signal region: mean +- 0.5width
     void setSignalRegion( const double mean, const double width );
+    void setHistoRange( const double m, const double M );
+    void setHistoNBins( const int n );
     bool inSignalRegion( const double mass ) const;
     bool inCalculationRegion( const double mass ) const;
 private:
@@ -30,8 +32,11 @@ private:
     double** chromosRange;
     double mWindow, MWindow;
     double mSig, MSig;
+    double h_min, h_max;
+    int h_bins;
     TH1D* hData;
     TH1D* hSigMC;
     TH1D* hbkgMC;
+
 };
 #endif
