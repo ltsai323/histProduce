@@ -136,6 +136,11 @@ void root_TreeHistoMain_GenInfo_LbTk::RegTree()
     t->Branch( "lbtkVtxprob", &dataD[lbtkVtxprob], "lbtkVtxprob/D" );
     t->Branch( "lbtkCosa2d", &dataD[lbtkCosa2d], "lbtkCosa2d/D" );
 
+    t->Branch( "targetJpsiP_mass", &dataD[targetJpsiP_mass], "targetJpsiP_mass/D" );
+    t->Branch( "targetJpsiP_pt", &dataD[targetJpsiP_pt], "targetJpsiP_pt/D" );
+    t->Branch( "targetJpsiPBar_mass", &dataD[targetJpsiPBar_mass], "targetJpsiPBar_mass/D" );
+    t->Branch( "targetJpsiPBar_pt", &dataD[targetJpsiPBar_pt], "targetJpsiPBar_pt/D" );
+
     t->Branch( "lbtkMom", &dataD[lbtkMom], "lbtkMom/D" );
     t->Branch( "lbtkPt", &dataD[lbtkPt], "lbtkPt/D" );
     t->Branch( "tktkPt", &dataD[tktkPt], "tktkPt/D" );
@@ -212,6 +217,11 @@ void root_TreeHistoMain_GenInfo_LbTk::LoadSourceBranch()
     t->SetBranchAddress( "lbtkFDSig", &readD[lbtkFlightDistanceSig] );
     t->SetBranchAddress( "lbtkVtxprob", &readD[lbtkVtxprob] );
     t->SetBranchAddress( "lbtkCosa2d", &readD[lbtkCosa2d] );
+
+    t->SetBranchAddress( "targetJpsiP_mass", &readD[targetJpsiP_mass] );
+    t->SetBranchAddress( "targetJpsiP_pt", &readD[targetJpsiP_pt] );
+    t->SetBranchAddress( "targetJpsiPBar_mass", &readD[targetJpsiPBar_mass] );
+    t->SetBranchAddress( "targetJpsiPBar_pt", &readD[targetJpsiPBar_pt] );
 
     t->SetBranchAddress( "lbtkMom", &readD[lbtkMom] );
     t->SetBranchAddress( "lbtkPt", &readD[lbtkPt] );

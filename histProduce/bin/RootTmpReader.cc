@@ -244,6 +244,7 @@ int main()
     std::cout << "mc chi2 : " << mcChi2 << ", data chi2 : " << dataChi2 << std::endl;
     std::cout << "intermediate chi2 = " << tmpChi2 << std::endl;
     c1->SaveAs("storefig/resultHisto.pdf]");
+    std::cout << "signal mean = " << par_mean.getVal() << ", width = " << par_width.getVal() << std::endl;
     delete c1;
     delete h_Data;
     delete h_MC;

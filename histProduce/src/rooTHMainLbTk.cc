@@ -13,7 +13,7 @@
 
 namespace
 {
-    const int NUM_TESTHIST = 1;
+    const int NUM_TESTHIST = 0;
     const char* testingCut = "FDSig>";
     const double cutInit = 100;
     const double cutInterval = 50;
@@ -78,26 +78,20 @@ void root_TreeHistoMain_LbTk::Process( unsigned int i )
         if ( readD[ptkPt                  ] < gaRes[ 6] ) return;
         //if ( readD[ptkMom                 ] < gaRes[ 7] ) return;
         if ( readD[ntkPt                  ] < gaRes[ 8] ) return;
-        //if ( readD[ntkMom                 ] < gaRes[ 9] ) return;
-        //if ( readD[ptkDEDX_Mom_ratio] < gaRes[10] ) return;
-        //if ( readD[ptkDEDX_Mom_ratio] > gaRes[11] ) return;
-        //if ( readD[ntkDEDX_Mom_ratio] < gaRes[12] ) return;
-        //if ( readD[ntkDEDX_Mom_ratio] > gaRes[13] ) return;
-        //if ( readD[ptkIPt]/readD[ptkIPtErr] < gaRes[14] ) return;
-        //if ( readD[ptkIPt]/readD[ptkIPtErr] > gaRes[15] ) return;
-        //if ( readD[ntkIPt]/readD[ntkIPtErr] < gaRes[16] ) return;
-        //if ( readD[ntkIPt]/readD[ntkIPtErr] > gaRes[17] ) return;
+        fillHisto( "mass_LbToJPsipK", readD[lbtkMass] );
+        fillHisto( "mass_target_JPsiP_total", readD[targetJpsiP_mass] );
+        const double sig_mean = 5.61529;
+        const double sig_width= 0.00857351;
+
+        if ( readD[lbtkMass] > sig_mean - 2.5*sig_width && readD[lbtkMass] < sig_mean + 2.5*sig_width )
+            fillHisto( "mass_target_JPsiP_inSignalRegion"    , readD[targetJpsiP_mass] );
+        else
+        if ( readD[lbtkMass] > sig_mean - 5.5*sig_width && readD[lbtkMass] < sig_mean - 3. *sig_width )
+            fillHisto( "mass_target_JPsiP_inSideband", readD[targetJpsiP_mass] );
+        else
+        if ( readD[lbtkMass] > sig_mean + 3. *sig_width && readD[lbtkMass] < sig_mean + 5.5*sig_width )
+            fillHisto( "mass_target_JPsiP_inSideband", readD[targetJpsiP_mass] );
         
-        // cut for drawing histogram
-        /*
-        if ( readD[ptkPt] < 2.60 ) return;
-        if ( readD[ntkPt] < 1.30 ) return;
-        if ( readD[lbtkFlightDistanceSig] < 0.111 ) return;
-        if ( readD[lbtkVtxprob] < 0.15 ) return;
-        if ( readD[lbtkPt] < 15. ) return;
-        if ( readD[tktkPt] < 4.3  ) return;
-        */
-        fillHisto( "mass_LbTk", readD[lbtkMass] );
 
         for ( int i=0; i<NUM_TESTHIST; ++i )
         {
@@ -138,6 +132,11 @@ void root_TreeHistoMain_LbTk::RegTree()
     t->Branch( "lbtkVtxprob", &dataD[lbtkVtxprob], "lbtkVtxprob/D" );
     t->Branch( "lbtkCosa2d", &dataD[lbtkCosa2d], "lbtkCosa2d/D" );
 
+    t->Branch( "targetJpsiP_mass", &dataD[targetJpsiP_mass], "targetJpsiP_mass/D" );
+    t->Branch( "targetJpsiP_pt", &dataD[targetJpsiP_pt], "targetJpsiP_pt/D" );
+    t->Branch( "targetJpsiPBar_mass", &dataD[targetJpsiPBar_mass], "targetJpsiPBar_mass/D" );
+    t->Branch( "targetJpsiPBar_pt", &dataD[targetJpsiPBar_pt], "targetJpsiPBar_pt/D" );
+
     t->Branch( "lbtkMom", &dataD[lbtkMom], "lbtkMom/D" );
     t->Branch( "lbtkPt", &dataD[lbtkPt], "lbtkPt/D" );
     t->Branch( "tktkPt", &dataD[tktkPt], "tktkPt/D" );
@@ -171,33 +170,30 @@ void root_TreeHistoMain_LbTk::RegTree()
 void root_TreeHistoMain_LbTk::RegHisto()
 {
     if ( NoOutput() ) return;
-    createHisto( "mass_LbTk", 30, 5.5, 5.7 );
-    createHisto( "mass_LbTk_testcut", 45, 5.5, 5.8 );
-    createHisto( "mass_Lbtk_lowPtHighFDSig", 45, 5.5, 5.8 );
-    createHisto( "mass_LbTk_highPtLowFDSig", 45, 5.5, 5.8 );
-    createHisto( "par_FDSig_highPt", 100, 0., 20. );
-    createHisto( "par_FDSig_lowPt", 100, 0., 20. );
-    createHisto( "par_FDSig_midPt", 100, 0., 20. );
-    createHisto( "testCut00", 45, 5.5, 5.8 );
-    createHisto( "testCut01", 45, 5.5, 5.8 );
-    createHisto( "testCut02", 45, 5.5, 5.8 );
-    createHisto( "testCut03", 45, 5.5, 5.8 );
-    createHisto( "testCut04", 45, 5.5, 5.8 );
-    createHisto( "testCut05", 45, 5.5, 5.8 );
-    createHisto( "testCut06", 45, 5.5, 5.8 );
-    createHisto( "testCut07", 45, 5.5, 5.8 );
-    createHisto( "testCut08", 45, 5.5, 5.8 );
-    createHisto( "testCut09", 45, 5.5, 5.8 );
-    createHisto( "testCut10", 45, 5.5, 5.8 );
-    createHisto( "testCut11", 45, 5.5, 5.8 );
-    createHisto( "testCut12", 45, 5.5, 5.8 );
-    createHisto( "testCut13", 45, 5.5, 5.8 );
-    createHisto( "testCut14", 45, 5.5, 5.8 );
-    createHisto( "testCut15", 45, 5.5, 5.8 );
-    createHisto( "testCut16", 45, 5.5, 5.8 );
-    createHisto( "testCut17", 45, 5.5, 5.8 );
-    createHisto( "testCut18", 45, 5.5, 5.8 );
-    createHisto( "testCut19", 45, 5.5, 5.8 );
+    createHisto( "mass_LbToJPsipK", 220, 5.4, 5.95 );
+    createHisto( "mass_target_JPsiP_total", 60, 4.0, 5.2 );
+    createHisto( "mass_target_JPsiP_inSignalRegion", 60, 4.0, 5.2 );
+    createHisto( "mass_target_JPsiP_inSideband", 60, 4.0, 5.2 );
+    // createHisto( "testCut00", 45, 5.5, 5.8 );
+    // createHisto( "testCut01", 45, 5.5, 5.8 );
+    // createHisto( "testCut02", 45, 5.5, 5.8 );
+    // createHisto( "testCut03", 45, 5.5, 5.8 );
+    // createHisto( "testCut04", 45, 5.5, 5.8 );
+    // createHisto( "testCut05", 45, 5.5, 5.8 );
+    // createHisto( "testCut06", 45, 5.5, 5.8 );
+    // createHisto( "testCut07", 45, 5.5, 5.8 );
+    // createHisto( "testCut08", 45, 5.5, 5.8 );
+    // createHisto( "testCut09", 45, 5.5, 5.8 );
+    // createHisto( "testCut10", 45, 5.5, 5.8 );
+    // createHisto( "testCut11", 45, 5.5, 5.8 );
+    // createHisto( "testCut12", 45, 5.5, 5.8 );
+    // createHisto( "testCut13", 45, 5.5, 5.8 );
+    // createHisto( "testCut14", 45, 5.5, 5.8 );
+    // createHisto( "testCut15", 45, 5.5, 5.8 );
+    // createHisto( "testCut16", 45, 5.5, 5.8 );
+    // createHisto( "testCut17", 45, 5.5, 5.8 );
+    // createHisto( "testCut18", 45, 5.5, 5.8 );
+    // createHisto( "testCut19", 45, 5.5, 5.8 );
 }
 
 
@@ -209,6 +205,11 @@ void root_TreeHistoMain_LbTk::LoadSourceBranch()
     t->SetBranchAddress( "lbtkFDSig", &readD[lbtkFlightDistanceSig] );
     t->SetBranchAddress( "lbtkVtxprob", &readD[lbtkVtxprob] );
     t->SetBranchAddress( "lbtkCosa2d", &readD[lbtkCosa2d] );
+
+    t->SetBranchAddress( "targetJpsiP_mass", &readD[targetJpsiP_mass] );
+    t->SetBranchAddress( "targetJpsiP_pt", &readD[targetJpsiP_pt] );
+    t->SetBranchAddress( "targetJpsiPBar_mass", &readD[targetJpsiPBar_mass] );
+    t->SetBranchAddress( "targetJpsiPBar_pt", &readD[targetJpsiPBar_pt] );
 
     t->SetBranchAddress( "lbtkMom", &readD[lbtkMom] );
     t->SetBranchAddress( "lbtkPt", &readD[lbtkPt] );

@@ -24,6 +24,8 @@ public:
     enum readVarD
     {
         lbtkMass, lbtkFlightDistance2d, lbtkFlightDistanceSig, lbtkVtxprob, lbtkCosa2d,
+        targetJpsiP_mass, targetJpsiP_pt,
+        targetJpsiPBar_mass, targetJpsiPBar_pt,
         lbtkPt, lbtkMom,
         tktkPt, tktkMom,
         fake_Lam0Mass, fake_KstarMass, fake_PhiMass, fake_KshortMass,

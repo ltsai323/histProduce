@@ -4,7 +4,8 @@
 treeMain::treeMain( TFileDirectory* d, Label l, const std::string& pName ) : _label( l ), dir( d ), preName( pName )
 {
     regName( preName );
-    _storageTree = dir->make<TTree>( preName.c_str(), preName.c_str() );
+    if ( dir )
+        _storageTree = dir->make<TTree>( preName.c_str(), preName.c_str() );
 }
 treeMain::~treeMain()
 {

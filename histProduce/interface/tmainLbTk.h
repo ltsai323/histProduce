@@ -15,6 +15,8 @@ public:
 
     // used for final analysis
     void setBranchAddress( TTree* inputTree );
+
+    friend class treeCreatingSpecificDecay;
 private:
     const double kaonMass, protonMass, pionMass;
     void getByLabel_BS( fwlite::Event* ev );

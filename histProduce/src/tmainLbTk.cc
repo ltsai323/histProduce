@@ -12,9 +12,6 @@ treeMain_LbTk::treeMain_LbTk( TFileDirectory* d ) :
     kaonMass ( 0.493667 ), protonMass ( 0.9382720813 ), pionMass ( 0.13957061 )
 {
     RegTree();
-    hParEta =   createHisto("par_eta", 100, -5., 5.);
-    hParCos2D = createHisto("par_cosTheta2D", 210, -1.05, 1.05);
-    hParCos3D = createHisto("par_cosTheta3D", 210, -1.05, 1.05);
 }
 void treeMain_LbTk::Process( fwlite::Event* ev )
 {
@@ -193,10 +190,6 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
             if ( cand.hasUserFloat(  "TkTk/Kaon.dEdx.Harmonic") )
                 dataD[ntkDEDX_Harmonic] = cand.userFloat(   "TkTk/Kaon.dEdx.Harmonic" );
             thisTree()->Fill();
-
-            hParEta  ->Fill(fourTk.eta());
-            hParCos2D->Fill(usefulFuncs::getCosa2d(cand,pv));
-            hParCos3D->Fill(usefulFuncs::getCosa3d(cand,pv));
         }
     } catch (...) {}
 }
