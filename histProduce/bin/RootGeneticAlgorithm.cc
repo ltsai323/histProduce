@@ -112,10 +112,16 @@ int main(int argc, char* argv[])
     printf( "check end, start to evolution\n" );
     for ( auto& _main : mainCode )
     {
+        printf("start to set data file\n");
         _main->SetData( dFile );
+        printf("sucess to set data file into process, start to set mc file\n");
         _main->SetSignalMC( mFile );
+        printf("sucess to set mc file into process, start to setup log file\n");
         _main->SetLogFile( outLog.c_str() );
+        printf("sucess to setup log file\n");
+        printf("start to evolute GA\n");
         _main->Evolution();
+        printf("evolution END\n");
     }
     dFile->Close();
     mFile->Close();

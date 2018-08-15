@@ -32,6 +32,7 @@ public:
     virtual bool SetInputFile( TFile* input );
     virtual void LoopEvents( unsigned& maxEvents ) final;
     virtual bool NoOutput() const;
+            void ResetInputTreeName( const std::string& name );
 
     virtual TTree* thisTree() final { return outputTree; }
     virtual TTree* readTree() final { return  inputTree; }

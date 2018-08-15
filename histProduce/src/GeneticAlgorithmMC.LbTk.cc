@@ -36,18 +36,18 @@ GeneticAlgorithmMC_LbTk::GeneticAlgorithmMC_LbTk( unsigned Nchromo = 10000, unsi
     GeneticAlgorithmMC( NVAR, Nchromo, maxGen ), lbData(nullptr), sigMC(nullptr), bkgMC(nullptr)
 {
     //setSignalRegion( 5.6195, 0.04 );
-    setHistoRange( 5.2, 5.95 );
+    setHistoRange( 5.35, 5.85 );
     setHistoNBins( 75 );
     chromosRange = new double*[NVAR];
     for ( int i=0; i<NVAR; ++i )
         chromosRange[i] = new double[2];
-    chromosRange[mlbtkFDSig        ][0] =   2.111;
+    chromosRange[mlbtkFDSig        ][0] =   3.000;
     chromosRange[mlbtkFDSig        ][1] =  10.   ;
     chromosRange[mlbtkVtxprob      ][0] =   0.13 ;
-    chromosRange[mlbtkVtxprob      ][1] =   0.4  ;
-    chromosRange[mlbtkPt           ][0] =  10.   ;
+    chromosRange[mlbtkVtxprob      ][1] =   0.5  ;
+    chromosRange[mlbtkPt           ][0] =   8.   ;
     chromosRange[mlbtkPt           ][1] =  25.   ;
-    chromosRange[mtktkPt           ][0] =   3.   ;
+    chromosRange[mtktkPt           ][0] =   2.0  ;
     chromosRange[mtktkPt           ][1] =   6.   ;
     chromosRange[mptkPt            ][0] =   1.0  ;
     chromosRange[mptkPt            ][1] =   3.0  ;

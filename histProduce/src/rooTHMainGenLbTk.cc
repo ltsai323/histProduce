@@ -26,11 +26,13 @@ root_TreeHistoMain_GenInfo_LbTk::root_TreeHistoMain_GenInfo_LbTk( TFileDirectory
 {
     setInputTreeName( "lbSpecificDecay/LbTkGenInfo" );
     // gaRes = { 0.00, -0.69, 11.50, 12.47, 6.50, 5.67, 4.48, 4.51, 2.00, 2.11, 2.47, 18.95, -0.21, 15.05, -12.17, 11.88, -16.30, 19.57 };
-    gaRes = { 3.87,0.15,17.43,0.04,4.33,0.14,2.77,0.00,1.29,-0.13,0.14,0.08,-0.02,0.09,0.02,0.34,0.01,0.00 };
+    //gaRes = { 3.87,0.15,17.43,0.04,4.33,0.14,2.77,0.00,1.29,-0.13,0.14,0.08,-0.02,0.09,0.02,0.34,0.01,0.00 };
+    gaRes = { 0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00,0.00, 0.00,0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00 };
+
 
     if ( !d ) return;
     RegTree();
-    RegHisto();
+    //RegHisto();
     return;
 }
 
@@ -54,12 +56,6 @@ void root_TreeHistoMain_GenInfo_LbTk::Process( unsigned int i )
 
         // preselection end }}}
 
-        // for smaller tree for GA use.
-        if ( readD[lbtkMass] < 5.55 )
-            if ( readD[lbtkMass] > 5.55 )
-//                if ( readD[ptkPt] > 2.00 )
-//                    if ( readD[ntkPt] > 1.00 )
-//                        if ( readD[lbtkVtxprob] > 0.13 )
         {
 
             for ( int i=0; i<totNumD; ++i )
@@ -80,40 +76,7 @@ void root_TreeHistoMain_GenInfo_LbTk::Process( unsigned int i )
         if ( readD[ptkPt                  ] < gaRes[ 6] ) return;
         //if ( readD[ptkMom                 ] < gaRes[ 7] ) return;
         if ( readD[ntkPt                  ] < gaRes[ 8] ) return;
-    //if ( readD[ntkMom                 ] < gaRes[ 9] ) return;
-    //if ( readD[ptkDEDX_Mom_ratio] < gaRes[10] ) return;
-    //if ( readD[ptkDEDX_Mom_ratio] > gaRes[11] ) return;
-    //if ( readD[ntkDEDX_Mom_ratio] < gaRes[12] ) return;
-    //if ( readD[ntkDEDX_Mom_ratio] > gaRes[13] ) return;
-    //if ( readD[ptkIPt]/readD[ptkIPtErr] < gaRes[14] ) return;
-    //if ( readD[ptkIPt]/readD[ptkIPtErr] > gaRes[15] ) return;
-    //if ( readD[ntkIPt]/readD[ntkIPtErr] < gaRes[16] ) return;
-    //if ( readD[ntkIPt]/readD[ntkIPtErr] > gaRes[17] ) return;
-        fillHisto( "mass_LbTk", readD[lbtkMass] );
-        {
-            for ( int i=0; i<totNumD; ++i )
-                dataD[i] = readD[i];
-            // save reduced tree
-            thisTree()->Fill();
-        }
 
-        for ( int i=0; i<NUM_TESTHIST; ++i )
-        {
-            // small sig && large pt
-            //if ( readD[lbtkPt] > 30. ) continue;
-            //if ( readD[lbtkFlightDistanceSig] > 0.15 ) continue;
-            //double cutVal = cutInit + double(i)*cutInterval;
-
-            // test cut put
-            //if ( readD[lbtkFlightDistanceSig] < cutVal ) continue;
-            //if ( readD[lbtkPt] > cutVal ) continue;
-            char testhist[20];
-            sprintf( testhist, "testCut%02d", i );
-            std::string sname = testhist;
-
-            fillHisto( sname, readD[lbtkMass] );
-            break;
-        }
 
     } catch (...) {}
 }

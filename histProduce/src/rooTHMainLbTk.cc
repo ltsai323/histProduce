@@ -24,9 +24,12 @@ root_TreeHistoMain_LbTk::root_TreeHistoMain_LbTk( TFileDirectory* d ) :
     kaonMass ( 0.493667 ), protonMass ( 0.9382720813 ), pionMass ( 0.13957061 )
 {
     setInputTreeName( "lbSpecificDecay/LbTk" );
-    // gaRes = { 0.57,0.38,18.33,-0.01,4.94,-0.43,4.07,0.32,2.12,0.63,0.00,-0.87,-0.49,0.00,-0.88,0.52,-0.28,0.62 };
-    //gaRes = { 0.63,-1.10,19.24,0.00,3.06,1.06,3.64,0.71,2.61,0.92,0.00,0.06,0.13,-0.47,-0.80,3.42,-2.84,1.94 };
-    gaRes = { 3.87,0.15,17.43,0.04,4.33,0.14,2.77,0.00,1.29,-0.13,0.14,0.08,-0.02,0.09,0.02,0.34,0.01,0.00 };
+    //setInputTreeName( "treeCreatingSpecificDecay/SDanalyzer/LbTk" );
+    
+    // GA result for 2016RunH
+    //gaRes = { 3.87,0.15,17.43,0.04,4.33,0.14,2.77,0.00,1.29,-0.13,0.14,0.08,-0.02,0.09,0.02,0.34,0.01,0.00 };
+    // no preselection
+    gaRes = { 0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00,0.00, 0.00,0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00 };
 
     if ( !d ) return;
     RegTree();
@@ -69,11 +72,11 @@ void root_TreeHistoMain_LbTk::Process( unsigned int i )
 
         // for histogram part
         // test for GA result
-        if ( readD[lbtkFlightDistanceSig  ] < gaRes[ 0] ) return;
-        if ( readD[lbtkVtxprob            ] < gaRes[ 1] ) return;
-        if ( readD[lbtkPt                 ] < gaRes[ 2] ) return;
-        //if ( readD[lbtkMom                ] < gaRes[ 3] ) return;
-        if ( readD[tktkPt                 ] < gaRes[ 4] ) return;
+    //    if ( readD[lbtkFlightDistanceSig  ] < gaRes[ 0] ) return;
+    //    if ( readD[lbtkVtxprob            ] < gaRes[ 1] ) return;
+    //    if ( readD[lbtkPt                 ] < gaRes[ 2] ) return;
+    //    //if ( readD[lbtkMom                ] < gaRes[ 3] ) return;
+    //    if ( readD[tktkPt                 ] < gaRes[ 4] ) return;
         //if ( readD[tktkMom                ] < gaRes[ 5] ) return;
         if ( readD[ptkPt                  ] < gaRes[ 6] ) return;
         //if ( readD[ptkMom                 ] < gaRes[ 7] ) return;
@@ -170,7 +173,7 @@ void root_TreeHistoMain_LbTk::RegTree()
 void root_TreeHistoMain_LbTk::RegHisto()
 {
     if ( NoOutput() ) return;
-    createHisto( "mass_LbToJPsipK", 220, 5.4, 5.95 );
+    createHisto( "mass_LbToJPsipK", 50, 5.4, 5.9 );
     createHisto( "mass_target_JPsiP_total", 60, 4.0, 5.2 );
     createHisto( "mass_target_JPsiP_inSignalRegion", 60, 4.0, 5.2 );
     createHisto( "mass_target_JPsiP_inSideband", 60, 4.0, 5.2 );

@@ -33,6 +33,8 @@ void root_TreeHistoMain::LoopEvents( unsigned& maxEvents)
 
 inline bool root_TreeHistoMain::NoOutput() const
 { return noOutputFile; }
+void root_TreeHistoMain::ResetInputTreeName( const std::string& name )
+{ inputTreeName = name; return; }
 
 
 inline void root_TreeHistoMain::createHisto( const std::string& name, int nbin, double min, double max )
@@ -101,7 +103,11 @@ bool root_TreeHistoMain::SetInputFile( TFile* inputFile )
 {
     if ( !inputFile ) return false;
     if ( inputFile->IsZombie() ) return false;
+    inputTree = nullptr;
     inputTree = (TTree*) inputFile->Get( inputTreeName.c_str() );
+    if ( inputTree == nullptr )
+        return false;
+
     LoadSourceBranch();
     return true;
 }
