@@ -181,5 +181,53 @@ namespace usefulFuncs
         return cosAngle;
     }
 
+    // note : this function is not a general function. It only can be used to calculate 4tk->2tk+2tk.
+    double logDeltaRToCompcands( const pat::CompositeCandidate* cand1, const pat::CompositeCandidate* cand2 )
+    //double logDeltaRToCompcands( pat::CompositeCandidate const* cand1, pat::CompositeCandidate const* cand2 )
+    {
+        bool swap1, swap2;
+        swap1 = swap2 = false;
+        std::cout << "in logDeltaRToCompcands func: num Of daugs1: " << cand1->numberOfDaughters() << ", daugs2: " << cand2->numberOfDaughters() << std::endl;
+        if ( cand1->numberOfDaughters() != cand2->numberOfDaughters() ) return 99999.;
+        const reco::Candidate* dau10 = cand1->daughter(0);
+        const reco::Candidate* dau11 = cand1->daughter(1);
+        const reco::Candidate* dau12 = cand1->daughter(2);
+        const reco::Candidate* dau13 = cand1->daughter(3);
+        const reco::Candidate* dau20 = cand2->daughter(0);
+        const reco::Candidate* dau21 = cand2->daughter(1);
+        const reco::Candidate* dau22 = cand2->daughter(2);
+        const reco::Candidate* dau23 = cand2->daughter(3);
+        double dR00 = logDeltaRToDaugs( dau10, dau20 );
+        double dR01 = logDeltaRToDaugs( dau10, dau21 );
+        double dR10 = logDeltaRToDaugs( dau11, dau20 );
+        double dR11 = logDeltaRToDaugs( dau11, dau21 );
+        if ( dR00+dR11 > dR10+dR01 ) swap1 = true;
+        double dR22 = logDeltaRToDaugs( dau12, dau22 );
+        double dR23 = logDeltaRToDaugs( dau12, dau23 );
+        double dR32 = logDeltaRToDaugs( dau13, dau22 );
+        double dR33 = logDeltaRToDaugs( dau13, dau23 );
+        printf("dR00 = %.6f, dR01 = %.6f, dR10 = %.6f, dR11 = %.6f ........ dR22 = %.6f, dR23 = %.6f, dR32 = %.6f, dR33 = %.6f\n",
+                dR00, dR01, dR10, dR11, dR22, dR23, dR32, dR33 );
+        if ( dR22+dR33 > dR23+dR32 ) swap2 = true;
+        double totalLogDeltaR = 0.;
+        if ( swap1 )
+            totalLogDeltaR += dR10+dR01;
+        else
+            totalLogDeltaR += dR00+dR11;
+
+        if ( swap2 )
+            totalLogDeltaR += dR23+dR32;
+        else
+            totalLogDeltaR += dR22+dR33;
+        return totalLogDeltaR;
+        
+    }
+    inline double logDeltaRToDaugs( const reco::Candidate* dau1, const reco::Candidate* dau2 )
+    {
+        double val1 = dau1->eta() - dau2->eta();
+        double val2 = TVector2::Phi_mpi_pi( dau1->phi() - dau2->phi() );
+        double deltaR2 = val1*val1+val2*val2;
+        return deltaR2;
+    }
 
 }

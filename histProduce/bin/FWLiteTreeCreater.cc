@@ -28,6 +28,7 @@
 #include "histProduce/histProduce/interface/tmain.h"
 #include "histProduce/histProduce/interface/tmainLbL0.h"
 #include "histProduce/histProduce/interface/tmainLbTk.h"
+#include "histProduce/histProduce/interface/tmainpnLbTk.h"
 //#include "histProduce/histProduce/interface/tmainBs.h"
 //#include "histProduce/histProduce/interface/tmainfindParDiff.h"
 //#include "histProduce/histProduce/interface/tmainfindIPdiff.h"
@@ -172,7 +173,8 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new treeMain_TkTk(&dir) );
     //mainCode.push_back( new treeMain_Lam0(&dir) );
     //mainCode.push_back( new treeMain_Kshort(&dir) );
-    mainCode.push_back( new treeMain_LbTk(&dir) );
+    //mainCode.push_back( new treeMain_LbTk(&dir) );
+    mainCode.push_back( new treeMain_pnLbTk(&dir) );
     //mainCode.push_back( new treeMain_LbL0(&dir) );
     //mainCode.push_back( new treeMain_Bs(&dir) );
     //mainCode.push_back( new treeMain_findParDiff(&dir) );
@@ -187,7 +189,7 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new treeMain_JPsiGenParticle(&dir) );
     //mainCode.push_back( new treeMainGen_Lam0(&dir) );
     //mainCode.push_back( new treeMainGen_TkTk(&dir) );
-    mainCode.push_back( new treeMainGen_LbTk(&dir) );
+    //mainCode.push_back( new treeMainGen_LbTk(&dir) );
     //mainCode.push_back( new treeMainGen_LbL0(&dir) );
     //mainCode.push_back( new treeMainGen_List(&dir) );
 

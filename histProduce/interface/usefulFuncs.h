@@ -89,5 +89,8 @@ template< typename key, typename val >
     double getCosa3d( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
 
     double getCosAngleToVtx_PV_BS( const pat::CompositeCandidate& cand, const reco::Vertex& pv, const reco::BeamSpot& bs);
+    double logDeltaRToCompcands( const pat::CompositeCandidate* cand1, const pat::CompositeCandidate* cand2 );
+    //double logDeltaRToCompcands( pat::CompositeCandidate const* cand1, pat::CompositeCandidate const* cand2 );
+    double logDeltaRToDaugs( const reco::Candidate* dau1, const reco::Candidate* dau2 );
 }
 #endif
