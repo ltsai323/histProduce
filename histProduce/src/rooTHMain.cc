@@ -18,14 +18,15 @@ root_TreeHistoMain::~root_TreeHistoMain()
     // do something
 }
 
-void root_TreeHistoMain::LoopEvents( unsigned& maxEvents)
+void root_TreeHistoMain::LoopEvents( unsigned& maxEvents )
 {
     if ( NoOutput() ) return;
     unsigned i = 0;
     unsigned N = readTree()->GetEntries();
+    std::cout << " this tree owns " << N << " events\n";
     while ( i != N )
     {
-        if ( !--maxEvents ) return;
+        //if ( maxEvents-- == 0 ) return;
         Process( i++ );
     }
     return;

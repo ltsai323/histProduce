@@ -10,7 +10,7 @@ class root_TreeHistoMain_TkTk : public root_TreeHistoMain
 {
 public:
     root_TreeHistoMain_TkTk (TFileDirectory* d);
-    virtual void Process( unsigned int i ) override;
+    virtual void Process( unsigned int pIdx ) override;
     virtual void Clear() override;
     virtual void RegTree() override;
     virtual void RegHisto() override;

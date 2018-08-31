@@ -36,13 +36,13 @@ root_TreeHistoMain_GenInfo_LbTk::root_TreeHistoMain_GenInfo_LbTk( TFileDirectory
     return;
 }
 
-void root_TreeHistoMain_GenInfo_LbTk::Process( unsigned int i )
+void root_TreeHistoMain_GenInfo_LbTk::Process( unsigned int pIdx )
 {
     // use rthMain_LbTk, needed to be modified!
     try
     {
         Clear();
-        readTree()->GetEntry( i );
+        readTree()->GetEntry( pIdx );
 
         // preselection {{{
         if ( readD[ lbtkMass ] < 5.5 ) return;

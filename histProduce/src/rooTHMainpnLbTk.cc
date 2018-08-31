@@ -37,34 +37,32 @@ root_TreeHistoMain_plusminus_LbTk::root_TreeHistoMain_plusminus_LbTk( TFileDirec
     return;
 }
 
-void root_TreeHistoMain_plusminus_LbTk::Process( unsigned int i )
+void root_TreeHistoMain_plusminus_LbTk::Process( unsigned int pIdx )
 {
     try
     {
-        /*
-        Clear();
-        readTree()->GetEntry( i );
+        //Clear();
+        readTree()->GetEntry( pIdx );
 
         // preselection {{{
-        if ( readD[ lbtkMass ] < 5.2 ) return;
-        if ( readD[ lbtkMass ] > 5.95) return;
+        if ( readD[ plbtkMass ] < 5.2 ) return;
+        if ( readD[ plbtkMass ] > 5.95) return;
         // remove Bd
-        if ( (readD[fake_BdMass]>5.22&&readD[fake_BdMass]<5.32
-           && readD[fake_KstarMass]>0.85&&readD[fake_KstarMass]<0.95) ) return;
+        if ( (readD[pfake_BdMass]>5.22&&readD[pfake_BdMass]<5.32
+           && readD[pfake_KstarMass]>0.85&&readD[pfake_KstarMass]<0.95) ) return;
         // remove Bs
-        if ( (readD[fake_BsMass]>5.32&&readD[fake_BsMass]<5.38
-           && readD[fake_PhiMass]>1.01&&readD[fake_PhiMass]<1.03) ) return;
+        if ( (readD[pfake_BsMass]>5.32&&readD[pfake_BsMass]<5.38
+           && readD[pfake_PhiMass]>1.01&&readD[pfake_PhiMass]<1.03) ) return;
 
         // preselection end }}}
 
-        {
+        //{
 
-            for ( int i=0; i<totNumD; ++i )
-                dataD[i] = readD[i];
+            for ( int j=0; j<totNumD; ++j )
+                dataD[j] = readD[j];
             // save reduced tree
             thisTree()->Fill();
-        }
-        */
+        //}
 
     } catch (...) {}
 }

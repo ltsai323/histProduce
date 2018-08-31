@@ -25,4 +25,5 @@
   <bin name="pullDistribution"          file="RootPullDistribution.cc"></bin>
 
   <bin name="tmpReader"                 file="RootTmpReader.cc"></bin>
+  <bin name="tmpReader2"                file="RootTmpReader2.cc"></bin>
 </environment>

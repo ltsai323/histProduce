@@ -15,13 +15,13 @@ root_TreeHistoMain_TkTk::root_TreeHistoMain_TkTk( TFileDirectory* d ) :
     RegTree();
     RegHisto();
 }
-void root_TreeHistoMain_TkTk::Process( unsigned int i )
+void root_TreeHistoMain_TkTk::Process( unsigned int pIdx )
 {
     try
     {
         // preselect events {{{
         Clear();
-        readTree()->GetEntry( i );
+        readTree()->GetEntry( pIdx );
 
         // preselection {{{
 

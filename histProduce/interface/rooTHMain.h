@@ -23,7 +23,7 @@ public:
     virtual ~root_TreeHistoMain();
 
     // functions needs to be redefined in further class
-    virtual void Process( unsigned int i ) = 0;
+    virtual void Process( unsigned int pIdx ) = 0;
     virtual void Clear() = 0;
     virtual void RegTree() = 0;
     virtual void RegHisto() = 0;
