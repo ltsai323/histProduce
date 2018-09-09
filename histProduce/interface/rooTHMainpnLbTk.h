@@ -2,11 +2,12 @@
 #define __rooTHMainpnLbTk_h__
 #include "histProduce/histProduce/interface/rooTHMain.h"
 #include "histProduce/histProduce/interface/usefulFuncs.h"
+#include "histProduce/histProduce/interface/treeFormatpnLbTk.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include <vector>
 #include <utility> // std::pair
 
-class root_TreeHistoMain_plusminus_LbTk : public root_TreeHistoMain
+class root_TreeHistoMain_plusminus_LbTk : public root_TreeHistoMain, public treeFormat_plusminus_LbTk
 {
 public:
     root_TreeHistoMain_plusminus_LbTk (TFileDirectory* d);

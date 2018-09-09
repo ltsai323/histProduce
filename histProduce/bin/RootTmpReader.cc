@@ -49,7 +49,7 @@ int main()
     gaRes = { 4.46,-0.25,15.87,-0.15,2.39,0.10,1.87,-0.17,1.02,-0.21,-0.15,-0.18,-0.04,-0.08,-0.03,-0.04,0.21,0.00 };
  
 
-    TFile* mcFile = TFile::Open("tmpSpace/tree_LbToJPsipK_MC_13TeV_noPU_noPreSelection.root");
+    TFile* mcFile = TFile::Open("storeroot/tReduced/tree_forGA_removeBsBdOnly/mc_LbToJPsipK_13TeV_noPU.root");
     readMC mc(nullptr);
     mc.SetInputFile( mcFile );
     mc.LoadSourceBranch();
@@ -69,6 +69,18 @@ int main()
     while ( i != N )
     {
         mcTree->GetEntry(i++);
+        //if ( mc.readD[readMC::plbtkMass             ] > 5.90 ) continue; 
+        //if ( mc.readD[readMC::plbtkMass             ] < 5.4  ) continue; 
+
+        //if ( mc.readD[readMC::plbtkFlightDistanceSig] < gaRes[ 0] ) continue;
+        //if ( mc.readD[readMC::plbtkVtxprob          ] < gaRes[ 1] ) continue;
+        //if ( mc.readD[readMC::plbtkPt               ] < gaRes[ 2] ) continue;
+        //if ( mc.readD[readMC::ptktkPt               ] < gaRes[ 4] ) continue;
+        //if ( mc.readD[readMC::pptonPt               ] < gaRes[ 6] ) continue;
+        //if ( mc.readD[readMC::pkapnPt               ] < gaRes[ 8] ) continue;
+        //h_MC->Fill(mc.readD[readMC::plbtkMass]);
+        //if ( mc.readD[readMC::plbtkFlightDistanceSig] < 3.0  ) continue;
+        //h_mFDSig->Fill(mc.readD[readMC::lbtkFlightDistanceSig]);
         if ( mc.readD[readMC::lbtkMass             ] > 5.90 ) continue; 
         if ( mc.readD[readMC::lbtkMass             ] < 5.4  ) continue; 
 
@@ -76,16 +88,15 @@ int main()
         if ( mc.readD[readMC::lbtkVtxprob          ] < gaRes[ 1] ) continue;
         if ( mc.readD[readMC::lbtkPt               ] < gaRes[ 2] ) continue;
         if ( mc.readD[readMC::tktkPt               ] < gaRes[ 4] ) continue;
-        if ( mc.readD[readMC::ptkPt                ] < gaRes[ 6] ) continue;
-        if ( mc.readD[readMC::ntkPt                ] < gaRes[ 8] ) continue;
+        if ( mc.readD[readMC::ptkPt               ] < gaRes[ 6] ) continue;
+        if ( mc.readD[readMC::ntkPt               ] < gaRes[ 8] ) continue;
         h_MC->Fill(mc.readD[readMC::lbtkMass]);
-        if ( mc.readD[readMC::lbtkFlightDistanceSig] < 3.0  ) continue;
-        h_mFDSig->Fill(mc.readD[readMC::lbtkFlightDistanceSig]);
     }
 
 
-    //TFile* dataFile = TFile::Open("tmpSpace/tree_forGA_removeBsBdOnly/tree_forGA_2016RunCDEFGH_noReduced.root");
-    TFile* dataFile = TFile::Open("tmpSpace/tree_2017RunCEF_removeBsBd.root");
+    //TFile* dataFile = TFile::Open("storeroot/tReduced/tree_forGA_removeBsBdOnly/tree_forGA_2016RunCDEFGH_noReduced.root");
+    TFile* dataFile = TFile::Open("storeroot/tReduced/tree_forGA_removeBsBdOnly/data_2016RunCDEFGH.root");
+    //TFile* dataFile = TFile::Open("storeroot/tReduced/tree_forGA_removeBsBdOnly/data_2017RunBCDEF.root");
     readData data(nullptr);
     data.SetInputFile( dataFile );
     data.LoadSourceBranch();
@@ -185,9 +196,8 @@ int main()
     RooRealVar par_ch1("ch1", "parameter to chebychev : 1st order",  0.5, -10., 10. );
     RooRealVar par_ch2("ch2", "parameter to chebychev : 2nd order", -0.2, -10., 10. );
     RooRealVar par_ch3("ch3", "parameter to chebychev : 3rd order", -0.2, -10., 10. );
-    RooRealVar par_ch4("ch4", "parameter to chebychev : 4th order", -0.2, -10., 10. );
     //RooChebychev pdf_cheb("cheb", "PDF : chebychev", varMass, RooArgSet(par_ch1, par_ch2) );
-    RooChebychev pdf_cheb("cheb", "PDF : chebychev", varMass, RooArgSet(par_ch1, par_ch2, par_ch3, par_ch4) );
+    RooChebychev pdf_cheb("cheb", "PDF : chebychev", varMass, RooArgSet(par_ch1, par_ch2, par_ch3) );
     RooRealVar N_cheb("N_cheb", "extend number : chebchev", (double)h_Data->GetEntries(), 0., 2.*(double)h_Data->GetEntries());
     RooExtendPdf extend_pdf_cheb("ext_cheb", "PDF: chebychev", pdf_cheb, N_cheb);
 
