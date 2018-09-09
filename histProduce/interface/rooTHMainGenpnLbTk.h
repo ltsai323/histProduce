@@ -1,16 +1,16 @@
-#ifndef __rooTHMainGenLbTk_h__
-#define __rooTHMainGenLbTk_h__
+#ifndef __rooTHMainGenpnLbTk_h__
+#define __rooTHMainGenpnLbTk_h__
 #include "histProduce/histProduce/interface/rooTHMain.h"
-#include "histProduce/histProduce/interface/formatTreeLbTk.h"
+#include "histProduce/histProduce/interface/formatTreepnLbTk.h"
 #include "histProduce/histProduce/interface/usefulFuncs.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include <vector>
 #include <utility> // std::pair
 
-class root_TreeHistoMain_GenInfo_LbTk : public root_TreeHistoMain, public formatTree_LbTk
+class root_TreeHistoMain_GenInfo_plusminus_LbTk : public root_TreeHistoMain, public formatTree_plusminus_LbTk
 {
 public:
-    root_TreeHistoMain_GenInfo_LbTk (TFileDirectory* d);
+    root_TreeHistoMain_GenInfo_plusminus_LbTk (TFileDirectory* d);
     virtual void Process( unsigned int pIdx ) override;
     virtual void RegTree() override;
     virtual void RegHisto() override;
@@ -29,10 +29,11 @@ public:
     enum addVarI
     {
         originI = comNumI-1,
-        ptkPID, ptkMomPID,
-        ntkPID, ntkMomPID,
+        pptonPID, pptonMomPID, pkaonPID, pkaonMomPID,
+        nptonPID, nptonMomPID, nkaonPID, nkaonMomPID,
         totNumI
     };
+
 
     // store result of genetic algorithm, the values are written in constructor
     std::vector<double> gaRes;

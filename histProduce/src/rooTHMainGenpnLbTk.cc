@@ -1,4 +1,4 @@
-#include "histProduce/histProduce/interface/rooTHMainGenLbTk.h"
+#include "histProduce/histProduce/interface/rooTHMainGenpnLbTk.h"
 #include "histProduce/histProduce/interface/generalCutList.h"
 #include "histProduce/histProduce/interface/fourMom.h"
 #include "histProduce/histProduce/interface/usefulFuncs.h"
@@ -20,11 +20,11 @@ namespace
     const double cutInterval = 50;
 }
 
-root_TreeHistoMain_GenInfo_LbTk::root_TreeHistoMain_GenInfo_LbTk( TFileDirectory* d ) :
-    root_TreeHistoMain( d, "LbTkGenInfo" ), formatTree_LbTk( totNumD, totNumI ),
+root_TreeHistoMain_GenInfo_plusminus_LbTk::root_TreeHistoMain_GenInfo_plusminus_LbTk( TFileDirectory* d ) :
+    root_TreeHistoMain( d, "pnLbTkGenInfo" ), formatTree_plusminus_LbTk( totNumD, totNumI ),
     kaonMass ( 0.493667 ), protonMass ( 0.9382720813 ), pionMass ( 0.13957061 )
 {
-    setInputTreeName( "lbSpecificDecay/LbTkGenInfo" );
+    setInputTreeName( "lbSpecificDecay/pnLbTkGenInfo" );
     // gaRes = { 0.00, -0.69, 11.50, 12.47, 6.50, 5.67, 4.48, 4.51, 2.00, 2.11, 2.47, 18.95, -0.21, 15.05, -12.17, 11.88, -16.30, 19.57 };
     //gaRes = { 3.87,0.15,17.43,0.04,4.33,0.14,2.77,0.00,1.29,-0.13,0.14,0.08,-0.02,0.09,0.02,0.34,0.01,0.00 };
     gaRes = { 0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00,0.00, 0.00,0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00 };
@@ -37,7 +37,7 @@ root_TreeHistoMain_GenInfo_LbTk::root_TreeHistoMain_GenInfo_LbTk( TFileDirectory
     return;
 }
 
-void root_TreeHistoMain_GenInfo_LbTk::Process( unsigned int pIdx )
+void root_TreeHistoMain_GenInfo_plusminus_LbTk::Process( unsigned int pIdx )
 {
     // use rthMain_LbTk, needed to be modified!
     try
@@ -46,14 +46,14 @@ void root_TreeHistoMain_GenInfo_LbTk::Process( unsigned int pIdx )
         readTree()->GetEntry( pIdx );
 
         // preselection {{{
-        if ( readD[ lbtkMass ] < 5.5 ) return;
-        if ( readD[ lbtkMass ] > 5.8 ) return;
+        if ( readD[ plbtkMass ] < 5.5 ) return;
+        if ( readD[ plbtkMass ] > 5.8 ) return;
         // remove Bd
-        if ( (readD[fake_BdMass]>5.22&&readD[fake_BdMass]<5.32
-           && readD[fake_KstarMass]>0.85&&readD[fake_KstarMass]<0.95) ) return;
+        if ( (readD[pfake_BdMass]>5.22&&readD[pfake_BdMass]<5.32
+           && readD[pfake_KstarMass]>0.85&&readD[pfake_KstarMass]<0.95) ) return;
         // remove Bs
-        if ( (readD[fake_BsMass]>5.32&&readD[fake_BsMass]<5.38
-           && readD[fake_PhiMass]>1.01&&readD[fake_PhiMass]<1.03) ) return;
+        if ( (readD[pfake_BsMass]>5.32&&readD[pfake_BsMass]<5.38
+           && readD[pfake_PhiMass]>1.01&&readD[pfake_PhiMass]<1.03) ) return;
 
         // preselection end }}}
 
@@ -68,35 +68,39 @@ void root_TreeHistoMain_GenInfo_LbTk::Process( unsigned int pIdx )
 
         // for histogram part
         // test for GA result
-        if ( readD[lbtkFlightDistanceSig  ] < gaRes[ 0] ) return;
-        if ( readD[lbtkVtxprob            ] < gaRes[ 1] ) return;
-        if ( readD[lbtkPt                 ] < gaRes[ 2] ) return;
-        //if ( readD[lbtkMom                ] < gaRes[ 3] ) return;
-        if ( readD[tktkPt                 ] < gaRes[ 4] ) return;
-        //if ( readD[tktkMom                ] < gaRes[ 5] ) return;
-        if ( readD[ptkPt                  ] < gaRes[ 6] ) return;
-        //if ( readD[ptkMom                 ] < gaRes[ 7] ) return;
-        if ( readD[ntkPt                  ] < gaRes[ 8] ) return;
+        if ( readD[plbtkFlightDistanceSig  ] < gaRes[ 0] ) return;
+        if ( readD[plbtkVtxprob            ] < gaRes[ 1] ) return;
+        if ( readD[plbtkPt                 ] < gaRes[ 2] ) return;
+        //if ( readD[plbtkMom                ] < gaRes[ 3] ) return;
+        if ( readD[ptktkPt                 ] < gaRes[ 4] ) return;
+        //if ( readD[ptktkMom                ] < gaRes[ 5] ) return;
+        if ( readD[pptonPt                  ] < gaRes[ 6] ) return;
+        //if ( readD[pptonMom                 ] < gaRes[ 7] ) return;
+        if ( readD[pkaonPt                  ] < gaRes[ 8] ) return;
 
 
     } catch (...) {}
 }
 
-void root_TreeHistoMain_GenInfo_LbTk::RegTree()
+void root_TreeHistoMain_GenInfo_plusminus_LbTk::RegTree()
 {
     if ( NoOutput() ) return;
 
     TTree* t = thisTree();
     RegFormatTree();
 
-    t->Branch( "ptkPID", &dataI[ptkPID], "ptkPID/I" );
-    t->Branch( "ntkPID", &dataI[ntkPID], "ntkPID/I" );
-    t->Branch( "ptkMomPID", &dataI[ptkMomPID], "ptkMomPID/I" );
-    t->Branch( "ntkMomPID", &dataI[ntkMomPID], "ntkMomPID/I" );
+    t->Branch( "pptonPID", &dataI[pptonPID], "pptonPID/I" );
+    t->Branch( "pkaonPID", &dataI[pkaonPID], "pkaonPID/I" );
+    t->Branch( "pptonMomPID", &dataI[pptonMomPID], "pptonMomPID/I" );
+    t->Branch( "pkaonMomPID", &dataI[pkaonMomPID], "pkaonMomPID/I" );
+    t->Branch( "nptonPID", &dataI[nptonPID], "nptonPID/I" );
+    t->Branch( "nkaonPID", &dataI[nkaonPID], "nkaonPID/I" );
+    t->Branch( "nptonMomPID", &dataI[nptonMomPID], "nptonMomPID/I" );
+    t->Branch( "nkaonMomPID", &dataI[nkaonMomPID], "nkaonMomPID/I" );
     return;
 }
 
-void root_TreeHistoMain_GenInfo_LbTk::RegHisto()
+void root_TreeHistoMain_GenInfo_plusminus_LbTk::RegHisto()
 {
     if ( NoOutput() ) return;
     createHisto( "mass_LbTk", 45, 5.5, 5.8 );
@@ -129,20 +133,24 @@ void root_TreeHistoMain_GenInfo_LbTk::RegHisto()
 }
 
 
-void root_TreeHistoMain_GenInfo_LbTk::LoadSourceBranch()
+void root_TreeHistoMain_GenInfo_plusminus_LbTk::LoadSourceBranch()
 {
     TTree* t = readTree();
     this->SetOldFormatTree(t);
     this->LoadFormatSourceBranch();
 
-    t->SetBranchAddress( "ptkPID",    &readI[ptkPID] );
-    t->SetBranchAddress( "ntkPID",    &readI[ntkPID] );
-    t->SetBranchAddress( "ptkMomPID", &readI[ptkMomPID] );
-    t->SetBranchAddress( "ntkMomPID", &readI[ntkMomPID] );
+    t->SetBranchAddress( "pptonPID",    &readI[pptonPID] );
+    t->SetBranchAddress( "pkaonPID",    &readI[pkaonPID] );
+    t->SetBranchAddress( "pptonMomPID", &readI[pptonMomPID] );
+    t->SetBranchAddress( "pkaonMomPID", &readI[pkaonMomPID] );
+    t->SetBranchAddress( "nptonPID",    &readI[nptonPID] );
+    t->SetBranchAddress( "nkaonPID",    &readI[nkaonPID] );
+    t->SetBranchAddress( "nptonMomPID", &readI[nptonMomPID] );
+    t->SetBranchAddress( "nkaonMomPID", &readI[nkaonMomPID] );
     return;
 }
 
-void root_TreeHistoMain_GenInfo_LbTk::SummaryCalc()
+void root_TreeHistoMain_GenInfo_plusminus_LbTk::SummaryCalc()
 {
     if ( NoOutput() ) return;
     const std::string preName = getPreName();

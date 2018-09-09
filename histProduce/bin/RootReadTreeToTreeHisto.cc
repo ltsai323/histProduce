@@ -192,7 +192,6 @@ int main(int argc, char* argv[])
     for ( auto& _main : mainCode )
     {
         _main->SummaryCalc();
-        _main->Clear();
         delete _main;
     }
 

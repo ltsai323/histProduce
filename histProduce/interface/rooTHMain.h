@@ -24,7 +24,6 @@ public:
 
     // functions needs to be redefined in further class
     virtual void Process( unsigned int pIdx ) = 0;
-    virtual void Clear() = 0;
     virtual void RegTree() = 0;
     virtual void RegHisto() = 0;
     virtual void LoadSourceBranch() = 0;
