@@ -8,9 +8,10 @@
 
 
 treeMain_LbTk::treeMain_LbTk( TFileDirectory* d ) :
-    treeMain( d, treeMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis"), "LbTk" ),
+    treeMain( d, treeMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis"), "LbTk" ),formatTree_LbTk(totNumD, totNumI),
     kaonMass ( 0.493667 ), protonMass ( 0.9382720813 ), pionMass ( 0.13957061 )
 {
+    SetNewFormatTree(thisTree());
     RegTree();
 }
 void treeMain_LbTk::Process( fwlite::Event* ev )
@@ -194,51 +195,9 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
     } catch (...) {}
 }
 
-void treeMain_LbTk::Clear()
-{
-    memset( dataD, 0x00, totNumD*sizeof( double ) );
-    memset( dataI, 0x00, totNumI*sizeof( int ) );
-}
 void treeMain_LbTk::RegTree()
 {
-    thisTree()->Branch( "lbtkMass", &dataD[lbtkMass], "lbtkMass/D" );
-    thisTree()->Branch( "lbtkFD2d", &dataD[lbtkFlightDistance2d], "lbtkFD2d/D" );
-    thisTree()->Branch( "lbtkFDSig", &dataD[lbtkFlightDistanceSig], "lbtkFDSig/D" );
-    thisTree()->Branch( "lbtkVtxprob", &dataD[lbtkVtxprob], "lbtkVtxprob/D" );
-    thisTree()->Branch( "lbtkCosa2d", &dataD[lbtkCosa2d], "lbtkCosa2d/D" );
-
-    thisTree()->Branch( "targetJpsiP_mass", &dataD[targetJpsiP_mass], "targetJpsiP_mass/D" );
-    thisTree()->Branch( "targetJpsiP_pt", &dataD[targetJpsiP_pt], "targetJpsiP_pt/D" );
-    thisTree()->Branch( "targetJpsiPBar_mass", &dataD[targetJpsiPBar_mass], "targetJpsiPBar_mass/D" );
-    thisTree()->Branch( "targetJpsiPBar_pt", &dataD[targetJpsiPBar_pt], "targetJpsiPBar_pt/D" );
-
-    thisTree()->Branch( "lbtkMom", &dataD[lbtkMom], "lbtkMom/D" );
-    thisTree()->Branch( "lbtkPt", &dataD[lbtkPt], "lbtkPt/D" );
-    thisTree()->Branch( "tktkPt", &dataD[tktkPt], "tktkPt/D" );
-    thisTree()->Branch( "tktkMom", &dataD[tktkMom], "tktkMom/D" );
-
-    thisTree()->Branch( "fake_Lam0Mass", &dataD[fake_Lam0Mass], "fake_Lam0Mass/D" );
-    thisTree()->Branch( "fake_LbL0Mass", &dataD[fake_LbL0Mass], "fake_LbL0Mass/D" );
-    thisTree()->Branch( "fake_KstarMass", &dataD[fake_KstarMass], "fake_KstarMass/D" );
-    thisTree()->Branch( "fake_BdMass", &dataD[fake_BdMass], "fake_BdMass/D" );
-    thisTree()->Branch( "fake_PhiMass", &dataD[fake_PhiMass], "fake_PhiMass/D" );
-    thisTree()->Branch( "fake_BsMass", &dataD[fake_BsMass], "fake_BsMass/D" );
-    thisTree()->Branch( "fake_KshortMass", &dataD[fake_KshortMass], "fake_KshortMass/D" );
-    thisTree()->Branch( "fake_mumupipiMass", &dataD[fake_mumupipiMass], "fake_mumupipiMass/D" );
-
-    thisTree()->Branch( "ptkPt", &dataD[ptkPt], "ptkPt/D" );
-    thisTree()->Branch( "ptkMom", &dataD[ptkMom], "ptkMom/D" );
-    thisTree()->Branch( "ptkDEDX.Harmonic", &dataD[ptkDEDX_Harmonic], "ptkDEDX.Harmonic/D" );
-    thisTree()->Branch( "ptkDEDX.pixelHrm", &dataD[ptkDEDX_pixelHrm], "ptkDEDX.pixelHrm/D" );
-    thisTree()->Branch( "ptkIPt", &dataD[ptkIPt], "ptkIPt/D" );
-    thisTree()->Branch( "ptkIPtErr", &dataD[ptkIPtErr], "ptkIPtErr/D" );
-
-    thisTree()->Branch( "ntkPt", &dataD[ntkPt], "ntkPt/D" );
-    thisTree()->Branch( "ntkMom", &dataD[ntkMom], "ntkMom/D" );
-    thisTree()->Branch( "ntkDEDX.Harmonic", &dataD[ntkDEDX_Harmonic], "ntkDEDX.Harmonic/D" );
-    thisTree()->Branch( "ntkDEDX.pixelHrm", &dataD[ntkDEDX_pixelHrm], "ntkDEDX.pixelHrm/D" );
-    thisTree()->Branch( "ntkIPt", &dataD[ntkIPt], "ntkIPt/D" );
-    thisTree()->Branch( "ntkIPtErr", &dataD[ntkIPtErr], "ntkIPtErr/D" );
+    RegFormatTree();
 }
 void treeMain_LbTk::GetByLabel( fwlite::Event* ev )
 {
@@ -252,43 +211,7 @@ inline void treeMain_LbTk::getByLabel_BS( fwlite::Event* ev )
 
 void treeMain_LbTk::setBranchAddress( TTree* inputTree )
 {
-    inputTree->SetBranchAddress( "lbtkMass", &dataD[lbtkMass] );
-    inputTree->SetBranchAddress( "lbtkFD2d", &dataD[lbtkFlightDistance2d] );
-    inputTree->SetBranchAddress( "lbtkFDSig", &dataD[lbtkFlightDistanceSig] );
-    inputTree->SetBranchAddress( "lbtkVtxprob", &dataD[lbtkVtxprob] );
-    inputTree->SetBranchAddress( "lbtkCosa2d", &dataD[lbtkCosa2d] );
-
-    inputTree->SetBranchAddress( "targetJpsiP_mass", &dataD[targetJpsiP_mass] );
-    inputTree->SetBranchAddress( "targetJpsiP_pt", &dataD[targetJpsiP_pt] );
-    inputTree->SetBranchAddress( "targetJpsiPBar_mass", &dataD[targetJpsiPBar_mass] );
-    inputTree->SetBranchAddress( "targetJpsiPBar_pt", &dataD[targetJpsiPBar_pt] );
-
-    inputTree->SetBranchAddress( "lbtkMom", &dataD[lbtkMom] );
-    inputTree->SetBranchAddress( "lbtkPt", &dataD[lbtkPt] );
-    inputTree->SetBranchAddress( "tktkPt", &dataD[tktkPt] );
-    inputTree->SetBranchAddress( "tktkMom", &dataD[tktkMom] );
-
-    inputTree->SetBranchAddress( "fake_Lam0Mass", &dataD[fake_Lam0Mass] );
-    inputTree->SetBranchAddress( "fake_LbL0Mass", &dataD[fake_LbL0Mass] );
-    inputTree->SetBranchAddress( "fake_KstarMass", &dataD[fake_KstarMass] );
-    inputTree->SetBranchAddress( "fake_BdMass", &dataD[fake_BdMass] );
-    inputTree->SetBranchAddress( "fake_PhiMass", &dataD[fake_PhiMass] );
-    inputTree->SetBranchAddress( "fake_BsMass", &dataD[fake_BsMass] );
-    inputTree->SetBranchAddress( "fake_KshortMass", &dataD[fake_KshortMass] );
-    inputTree->SetBranchAddress( "fake_mumupipiMass", &dataD[fake_mumupipiMass] );
-
-    inputTree->SetBranchAddress( "ptkPt", &dataD[ptkPt] );
-    inputTree->SetBranchAddress( "ptkMom", &dataD[ptkMom] );
-    inputTree->SetBranchAddress( "ptkDEDX.Harmonic", &dataD[ptkDEDX_Harmonic] );
-    inputTree->SetBranchAddress( "ptkDEDX.pixelHrm", &dataD[ptkDEDX_pixelHrm] );
-    inputTree->SetBranchAddress( "ptkIPt", &dataD[ptkIPt] );
-    inputTree->SetBranchAddress( "ptkIPtErr", &dataD[ptkIPtErr] );
-
-    inputTree->SetBranchAddress( "ntkPt", &dataD[ntkPt] );
-    inputTree->SetBranchAddress( "ntkMom", &dataD[ntkMom] );
-    inputTree->SetBranchAddress( "ntkDEDX.Harmonic", &dataD[ntkDEDX_Harmonic] );
-    inputTree->SetBranchAddress( "ntkDEDX.pixelHrm", &dataD[ntkDEDX_pixelHrm] );
-    inputTree->SetBranchAddress( "ntkIPt", &dataD[ntkIPt] );
-    inputTree->SetBranchAddress( "ntkIPtErr", &dataD[ntkIPtErr] );
+    this->SetOldFormatTree(inputTree);
+    this->LoadFormatSourceBranch();
     return;
 }

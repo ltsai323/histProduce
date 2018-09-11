@@ -29,6 +29,7 @@
 #include "histProduce/histProduce/interface/tmainLbL0.h"
 #include "histProduce/histProduce/interface/tmainLbTk.h"
 #include "histProduce/histProduce/interface/tmainpnLbTk.h"
+#include "histProduce/histProduce/interface/tmainGenpnLbTk.h"
 //#include "histProduce/histProduce/interface/tmainBs.h"
 //#include "histProduce/histProduce/interface/tmainfindParDiff.h"
 //#include "histProduce/histProduce/interface/tmainfindIPdiff.h"
@@ -174,7 +175,8 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new treeMain_Lam0(&dir) );
     //mainCode.push_back( new treeMain_Kshort(&dir) );
     //mainCode.push_back( new treeMain_LbTk(&dir) );
-    mainCode.push_back( new treeMain_pnLbTk(&dir) );
+    //mainCode.push_back( new treeMain_pnLbTk(&dir) );
+    mainCode.push_back( new treeMainGen_pnLbTk(&dir) );
     //mainCode.push_back( new treeMain_LbL0(&dir) );
     //mainCode.push_back( new treeMain_Bs(&dir) );
     //mainCode.push_back( new treeMain_findParDiff(&dir) );
@@ -193,12 +195,15 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new treeMainGen_LbL0(&dir) );
     //mainCode.push_back( new treeMainGen_List(&dir) );
 
+    std::cout << "hi1\n";
     int ievt=0;
     for ( const auto& file : inputFiles_ )
     {
+    std::cout << "hi2\n";
         bool terminateLoop = false;
         TFile* inFile = TFile::Open( ("file://"+file).c_str() );
         if( !inFile ) continue;
+    std::cout << "hi3\n";
         // ----------------------------------------------------------------------
         // Second Part:
         //
@@ -227,23 +232,29 @@ int main(int argc, char* argv[])
                 _main->Process( &ev );
 
         }
+    std::cout << "hi4\n";
         inFile->Close();
+    std::cout << "hi5\n";
         if ( terminateLoop ) break;
+    std::cout << "hi6\n";
         // break loop if maximal number of events is reached:
         // this has to be done twice to stop the file loop as well
     }
 
+    std::cout << "hi7\n";
     for ( auto& cut : cutLists )
         delete cut;
+    std::cout << "hi8\n";
     for ( auto& _main : mainCode )
     {
-        _main->Clear();
         delete _main;
     }
+    std::cout << "hi9\n";
 
     char mvCommand[100];
     sprintf( mvCommand, "mv %s %s", tmpFileName, outputFile_.c_str() );
     system( mvCommand );
     printf("\n");
+    std::cout << "hi1000\n";
     return 0;
 }

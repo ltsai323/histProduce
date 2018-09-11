@@ -8,10 +8,11 @@
 
 
 treeMain_pnLbTk::treeMain_pnLbTk( TFileDirectory* d ) :
-    treeMain( d, treeMain::Label("lbWriteSpecificDecay", "pL0BFitted", "bphAnalysis"), "pnLbTk" ),
+    treeMain( d, treeMain::Label("lbWriteSpecificDecay", "pL0BFitted", "bphAnalysis"), "pnLbTk" ), formatTree_plusminus_LbTk( totNumD, totNumI ),
     kaonMass ( 0.493667 ), protonMass ( 0.9382720813 ), pionMass ( 0.13957061 ),
     antiCandLabel( treeMain::Label("lbWriteSpecificDecay", "nL0BFitted", "bphAnalysis"))
 {
+    SetNewFormatTree(thisTree());
     RegTree();
 }
 void treeMain_pnLbTk::Process( fwlite::Event* ev )
@@ -374,94 +375,9 @@ void treeMain_pnLbTk::Process( fwlite::Event* ev )
     } catch (...) {}
 }
 
-void treeMain_pnLbTk::Clear()
-{
-    memset( dataD, 0x00, totNumD*sizeof( double ) );
-    memset( dataI, 0x00, totNumI*sizeof( int ) );
-}
 void treeMain_pnLbTk::RegTree()
 {
-    TTree* t = thisTree();
-    t->Branch( "plbtkMass", &dataD[plbtkMass], "plbtkMass/D" );
-    t->Branch( "plbtkFD2d", &dataD[plbtkFlightDistance2d], "plbtkFD2d/D" );
-    t->Branch( "plbtkFDSig", &dataD[plbtkFlightDistanceSig], "plbtkFDSig/D" );
-    t->Branch( "plbtkVtxprob", &dataD[plbtkVtxprob], "plbtkVtxprob/D" );
-    t->Branch( "plbtkCosa2d", &dataD[plbtkCosa2d], "plbtkCosa2d/D" );
-
-    t->Branch( "ptargetJpsiP_mass", &dataD[ptargetJpsiP_mass], "ptargetJpsiP_mass/D" );
-    t->Branch( "ptargetJpsiP_pt", &dataD[ptargetJpsiP_pt], "ptargetJpsiP_pt/D" );
-    t->Branch( "ptargetJpsiPBar_mass", &dataD[ptargetJpsiPBar_mass], "ptargetJpsiPBar_mass/D" );
-    t->Branch( "ptargetJpsiPBar_pt", &dataD[ptargetJpsiPBar_pt], "ptargetJpsiPBar_pt/D" );
-
-    t->Branch( "plbtkMom", &dataD[plbtkMom], "plbtkMom/D" );
-    t->Branch( "plbtkPt", &dataD[plbtkPt], "plbtkPt/D" );
-    t->Branch( "ptktkPt", &dataD[ptktkPt], "ptktkPt/D" );
-    t->Branch( "ptktkMom", &dataD[ptktkMom], "ptktkMom/D" );
-
-    t->Branch( "pfake_Lam0Mass", &dataD[pfake_Lam0Mass], "pfake_Lam0Mass/D" );
-    t->Branch( "pfake_LbL0Mass", &dataD[pfake_LbL0Mass], "pfake_LbL0Mass/D" );
-    t->Branch( "pfake_KstarMass", &dataD[pfake_KstarMass], "pfake_KstarMass/D" );
-    t->Branch( "pfake_BdMass", &dataD[pfake_BdMass], "pfake_BdMass/D" );
-    t->Branch( "pfake_PhiMass", &dataD[pfake_PhiMass], "pfake_PhiMass/D" );
-    t->Branch( "pfake_BsMass", &dataD[pfake_BsMass], "pfake_BsMass/D" );
-    t->Branch( "pfake_KshortMass", &dataD[pfake_KshortMass], "pfake_KshortMass/D" );
-    t->Branch( "pfake_mumupipiMass", &dataD[pfake_mumupipiMass], "pfake_mumupipiMass/D" );
-
-    t->Branch( "pptonPt", &dataD[pptonPt], "pptonPt/D" );
-    t->Branch( "pptonMom", &dataD[pptonMom], "pptonMom/D" );
-    t->Branch( "pptonDEDX.Harmonic", &dataD[pptonDEDX_Harmonic], "pptonDEDX.Harmonic/D" );
-    t->Branch( "pptonDEDX.pixelHrm", &dataD[pptonDEDX_pixelHrm], "pptonDEDX.pixelHrm/D" );
-    t->Branch( "pptonIPt", &dataD[pptonIPt], "pptonIPt/D" );
-    t->Branch( "pptonIPtErr", &dataD[pptonIPtErr], "pptonIPtErr/D" );
-
-    t->Branch( "pkaonPt", &dataD[pkaonPt], "pkaonPt/D" );
-    t->Branch( "pkaonMom", &dataD[pkaonMom], "pkaonMom/D" );
-    t->Branch( "pkaonDEDX.Harmonic", &dataD[pkaonDEDX_Harmonic], "pkaonDEDX.Harmonic/D" );
-    t->Branch( "pkaonDEDX.pixelHrm", &dataD[pkaonDEDX_pixelHrm], "pkaonDEDX.pixelHrm/D" );
-    t->Branch( "pkaonIPt", &dataD[pkaonIPt], "pkaonIPt/D" );
-    t->Branch( "pkaonIPtErr", &dataD[pkaonIPtErr], "pkaonIPtErr/D" );
-
-
-
-
-    t->Branch( "nlbtkMass", &dataD[nlbtkMass], "nlbtkMass/D" );
-    t->Branch( "nlbtkFD2d", &dataD[nlbtkFlightDistance2d], "nlbtkFD2d/D" );
-    t->Branch( "nlbtkFDSig", &dataD[nlbtkFlightDistanceSig], "nlbtkFDSig/D" );
-    t->Branch( "nlbtkVtxprob", &dataD[nlbtkVtxprob], "nlbtkVtxprob/D" );
-    t->Branch( "nlbtkCosa2d", &dataD[nlbtkCosa2d], "nlbtkCosa2d/D" );
-
-    t->Branch( "ntargetJpsiP_mass", &dataD[ntargetJpsiP_mass], "ntargetJpsiP_mass/D" );
-    t->Branch( "ntargetJpsiP_pt", &dataD[ntargetJpsiP_pt], "ntargetJpsiP_pt/D" );
-    t->Branch( "ntargetJpsiPBar_mass", &dataD[ntargetJpsiPBar_mass], "ntargetJpsiPBar_mass/D" );
-    t->Branch( "ntargetJpsiPBar_pt", &dataD[ntargetJpsiPBar_pt], "ntargetJpsiPBar_pt/D" );
-
-    t->Branch( "nlbtkMom", &dataD[nlbtkMom], "nlbtkMom/D" );
-    t->Branch( "nlbtkPt", &dataD[nlbtkPt], "nlbtkPt/D" );
-    t->Branch( "ntktkPt", &dataD[ntktkPt], "ntktkPt/D" );
-    t->Branch( "ntktkMom", &dataD[ntktkMom], "ntktkMom/D" );
-
-    t->Branch( "nfake_Lam0Mass", &dataD[nfake_Lam0Mass], "nfake_Lam0Mass/D" );
-    t->Branch( "nfake_LbL0Mass", &dataD[nfake_LbL0Mass], "nfake_LbL0Mass/D" );
-    t->Branch( "nfake_KstarMass", &dataD[nfake_KstarMass], "nfake_KstarMass/D" );
-    t->Branch( "nfake_BdMass", &dataD[nfake_BdMass], "nfake_BdMass/D" );
-    t->Branch( "nfake_PhiMass", &dataD[nfake_PhiMass], "nfake_PhiMass/D" );
-    t->Branch( "nfake_BsMass", &dataD[nfake_BsMass], "nfake_BsMass/D" );
-    t->Branch( "nfake_KshortMass", &dataD[nfake_KshortMass], "nfake_KshortMass/D" );
-    t->Branch( "nfake_mumupipiMass", &dataD[nfake_mumupipiMass], "nfake_mumupipiMass/D" );
-
-    t->Branch( "nptonPt", &dataD[nptonPt], "nptonPt/D" );
-    t->Branch( "nptonMom", &dataD[nptonMom], "nptonMom/D" );
-    t->Branch( "nptonDEDX.Harmonic", &dataD[nptonDEDX_Harmonic], "nptonDEDX.Harmonic/D" );
-    t->Branch( "nptonDEDX.pixelHrm", &dataD[nptonDEDX_pixelHrm], "nptonDEDX.pixelHrm/D" );
-    t->Branch( "nptonIPt", &dataD[nptonIPt], "nptonIPt/D" );
-    t->Branch( "nptonIPtErr", &dataD[nptonIPtErr], "nptonIPtErr/D" );
-
-    t->Branch( "nkaonPt", &dataD[nkaonPt], "nkaonPt/D" );
-    t->Branch( "nkaonMom", &dataD[nkaonMom], "nkaonMom/D" );
-    t->Branch( "nkaonDEDX.Harmonic", &dataD[nkaonDEDX_Harmonic], "nkaonDEDX.Harmonic/D" );
-    t->Branch( "nkaonDEDX.pixelHrm", &dataD[nkaonDEDX_pixelHrm], "nkaonDEDX.pixelHrm/D" );
-    t->Branch( "nkaonIPt", &dataD[nkaonIPt], "nkaonIPt/D" );
-    t->Branch( "nkaonIPtErr", &dataD[nkaonIPtErr], "nkaonIPtErr/D" );
+    RegFormatTree();
     return;
 }
 void treeMain_pnLbTk::GetByLabel( fwlite::Event* ev )
@@ -525,86 +441,8 @@ void treeMain_pnLbTk::setBranchAddress( TTree* inputTree )
     TTree* t = inputTree;
     if ( t == nullptr )
     { printf("load source branch error! check tree name or file path\n"); return; }
-    t->SetBranchAddress( "plbtkMass", &dataD[plbtkMass] );
-    t->SetBranchAddress( "plbtkFD2d", &dataD[plbtkFlightDistance2d] );
-    t->SetBranchAddress( "plbtkFDSig", &dataD[plbtkFlightDistanceSig] );
-    t->SetBranchAddress( "plbtkVtxprob", &dataD[plbtkVtxprob] );
-    t->SetBranchAddress( "plbtkCosa2d", &dataD[plbtkCosa2d] );
-
-    t->SetBranchAddress( "ptargetJpsiP_mass", &dataD[ptargetJpsiP_mass] );
-    t->SetBranchAddress( "ptargetJpsiP_pt", &dataD[ptargetJpsiP_pt] );
-    t->SetBranchAddress( "ptargetJpsiPBar_mass", &dataD[ptargetJpsiPBar_mass] );
-    t->SetBranchAddress( "ptargetJpsiPBar_pt", &dataD[ptargetJpsiPBar_pt] );
-
-    t->SetBranchAddress( "plbtkMom", &dataD[plbtkMom] );
-    t->SetBranchAddress( "plbtkPt", &dataD[plbtkPt] );
-    t->SetBranchAddress( "ptktkPt", &dataD[ptktkPt] );
-    t->SetBranchAddress( "ptktkMom", &dataD[ptktkMom] );
-
-    t->SetBranchAddress( "pfake_Lam0Mass", &dataD[pfake_Lam0Mass] );
-    t->SetBranchAddress( "pfake_LbL0Mass", &dataD[pfake_LbL0Mass] );
-    t->SetBranchAddress( "pfake_KstarMass", &dataD[pfake_KstarMass] );
-    t->SetBranchAddress( "pfake_BdMass", &dataD[pfake_BdMass] );
-    t->SetBranchAddress( "pfake_PhiMass", &dataD[pfake_PhiMass] );
-    t->SetBranchAddress( "pfake_BsMass", &dataD[pfake_BsMass] );
-    t->SetBranchAddress( "pfake_KshortMass", &dataD[pfake_KshortMass] );
-    t->SetBranchAddress( "pfake_mumupipiMass", &dataD[pfake_mumupipiMass] );
-
-    t->SetBranchAddress( "pptonPt", &dataD[pptonPt] );
-    t->SetBranchAddress( "pptonMom", &dataD[pptonMom] );
-    t->SetBranchAddress( "pptonDEDX.Harmonic", &dataD[pptonDEDX_Harmonic] );
-    t->SetBranchAddress( "pptonDEDX.pixelHrm", &dataD[pptonDEDX_pixelHrm] );
-    t->SetBranchAddress( "pptonIPt", &dataD[pptonIPt] );
-    t->SetBranchAddress( "pptonIPtErr", &dataD[pptonIPtErr] );
-
-    t->SetBranchAddress( "pkaonPt", &dataD[pkaonPt] );
-    t->SetBranchAddress( "pkaonMom", &dataD[pkaonMom] );
-    t->SetBranchAddress( "pkaonDEDX.Harmonic", &dataD[pkaonDEDX_Harmonic] );
-    t->SetBranchAddress( "pkaonDEDX.pixelHrm", &dataD[pkaonDEDX_pixelHrm] );
-    t->SetBranchAddress( "pkaonIPt", &dataD[pkaonIPt] );
-    t->SetBranchAddress( "pkaonIPtErr", &dataD[pkaonIPtErr] );
-
-
-
-
-    t->SetBranchAddress( "nlbtkMass", &dataD[nlbtkMass] );
-    t->SetBranchAddress( "nlbtkFD2d", &dataD[nlbtkFlightDistance2d] );
-    t->SetBranchAddress( "nlbtkFDSig", &dataD[nlbtkFlightDistanceSig] );
-    t->SetBranchAddress( "nlbtkVtxprob", &dataD[nlbtkVtxprob] );
-    t->SetBranchAddress( "nlbtkCosa2d", &dataD[nlbtkCosa2d] );
-
-    t->SetBranchAddress( "ntargetJpsiP_mass", &dataD[ntargetJpsiP_mass] );
-    t->SetBranchAddress( "ntargetJpsiP_pt", &dataD[ntargetJpsiP_pt] );
-    t->SetBranchAddress( "ntargetJpsiPBar_mass", &dataD[ntargetJpsiPBar_mass] );
-    t->SetBranchAddress( "ntargetJpsiPBar_pt", &dataD[ntargetJpsiPBar_pt] );
-
-    t->SetBranchAddress( "nlbtkMom", &dataD[nlbtkMom] );
-    t->SetBranchAddress( "nlbtkPt", &dataD[nlbtkPt] );
-    t->SetBranchAddress( "ntktkPt", &dataD[ntktkPt] );
-    t->SetBranchAddress( "ntktkMom", &dataD[ntktkMom] );
-
-    t->SetBranchAddress( "nfake_Lam0Mass", &dataD[nfake_Lam0Mass] );
-    t->SetBranchAddress( "nfake_LbL0Mass", &dataD[nfake_LbL0Mass] );
-    t->SetBranchAddress( "nfake_KstarMass", &dataD[nfake_KstarMass] );
-    t->SetBranchAddress( "nfake_BdMass", &dataD[nfake_BdMass] );
-    t->SetBranchAddress( "nfake_PhiMass", &dataD[nfake_PhiMass] );
-    t->SetBranchAddress( "nfake_BsMass", &dataD[nfake_BsMass] );
-    t->SetBranchAddress( "nfake_KshortMass", &dataD[nfake_KshortMass] );
-    t->SetBranchAddress( "nfake_mumupipiMass", &dataD[nfake_mumupipiMass] );
-
-    t->SetBranchAddress( "nptonPt", &dataD[nptonPt] );
-    t->SetBranchAddress( "nptonMom", &dataD[nptonMom] );
-    t->SetBranchAddress( "nptonDEDX.Harmonic", &dataD[nptonDEDX_Harmonic] );
-    t->SetBranchAddress( "nptonDEDX.pixelHrm", &dataD[nptonDEDX_pixelHrm] );
-    t->SetBranchAddress( "nptonIPt", &dataD[nptonIPt] );
-    t->SetBranchAddress( "nptonIPtErr", &dataD[nptonIPtErr] );
-
-    t->SetBranchAddress( "nkaonPt", &dataD[nkaonPt] );
-    t->SetBranchAddress( "nkaonMom", &dataD[nkaonMom] );
-    t->SetBranchAddress( "nkaonDEDX.Harmonic", &dataD[nkaonDEDX_Harmonic] );
-    t->SetBranchAddress( "nkaonDEDX.pixelHrm", &dataD[nkaonDEDX_pixelHrm] );
-    t->SetBranchAddress( "nkaonIPt", &dataD[nkaonIPt] );
-    t->SetBranchAddress( "nkaonIPtErr", &dataD[nkaonIPtErr] );
+    this->SetOldFormatTree(t);
+    this->LoadFormatSourceBranch();
     return;
 }
 bool treeMain_pnLbTk::theSameCompCand( const pat::CompositeCandidate* cand1, const pat::CompositeCandidate* cand2 )

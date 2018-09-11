@@ -17,7 +17,6 @@ public:
 
     // functions needs to be redefined in further class, which comes from treeMain
     virtual void Process( fwlite::Event* ev ) override = 0;
-    virtual void Clear() override = 0;
     virtual void RegTree() override = 0;
     virtual void GetByLabel( fwlite::Event* ev ) override = 0;
 

@@ -1,6 +1,7 @@
 #ifndef __FORMATTREE_H__
 #define __FORMATTREE_H__
 #include "TTree.h"
+#include <iostream>
 
 struct formatTree
 {
@@ -12,12 +13,16 @@ struct formatTree
 
         formatTree( int nD, int nI ) : oTree(nullptr), nTree(nullptr), totNumD(nD), totNumI(nI)
         {
-            dataD = new double(nD);
-            dataI = new int   (nI);
+            dataD = new double[nD];
+            dataI = new int   [nI];
             return;
         }
         virtual ~formatTree()
-        { delete dataD; delete dataI; return; }
+        { 
+            std::cout << "format tree distructor\n";
+            delete[] dataD; delete[] dataI; oTree = nTree = nullptr; 
+            std::cout << "format tree distructor end \n";
+            return; }
 
     // used in tree creating, every entry you need to get a clean contain.
     virtual void Clear() final
