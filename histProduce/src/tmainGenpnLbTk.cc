@@ -12,7 +12,6 @@ treeMainGen_pnLbTk::treeMainGen_pnLbTk( TFileDirectory* d ) :
     kaonMass ( 0.493667 ), protonMass( 0.9382720813 ), pionMass( 0.13957061 ),
     antiCandLabel( treeMain::Label("lbWriteSpecificDecay", "nL0BFitted", "bphAnalysis"))
 {
-    SetNewFormatTree(thisTree());
     RegTree();
 }
 void treeMainGen_pnLbTk::Process( fwlite::Event* ev )
@@ -444,7 +443,7 @@ void treeMainGen_pnLbTk::Process( fwlite::Event* ev )
 void treeMainGen_pnLbTk::RegTree()
 {
     TTree* t = thisTree();
-    RegFormatTree();
+    RegFormatTree(t);
 
     t->Branch( "pptonPID", &dataI[pptonPID], "pptonPID/I" );
     t->Branch( "pkaonPID", &dataI[pkaonPID], "pkaonPID/I" );
@@ -509,8 +508,7 @@ inline std::vector< std::pair< std::pair<double,const pat::CompositeCandidate*>,
 }
 void treeMainGen_pnLbTk::setBranchAddress( TTree* inputTree )
 {
-    this->SetOldFormatTree(inputTree);
-    this->LoadFormatSourceBranch();
+    LoadFormatSourceBranch(inputTree);
 
     inputTree->SetBranchAddress( "pptonPID", &dataI[pptonPID] );
     inputTree->SetBranchAddress( "pkaonPID", &dataI[pkaonPID] );

@@ -11,7 +11,6 @@ treeMain_TkTk::treeMain_TkTk( TFileDirectory* d ) :
     treeMain( d, treeMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis"), "TkTk" ), formatTree_TkTk( totNumD, totNumI ),
     kaonMass ( 0.493667 ), protonMass ( 0.9382720813 ), pionMass ( 0.13957061 )
 {
-    SetNewFormatTree(thisTree());
     RegTree();
 }
 void treeMain_TkTk::Process( fwlite::Event* ev )
@@ -144,7 +143,8 @@ void treeMain_TkTk::Process( fwlite::Event* ev )
 
 void treeMain_TkTk::RegTree()
 {
-    RegFormatTree();
+    TTree* t = thisTree();
+    RegFormatTree(t);
     return;
 }
 

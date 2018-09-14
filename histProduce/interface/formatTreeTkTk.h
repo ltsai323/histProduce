@@ -17,8 +17,8 @@ struct formatTree_TkTk : public formatTree
         {
             comNumI
         };
-        virtual void RegFormatTree() override;
-        virtual void LoadFormatSourceBranch() override;
+        virtual void RegFormatTree(TTree* t) override;
+        virtual void LoadFormatSourceBranch(TTree* t) override;
 
         formatTree_TkTk( int totNumD, int totNumI ) : formatTree ( totNumD, totNumI ) {}
         ~formatTree_TkTk() {}

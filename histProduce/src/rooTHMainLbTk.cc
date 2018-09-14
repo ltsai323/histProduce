@@ -32,7 +32,6 @@ root_TreeHistoMain_LbTk::root_TreeHistoMain_LbTk( TFileDirectory* d ) :
     gaRes = { 0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00,0.00, 0.00,0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00 };
 
     if ( !d ) return;
-    SetNewFormatTree(thisTree());
     RegTree();
     RegHisto();
     return;
@@ -123,7 +122,7 @@ void root_TreeHistoMain_LbTk::RegTree()
     if ( NoOutput() ) return;
 
     TTree* t = thisTree();
-    RegFormatTree();
+    RegFormatTree(t);
     return;
 }
 
@@ -160,8 +159,7 @@ void root_TreeHistoMain_LbTk::RegHisto()
 void root_TreeHistoMain_LbTk::LoadSourceBranch()
 {
     TTree* t = readTree();
-    this->SetOldFormatTree(t);
-    this->LoadFormatSourceBranch();
+    LoadFormatSourceBranch(t);
     return;
 }
 

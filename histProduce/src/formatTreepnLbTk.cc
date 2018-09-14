@@ -2,9 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void formatTree_plusminus_LbTk::RegFormatTree()
+void formatTree_plusminus_LbTk::RegFormatTree(TTree* t)
 {
-    TTree* t = getNewFormatTree();
     if ( t == nullptr )
     {
         printf("formatTree pnLbTk:        error to get tree to register!\n");
@@ -95,14 +94,15 @@ void formatTree_plusminus_LbTk::RegFormatTree()
 }
 
 
-void formatTree_plusminus_LbTk::LoadFormatSourceBranch()
+void formatTree_plusminus_LbTk::LoadFormatSourceBranch(TTree* t)
 {
-    TTree* t = getOldFormatTree();
     if ( t == nullptr )
     {
         printf("formatTree pnLbTk:        error to old tree to read!\n");
         exit(1);
     }
+    SetReadMode();
+
     t->SetBranchAddress( "plbtkMass", &readD[plbtkMass] );
     t->SetBranchAddress( "plbtkFD2d", &readD[plbtkFlightDistance2d] );
     t->SetBranchAddress( "plbtkFDSig", &readD[plbtkFlightDistanceSig] );

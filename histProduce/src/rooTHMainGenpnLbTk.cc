@@ -29,9 +29,7 @@ root_TreeHistoMain_GenInfo_plusminus_LbTk::root_TreeHistoMain_GenInfo_plusminus_
     //gaRes = { 3.87,0.15,17.43,0.04,4.33,0.14,2.77,0.00,1.29,-0.13,0.14,0.08,-0.02,0.09,0.02,0.34,0.01,0.00 };
     gaRes = { 0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00,0.00, 0.00,0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00 };
 
-
     if ( !d ) return;
-    SetNewFormatTree(thisTree());
     RegTree();
     //RegHisto();
     return;
@@ -87,7 +85,7 @@ void root_TreeHistoMain_GenInfo_plusminus_LbTk::RegTree()
     if ( NoOutput() ) return;
 
     TTree* t = thisTree();
-    RegFormatTree();
+    RegFormatTree(t);
 
     t->Branch( "pptonPID", &dataI[pptonPID], "pptonPID/I" );
     t->Branch( "pkaonPID", &dataI[pkaonPID], "pkaonPID/I" );
@@ -136,17 +134,16 @@ void root_TreeHistoMain_GenInfo_plusminus_LbTk::RegHisto()
 void root_TreeHistoMain_GenInfo_plusminus_LbTk::LoadSourceBranch()
 {
     TTree* t = readTree();
-    this->SetOldFormatTree(t);
-    this->LoadFormatSourceBranch();
+    LoadFormatSourceBranch(t);
 
-    t->SetBranchAddress( "pptonPID",    &readI[pptonPID] );
-    t->SetBranchAddress( "pkaonPID",    &readI[pkaonPID] );
-    t->SetBranchAddress( "pptonMomPID", &readI[pptonMomPID] );
-    t->SetBranchAddress( "pkaonMomPID", &readI[pkaonMomPID] );
-    t->SetBranchAddress( "nptonPID",    &readI[nptonPID] );
-    t->SetBranchAddress( "nkaonPID",    &readI[nkaonPID] );
-    t->SetBranchAddress( "nptonMomPID", &readI[nptonMomPID] );
-    t->SetBranchAddress( "nkaonMomPID", &readI[nkaonMomPID] );
+    //t->SetBranchAddress( "pptonPID",    &readI[pptonPID] );
+    //t->SetBranchAddress( "pkaonPID",    &readI[pkaonPID] );
+    //t->SetBranchAddress( "pptonMomPID", &readI[pptonMomPID] );
+    //t->SetBranchAddress( "pkaonMomPID", &readI[pkaonMomPID] );
+    //t->SetBranchAddress( "nptonPID",    &readI[nptonPID] );
+    //t->SetBranchAddress( "nkaonPID",    &readI[nkaonPID] );
+    //t->SetBranchAddress( "nptonMomPID", &readI[nptonMomPID] );
+    //t->SetBranchAddress( "nkaonMomPID", &readI[nkaonMomPID] );
     return;
 }
 

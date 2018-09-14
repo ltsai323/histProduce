@@ -31,7 +31,6 @@ root_TreeHistoMain_plusminus_LbTk::root_TreeHistoMain_plusminus_LbTk( TFileDirec
     gaRes = { 0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00,0.00, 0.00,0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00 };
 
     if ( !d ) return;
-    SetNewFormatTree(thisTree());
     RegTree();
     RegHisto();
     return;
@@ -56,13 +55,11 @@ void root_TreeHistoMain_plusminus_LbTk::Process( unsigned int pIdx )
 
         // preselection end }}}
 
-        //{
 
-            for ( int j=0; j<totNumD; ++j )
-                dataD[j] = readD[j];
-            // save reduced tree
-            thisTree()->Fill();
-        //}
+        for ( int j=0; j<totNumD; ++j )
+            dataD[j] = readD[j];
+        // save reduced tree
+        thisTree()->Fill();
 
     } catch (...) {}
 }
@@ -71,7 +68,7 @@ void root_TreeHistoMain_plusminus_LbTk::RegTree()
 {
     if ( NoOutput() ) return;
     TTree* t = thisTree();
-    RegFormatTree();
+    RegFormatTree(t);
 
     return;
 }
@@ -86,8 +83,7 @@ void root_TreeHistoMain_plusminus_LbTk::RegHisto()
 void root_TreeHistoMain_plusminus_LbTk::LoadSourceBranch()
 {
     TTree* t = readTree();
-    this->SetOldFormatTree(t);
-    this->LoadFormatSourceBranch();
+    LoadFormatSourceBranch(t);
     return;
 }
 

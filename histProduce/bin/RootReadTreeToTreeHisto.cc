@@ -138,8 +138,8 @@ int main(int argc, char* argv[])
     //mainCode.push_back( new root_TreeHistoMain_TkTk(&dir) );
     //mainCode.push_back( new root_TreeHistoMain_LbTk(&dir) );
     //mainCode.push_back( new root_TreeHistoMain_GenInfo_LbTk(&dir) );
-    //mainCode.push_back( new root_TreeHistoMain_plusminus_LbTk(&dir) );
-    mainCode.push_back( new root_TreeHistoMain_GenInfo_plusminus_LbTk(&dir) );
+    mainCode.push_back( new root_TreeHistoMain_plusminus_LbTk(&dir) );
+    //mainCode.push_back( new root_TreeHistoMain_GenInfo_plusminus_LbTk(&dir) );
 
     // if maxEvent = -1, MEvent to be MAX of unsigned.
     unsigned MEvent = maxEvents_;
@@ -169,11 +169,9 @@ int main(int argc, char* argv[])
         unsigned j=0;
         for ( const auto& _main : mainCode )
         {
-            //std::cout << "hiii this is readTPath" << parser.stringValue("readTPath") << std::endl;
             if ( parser.stringValue("readTPath") != "" )
                 _main->ResetInputTreeName( parser.stringValue("readTPath") );
             bool keepGoing = _main->SetInputFile( inFile );
-            std::cout << "keep Going: " <<keepGoing<< std::endl;
 
 
             // use MEvent to be the counter, if MEvent to be 0, stop the code.

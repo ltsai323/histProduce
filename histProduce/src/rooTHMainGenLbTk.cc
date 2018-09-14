@@ -31,7 +31,6 @@ root_TreeHistoMain_GenInfo_LbTk::root_TreeHistoMain_GenInfo_LbTk( TFileDirectory
 
 
     if ( !d ) return;
-    SetNewFormatTree(thisTree());
     RegTree();
     //RegHisto();
     return;
@@ -87,7 +86,7 @@ void root_TreeHistoMain_GenInfo_LbTk::RegTree()
     if ( NoOutput() ) return;
 
     TTree* t = thisTree();
-    RegFormatTree();
+    RegFormatTree(t);
 
     t->Branch( "ptkPID", &dataI[ptkPID], "ptkPID/I" );
     t->Branch( "ntkPID", &dataI[ntkPID], "ntkPID/I" );
@@ -132,8 +131,7 @@ void root_TreeHistoMain_GenInfo_LbTk::RegHisto()
 void root_TreeHistoMain_GenInfo_LbTk::LoadSourceBranch()
 {
     TTree* t = readTree();
-    this->SetOldFormatTree(t);
-    this->LoadFormatSourceBranch();
+    LoadFormatSourceBranch(t);
 
     t->SetBranchAddress( "ptkPID",    &readI[ptkPID] );
     t->SetBranchAddress( "ntkPID",    &readI[ntkPID] );

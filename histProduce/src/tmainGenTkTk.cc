@@ -11,7 +11,6 @@ treeMainGen_TkTk::treeMainGen_TkTk( TFileDirectory* d ) :
     treeMainGen( d, treeMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis"), "TkTkGenInfo" ), formatTree_TkTk( totNumD, totNumI ),
     protonMass( 0.9382720813 ), pionMass( 0.13957061 )
 {
-    SetNewFormatTree(thisTree());
     RegTree();
 }
 void treeMainGen_TkTk::Process( fwlite::Event* ev )
@@ -110,11 +109,12 @@ void treeMainGen_TkTk::Process( fwlite::Event* ev )
 
 void treeMainGen_TkTk::RegTree()
 {
-    RegFormatTree();
+    TTree* t = thisTree();
+    RegFormatTree(t);
 
-    thisTree()->Branch( "ptkPID", &dataI[ptkPID], "ptkPID/I" );
-    thisTree()->Branch( "ntkPID", &dataI[ntkPID], "ntkPID/I" );
-    thisTree()->Branch( "tktkSortingNumber", &dataI[tktkSortingNumber], "tktkSortingNumber/I" );
+    t->Branch( "ptkPID", &dataI[ptkPID], "ptkPID/I" );
+    t->Branch( "ntkPID", &dataI[ntkPID], "ntkPID/I" );
+    t->Branch( "tktkSortingNumber", &dataI[tktkSortingNumber], "tktkSortingNumber/I" );
 }
 void treeMainGen_TkTk::GetByLabel( fwlite::Event* ev )
 {

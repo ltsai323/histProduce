@@ -32,8 +32,8 @@ struct formatTree_plusminus_LbTk : public formatTree
         {
             comNumI
         };
-        virtual void RegFormatTree() override;
-        virtual void LoadFormatSourceBranch() override;
+        virtual void RegFormatTree(TTree* t) override;
+        virtual void LoadFormatSourceBranch(TTree* t) override;
 
         formatTree_plusminus_LbTk( int totNumD, int totNumI ) : formatTree ( totNumD, totNumI ) {}
         ~formatTree_plusminus_LbTk() {}

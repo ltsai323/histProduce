@@ -14,7 +14,6 @@ root_TreeHistoMain_TkTk::root_TreeHistoMain_TkTk( TFileDirectory* d ) :
     setInputTreeName( "lbSpecificDecay/TkTk" );
 
     if ( !d ) return;
-    SetNewFormatTree(thisTree());
     RegTree();
     RegHisto();
 }
@@ -40,7 +39,7 @@ void root_TreeHistoMain_TkTk::RegTree()
     if ( NoOutput() ) return;
 
     TTree* t = thisTree();
-    RegFormatTree();
+    RegFormatTree(t);
     // t->Branch("newBranch", &dataD[totNumD+newBranch], "newBranch/D" );
     return;
 }
@@ -54,8 +53,7 @@ void root_TreeHistoMain_TkTk::RegHisto()
 void root_TreeHistoMain_TkTk::LoadSourceBranch()
 {
     TTree* t = readTree();
-    this->SetOldFormatTree(t);
-    this->LoadFormatSourceBranch();
+    LoadFormatSourceBranch(t);
     return;
 }
 void root_TreeHistoMain_TkTk::SummaryCalc()

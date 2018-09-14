@@ -11,7 +11,6 @@ treeMainGen_LbTk::treeMainGen_LbTk( TFileDirectory* d ) :
     treeMainGen( d, treeMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis"), "LbTkGenInfo" ), formatTree_LbTk( totNumD, totNumI ),
     kaonMass ( 0.493667 ), protonMass( 0.9382720813 ), pionMass( 0.13957061 )
 {
-    SetNewFormatTree(thisTree());
     RegTree();
     hSummary = createHisto( "selCand_totCand", 10, 0., 10., 10, 0., 10. );
     hParEta  = createHisto("par_eta", 100, -5., 5.);
@@ -249,7 +248,7 @@ void treeMainGen_LbTk::Process( fwlite::Event* ev )
 void treeMainGen_LbTk::RegTree()
 {
     TTree* t = thisTree();
-    RegFormatTree();
+    RegFormatTree(t);
 
     t->Branch( "ptkPID", &dataI[ptkPID], "ptkPID/I" );
     t->Branch( "ntkPID", &dataI[ntkPID], "ntkPID/I" );
@@ -270,8 +269,7 @@ inline void treeMainGen_LbTk::getByLabel_PV( fwlite::Event* ev )
 { primaryVHandle.getByLabel( *ev,"offlinePrimaryVertices", "", "RECO"  ); return; }
 void treeMainGen_LbTk::setBranchAddress( TTree* inputTree )
 {
-    this->SetOldFormatTree(inputTree);
-    this->LoadFormatSourceBranch();
+    LoadFormatSourceBranch(inputTree);
 
     inputTree->SetBranchAddress( "ptkPID", &dataI[ptkPID] );
     inputTree->SetBranchAddress( "ntkPID", &dataI[ntkPID] );

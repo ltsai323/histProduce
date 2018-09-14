@@ -2,9 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void formatTree_TkTk::RegFormatTree()
+void formatTree_TkTk::RegFormatTree(TTree* t)
 {
-    TTree* t = getNewFormatTree();
     if ( t == nullptr )
     {
         printf("formatTree TkTk:        error to get tree to register!\n");
@@ -33,14 +32,14 @@ void formatTree_TkTk::RegFormatTree()
 }
 
 
-void formatTree_TkTk::LoadFormatSourceBranch()
+void formatTree_TkTk::LoadFormatSourceBranch(TTree* t)
 {
-    TTree* t = getOldFormatTree();
     if ( t == nullptr )
     {
         printf("formatTree TkTk:        error to old tree to read!\n");
         exit(1);
     }
+    SetReadMode();
     t->SetBranchAddress( "tktkMass", &readD[tktkMass] );
     t->SetBranchAddress( "tktkFD2d", &readD[tktkFlightDistance2d] );
     t->SetBranchAddress( "tktkVtxprob", &readD[tktkVtxprob] );

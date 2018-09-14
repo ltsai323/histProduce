@@ -3,6 +3,7 @@
 #include "histProduce/histProduce/interface/rooTHMainLbTk.h"
 #include "histProduce/histProduce/interface/rooTHMainpnLbTk.h"
 #include "histProduce/histProduce/interface/rooTHMainGenLbTk.h"
+#include "histProduce/histProduce/interface/rooTHMainGenpnLbTk.h"
 
 #include "TTree.h"
 #include "TFile.h"
@@ -27,7 +28,7 @@
 #include "RooWorkspace.h"
 #include "RooRandom.h"
 
-typedef root_TreeHistoMain_GenInfo_LbTk readMC;
+typedef root_TreeHistoMain_GenInfo_plusminus_LbTk readMC;
 //typedef root_TreeHistoMain_LbTk readData;
 typedef root_TreeHistoMain_plusminus_LbTk readData;
 
@@ -52,7 +53,6 @@ int main()
     TFile* mcFile = TFile::Open("storeroot/tReduced/tree_forGA_removeBsBdOnly/mc_LbToJPsipK_13TeV_noPU.root");
     readMC mc(nullptr);
     mc.SetInputFile( mcFile );
-    mc.LoadSourceBranch();
 
     TTree* mcTree = mc.readTree();
 
@@ -62,44 +62,32 @@ int main()
     TH1D* h_Data = new TH1D("h_data"  , "#Lambda^{0}_{b} data"     , 200, 5.4, 5.90);
     TH1D* h_dFDSig= new TH1D("h_dFDSig" , "", 70, 3., 10.);
     TH1D* h_mFDSig= new TH1D("h_mFDSig" , "", 70, 3., 10.);
-    //h_Data->SetDirectory( nullptr );
+
     TGaxis::SetMaxDigits(3);
     unsigned i = 0;
     unsigned N = mcTree->GetEntries();
     while ( i != N )
     {
         mcTree->GetEntry(i++);
-        //if ( mc.readD[readMC::plbtkMass             ] > 5.90 ) continue; 
-        //if ( mc.readD[readMC::plbtkMass             ] < 5.4  ) continue; 
+        if ( mc.readD[readMC::plbtkMass             ] > 5.90 ) continue; 
+        if ( mc.readD[readMC::plbtkMass             ] < 5.4  ) continue; 
+        if ( mc.readD[readMC::plbtkFlightDistanceSig] < gaRes[ 0] ) continue;
+        if ( mc.readD[readMC::plbtkVtxprob          ] < gaRes[ 1] ) continue;
+        if ( mc.readD[readMC::plbtkPt               ] < gaRes[ 2] ) continue;
+        if ( mc.readD[readMC::ptktkPt               ] < gaRes[ 4] ) continue;
+        if ( mc.readD[readMC::pptonPt               ] < gaRes[ 6] ) continue;
+        if ( mc.readD[readMC::pkaonPt               ] < gaRes[ 8] ) continue;
+        h_MC->Fill(mc.readD[readMC::plbtkMass]);
 
-        //if ( mc.readD[readMC::plbtkFlightDistanceSig] < gaRes[ 0] ) continue;
-        //if ( mc.readD[readMC::plbtkVtxprob          ] < gaRes[ 1] ) continue;
-        //if ( mc.readD[readMC::plbtkPt               ] < gaRes[ 2] ) continue;
-        //if ( mc.readD[readMC::ptktkPt               ] < gaRes[ 4] ) continue;
-        //if ( mc.readD[readMC::pptonPt               ] < gaRes[ 6] ) continue;
-        //if ( mc.readD[readMC::pkapnPt               ] < gaRes[ 8] ) continue;
-        //h_MC->Fill(mc.readD[readMC::plbtkMass]);
-        //if ( mc.readD[readMC::plbtkFlightDistanceSig] < 3.0  ) continue;
-        //h_mFDSig->Fill(mc.readD[readMC::lbtkFlightDistanceSig]);
-        if ( mc.readD[readMC::lbtkMass             ] > 5.90 ) continue; 
-        if ( mc.readD[readMC::lbtkMass             ] < 5.4  ) continue; 
+        if ( mc.readD[readMC::plbtkFlightDistanceSig] < 3.0  ) continue;
+        h_mFDSig->Fill(mc.readD[readMC::plbtkFlightDistanceSig]);
+    }   
+        
 
-        if ( mc.readD[readMC::lbtkFlightDistanceSig] < gaRes[ 0] ) continue;
-        if ( mc.readD[readMC::lbtkVtxprob          ] < gaRes[ 1] ) continue;
-        if ( mc.readD[readMC::lbtkPt               ] < gaRes[ 2] ) continue;
-        if ( mc.readD[readMC::tktkPt               ] < gaRes[ 4] ) continue;
-        if ( mc.readD[readMC::ptkPt               ] < gaRes[ 6] ) continue;
-        if ( mc.readD[readMC::ntkPt               ] < gaRes[ 8] ) continue;
-        h_MC->Fill(mc.readD[readMC::lbtkMass]);
-    }
-
-
-    //TFile* dataFile = TFile::Open("storeroot/tReduced/tree_forGA_removeBsBdOnly/tree_forGA_2016RunCDEFGH_noReduced.root");
-    TFile* dataFile = TFile::Open("storeroot/tReduced/tree_forGA_removeBsBdOnly/data_2016RunCDEFGH.root");
+    TFile* dataFile = TFile::Open("storeroot/tReduced/tree_forGA_removeBsBdOnly/data_2016RunBCDEFGH.root");
     //TFile* dataFile = TFile::Open("storeroot/tReduced/tree_forGA_removeBsBdOnly/data_2017RunBCDEF.root");
     readData data(nullptr);
     data.SetInputFile( dataFile );
-    data.LoadSourceBranch();
     TTree* dataTree = data.readTree();
 
     i = 0;

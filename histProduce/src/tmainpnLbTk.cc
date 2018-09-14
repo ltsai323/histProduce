@@ -12,7 +12,6 @@ treeMain_pnLbTk::treeMain_pnLbTk( TFileDirectory* d ) :
     kaonMass ( 0.493667 ), protonMass ( 0.9382720813 ), pionMass ( 0.13957061 ),
     antiCandLabel( treeMain::Label("lbWriteSpecificDecay", "nL0BFitted", "bphAnalysis"))
 {
-    SetNewFormatTree(thisTree());
     RegTree();
 }
 void treeMain_pnLbTk::Process( fwlite::Event* ev )
@@ -377,7 +376,8 @@ void treeMain_pnLbTk::Process( fwlite::Event* ev )
 
 void treeMain_pnLbTk::RegTree()
 {
-    RegFormatTree();
+    TTree* t = thisTree();
+    RegFormatTree(t);
     return;
 }
 void treeMain_pnLbTk::GetByLabel( fwlite::Event* ev )
@@ -441,8 +441,7 @@ void treeMain_pnLbTk::setBranchAddress( TTree* inputTree )
     TTree* t = inputTree;
     if ( t == nullptr )
     { printf("load source branch error! check tree name or file path\n"); return; }
-    this->SetOldFormatTree(t);
-    this->LoadFormatSourceBranch();
+    LoadFormatSourceBranch(t);
     return;
 }
 bool treeMain_pnLbTk::theSameCompCand( const pat::CompositeCandidate* cand1, const pat::CompositeCandidate* cand2 )
