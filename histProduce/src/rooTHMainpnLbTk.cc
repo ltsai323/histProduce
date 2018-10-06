@@ -51,7 +51,7 @@ void root_TreeHistoMain_plusminus_LbTk::Process( unsigned int pIdx )
            && readD[pfake_KstarMass]>0.85&&readD[pfake_KstarMass]<0.95) ) return;
         // remove Bs
         if ( (readD[pfake_BsMass]>5.32&&readD[pfake_BsMass]<5.38
-           && readD[pfake_PhiMass]>1.01&&readD[pfake_PhiMass]<1.03) ) return;
+           && readD[pfake_PhiMass]>1.01&&readD[pfake_PhiMass]<1.05) ) return;
 
         // preselection end }}}
 
