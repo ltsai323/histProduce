@@ -102,7 +102,8 @@ int main()
     readData data(nullptr);
     data.SetInputFile( dataFile );
     TTree* dataTree = data.readTree();
-    TNtupleD* ntdata =  new TNtupleD("dataNtuple", "ntuple to data", "pMass:pJpsip:pFD2D:pFD2DSig:plbtkPt:ptktkPt:pptonPt:pkaonPt:nMass:nJpsip:nFD2D:nFD2DSig:nlbtkPt:ntktkPt:nptonPt:nkaonPt");
+    //TNtupleD* ntdata =  new TNtupleD("dataNtuple", "ntuple to data", "pMass:pJpsip:pFD2D:pFD2DSig:plbtkPt:ptktkPt:pptonPt:pkaonPt:nMass:nJpsip:nFD2D:nFD2DSig:nlbtkPt:ntktkPt:nptonPt:nkaonPt");
+    TNtupleD* ntdata =  new TNtupleD("dataNtuple", "ntuple to data", "pMass:pJpsip:pFD2D:pFD2DSig:plbtkPt:pptonPt:pkaonPt:nMass:nJpsip:nFD2D:nFD2DSig:nlbtkPt:nptonPt:nkaonPt");
     ntdata->SetDirectory(tmpFile);
 
     i = 0;
@@ -155,7 +156,7 @@ int main()
                 data.readD[readData::plbtkFlightDistance2d],
                 data.readD[readData::plbtkFlightDistanceSig],
                 data.readD[readData::plbtkPt],
-                data.readD[readData::ptktkPt],
+                //data.readD[readData::ptktkPt],
                 data.readD[readData::pptonPt],
                 data.readD[readData::pkaonPt],
                 data.readD[readData::nlbtkMass],
@@ -163,7 +164,7 @@ int main()
                 data.readD[readData::nlbtkFlightDistance2d],
                 data.readD[readData::nlbtkFlightDistanceSig],
                 data.readD[readData::nlbtkPt],
-                data.readD[readData::ntktkPt],
+                //data.readD[readData::ntktkPt],
                 data.readD[readData::nptonPt],
                 data.readD[readData::nkaonPt]
                 );
@@ -180,8 +181,9 @@ int main()
     RooRealVar nlbMass( "nMass", "nMass", 5.6, 5.45, 5.75, "GeV" );
     RooRealVar ppQMass( "pJpsip", "pJPsipMass", 4.4, 4.0, 4.9, "GeV" );
     RooRealVar npQMass( "nJpsip", "nJPsipMass", 4.4, 4.0, 4.9, "GeV" );
+    RooRealVar fd2d   ("pFD2D", "pFD2D", 0., 2.);
     RooDataSet fitMC  ("unbinData", "unbin data", ntMC,   RooArgSet(plbMass,nlbMass,ppQMass,npQMass));
-    RooDataSet fitData("unbinData", "unbin data", ntdata, RooArgSet(plbMass,nlbMass,ppQMass,npQMass));
+    RooDataSet fitData("unbinData", "unbin data", ntdata, RooArgSet(plbMass,nlbMass,ppQMass,npQMass,fd2d));
 
     // start to fit MC
     RooRealVar par_mean( "mean", "parameter to gaussian: mean", 5.637, 5.55, 5.7 );
@@ -265,56 +267,62 @@ int main()
     totModel.fitTo(fitData);
     // roofit vars end}}}
 
-    RooPlot* dataFrame = plbMass.frame(RooFit::Title("data : #Lambda^{0}_{b} #rightarrow J/#Psi p K"));
-    dataFrame->GetXaxis()->SetTitle("GeV");
-
-    fitData.plotOn(dataFrame,RooFit::Name("dHist"));
-    totModel.plotOn(dataFrame, RooFit::Name("dTot"));
-    totModel.plotOn(dataFrame, RooFit::Name("dPart1"), RooFit::Components(mcModel), RooFit::LineStyle(7), RooFit::LineColor(2));
-    totModel.plotOn(dataFrame, RooFit::Name("dPart2"), RooFit::Components(pdf_cheb),RooFit::LineStyle(7), RooFit::LineColor(40));
-    double dataChi2 = dataFrame->chiSquare("dPart2", "dHist");
-
-
-    TGraph* tg_dHist = (TGraph*)dataFrame->findObject("dHist");
-    TGraph* tg_dTot  = (TGraph*)dataFrame->findObject("dTot");
-    TGraph* tg_dPart1= (TGraph*)dataFrame->findObject("dPart1");
-    TGraph* tg_dPart2= (TGraph*)dataFrame->findObject("dPart2");
-    // TGraph* legEntry_dTot   = (TGraph*)tg_dTot  ->Clone();
-    // TGraph* legEntry_dPart1 = (TGraph*)tg_dPart1->Clone();
-    // TGraph* legEntry_dPart2 = (TGraph*)tg_dPart2->Clone();
-    // legEntry_dTot  ->SetLineWidth(10);
-    // legEntry_dPart1->SetLineWidth(10);
-    // legEntry_dPart2->SetLineWidth(10);
-
-    TLegend* legData = new TLegend( 0.6, 0.60, 0.85, 0.85 );
-    legData->SetLineColor(0);
-    legData->SetFillColor(4000);
-    legData->SetFillStyle(4000);
-    legData->AddEntry(tg_dHist, "data", "P");
-    legData->AddEntry(tg_dTot  ,"total fitting result", "LP");
-    legData->AddEntry(tg_dPart1,"PDF: signal MC", "LP");
-    legData->AddEntry(tg_dPart2,"PDF: polynomial","LP");
-
-    TPaveText* txt =  new TPaveText(0.11, 0.15, 0.4, 0.50, "NDC");
-    char tmpName[256];
-    sprintf( tmpName, "#frac{#chi^{2}}{nDoF} = %.2e", dataChi2 );
-    txt->AddText( tmpName );
-    txt->AddText( ""      );
-    sprintf( tmpName, "# of Sig: %.2e", ns.getVal() );
-    txt->AddText( tmpName );
-    sprintf( tmpName, "# of Bkg: %.2e", nb.getVal() );
-    txt->AddText( tmpName );
-
-    txt->SetFillColor(4000);
-    txt->SetFillStyle(4000);
-    //legData->AddEntry(legEntry_dPart1,"PDF: signal MC", "LP");
-    //legData->AddEntry(legEntry_dPart2,"PDF: polynomial","LP");
-    dataFrame->Draw();
-    legData->Draw("same");
-    txt->Draw("same");
-    //legData->AddEntry(legEntry_dTot  ,  "total fitting result", "LP");
-    c1->SaveAs("storefig/h_fittingResult.Data.eps");
-    c1->SaveAs("storefig/resultHisto.pdf");
+    double dataChi2 = 0.;
+    // plot fit result.
+    {
+        RooPlot* dataFrame = plbMass.frame(RooFit::Title("data : #Lambda^{0}_{b} #rightarrow J/#Psi p K"));
+        dataFrame->GetXaxis()->SetTitle("GeV");
+    
+        fitData.plotOn(dataFrame,RooFit::Name("dHist"));
+        totModel.plotOn(dataFrame, RooFit::Name("dTot"));
+        totModel.plotOn(dataFrame, RooFit::Name("dPart1"), RooFit::Components(mcModel), RooFit::LineStyle(7), RooFit::LineColor(2));
+        totModel.plotOn(dataFrame, RooFit::Name("dPart2"), RooFit::Components(pdf_cheb),RooFit::LineStyle(7), RooFit::LineColor(40));
+        dataChi2 = dataFrame->chiSquare("dPart2", "dHist");
+    
+    
+        TGraph* tg_dHist = (TGraph*)dataFrame->findObject("dHist");
+        TGraph* tg_dTot  = (TGraph*)dataFrame->findObject("dTot");
+        TGraph* tg_dPart1= (TGraph*)dataFrame->findObject("dPart1");
+        TGraph* tg_dPart2= (TGraph*)dataFrame->findObject("dPart2");
+        // TGraph* legEntry_dTot   = (TGraph*)tg_dTot  ->Clone();
+        // TGraph* legEntry_dPart1 = (TGraph*)tg_dPart1->Clone();
+        // TGraph* legEntry_dPart2 = (TGraph*)tg_dPart2->Clone();
+        // legEntry_dTot  ->SetLineWidth(10);
+        // legEntry_dPart1->SetLineWidth(10);
+        // legEntry_dPart2->SetLineWidth(10);
+    
+        TLegend* legData = new TLegend( 0.6, 0.60, 0.85, 0.85 );
+        legData->SetLineColor(0);
+        legData->SetFillColor(4000);
+        legData->SetFillStyle(4000);
+        legData->AddEntry(tg_dHist, "data", "P");
+        legData->AddEntry(tg_dTot  ,"total fitting result", "LP");
+        legData->AddEntry(tg_dPart1,"PDF: signal MC", "LP");
+        legData->AddEntry(tg_dPart2,"PDF: polynomial","LP");
+    
+        TPaveText* txt =  new TPaveText(0.11, 0.15, 0.4, 0.50, "NDC");
+        char tmpName[256];
+        sprintf( tmpName, "#frac{#chi^{2}}{nDoF} = %.2e", dataChi2 );
+        txt->AddText( tmpName );
+        txt->AddText( ""      );
+        sprintf( tmpName, "# of Sig: %.2e", ns.getVal() );
+        txt->AddText( tmpName );
+        sprintf( tmpName, "# of Bkg: %.2e", nb.getVal() );
+        txt->AddText( tmpName );
+    
+        txt->SetFillColor(4000);
+        txt->SetFillStyle(4000);
+        //legData->AddEntry(legEntry_dPart1,"PDF: signal MC", "LP");
+        //legData->AddEntry(legEntry_dPart2,"PDF: polynomial","LP");
+        dataFrame->Draw();
+        legData->Draw("same");
+        txt->Draw("same");
+        //legData->AddEntry(legEntry_dTot  ,  "total fitting result", "LP");
+        c1->SaveAs("storefig/h_fittingResult.Data.eps");
+        c1->SaveAs("storefig/resultHisto.pdf");
+        delete legData;
+        delete txt;
+    }
 
     // plot pq & anti pq
     {
@@ -330,12 +338,67 @@ int main()
         c1->SaveAs("storefig/resultHisto.pdf");
     }
 
+    // plot reduced data
+    RooDataSet* redPfitData = (RooDataSet*) fitData.reduce("pJpsip<4.9&&pFD2D>0.3");
+    RooDataSet* redNfitData = (RooDataSet*) fitData.reduce("nJpsip<4.9&&pFD2D>0.3");
+    RooDataSet* redDataP = (RooDataSet*) fitData.reduce("pMass>5.6&&pMass<5.63&&pJpsip<4.9&&pFD2D>0.3");
+    RooDataSet* redDataN = (RooDataSet*) fitData.reduce("nMass>5.6&&nMass<5.63&&nJpsip<4.9&&pFD2D>0.3");
+    // plot reduced data
+    {
+        totModel.fitTo(*redPfitData);
+
+        RooPlot* plbtkframe = plbMass.frame(RooFit::Title("#Lambda^{0}_{b} in cuts"));
+        plbtkframe->GetXaxis()->SetTitle("GeV");
+
+        redPfitData->plotOn(plbtkframe,RooFit::Name("dHist"));
+        totModel.plotOn(plbtkframe, RooFit::Name("dTot"));
+        totModel.plotOn(plbtkframe, RooFit::Name("dPart1"), RooFit::Components(mcModel), RooFit::LineStyle(7), RooFit::LineColor(2));
+        totModel.plotOn(plbtkframe, RooFit::Name("dPart2"), RooFit::Components(pdf_cheb),RooFit::LineStyle(7), RooFit::LineColor(40));
+        double indataChi2 = plbtkframe->chiSquare("dPart2", "dHist");
+
+
+        TGraph* tg_dHist = (TGraph*)plbtkframe->findObject("dHist");
+        TGraph* tg_dTot  = (TGraph*)plbtkframe->findObject("dTot");
+        TGraph* tg_dPart1= (TGraph*)plbtkframe->findObject("dPart1");
+        TGraph* tg_dPart2= (TGraph*)plbtkframe->findObject("dPart2");
+
+        TLegend* legData = new TLegend( 0.6, 0.60, 0.85, 0.85 );
+        legData->SetLineColor(0);
+        legData->SetFillColor(4000);
+        legData->SetFillStyle(4000);
+        legData->AddEntry(tg_dHist, "data", "P");
+        legData->AddEntry(tg_dTot  ,"total fitting result", "LP");
+        legData->AddEntry(tg_dPart1,"PDF: signal MC", "LP");
+        legData->AddEntry(tg_dPart2,"PDF: polynomial","LP");
+
+        TPaveText* txt =  new TPaveText(0.11, 0.15, 0.4, 0.50, "NDC");
+        char tmpName[256];
+        sprintf( tmpName, "#frac{#chi^{2}}{nDoF} = %.2e", indataChi2 );
+        txt->AddText( tmpName );
+        txt->AddText( ""      );
+        sprintf( tmpName, "# of Sig: %.2e", ns.getVal() );
+        txt->AddText( tmpName );
+        sprintf( tmpName, "# of Bkg: %.2e", nb.getVal() );
+        txt->AddText( tmpName );
+
+        txt->SetFillColor(4000);
+        txt->SetFillStyle(4000);
+        plbtkframe->Draw();
+        legData->Draw("same");
+        txt->Draw("same");
+
+
+        c1->SaveAs("storefig/h_fittingResult.Data.plbMass_cutFD2DB0.3.eps");
+        c1->SaveAs("storefig/resultHisto.pdf");
+        delete legData;
+        delete txt;
+    }
+
+
     // plot signal pq & anti pq
     {
         RooPlot* pFrame = ppQMass.frame();
         RooPlot* nFrame = npQMass.frame();
-        RooDataSet* redDataP = (RooDataSet*) fitData.reduce("pMass>5.6&&pMass<5.63&&pJpsip<4.9");
-        RooDataSet* redDataN = (RooDataSet*) fitData.reduce("nMass>5.6&&nMass<5.63&&nJpsip<4.9");
         redDataP->plotOn(pFrame, RooFit::LineColor(30));
         redDataN->plotOn(nFrame, RooFit::LineColor(40));
         pFrame->Draw();
@@ -345,6 +408,18 @@ int main()
         c1->SaveAs("storefig/h_fittingResult.Data.nPQMass.signalRegion.eps");
         c1->SaveAs("storefig/resultHisto.pdf");
     }
+    // plot signal ant tot FD2d
+    {
+        RooPlot* fd2dFrame = fd2d.frame();
+        RooDataSet* redDataN = (RooDataSet*) fitData.reduce("nMass>5.6&&nMass<5.63&&nJpsip<4.9");
+        //double scale = fitData.getRange(fd2d, 0.2, 0.25) / redDataN->getRange(fd2d, 0.2, 0.25);
+        fitData.plotOn(fd2dFrame);
+        //redDataN->plotOn(fd2dFrame, RooFit::Rescale(scale));
+        fd2dFrame->Draw();
+        c1->SaveAs("storefig/h_fittingResult.Data.FD2d.eps");
+        c1->SaveAs("storefig/resultHisto.pdf");
+    }
+        
 
     //plbMass.setRange("signalRegion", 5.58, 5.64);
     //RooAbsReal* mcIntegral   = pdf_gaus.createIntegral( plbMass, RooFit::NormSet(plbMass), RooFit::Range("signalRegion") );
@@ -357,7 +432,6 @@ int main()
     std::cout << "intermediate chi2/nDoF = " << tmpChi2 << std::endl;
     c1->SaveAs("storefig/resultHisto.pdf]");
     std::cout << "signal mean = " << par_mean.getVal() << ", width = " << par_width.getVal() << std::endl;
-    delete txt;
     delete c1;
     delete ntMC;
     delete ntdata;

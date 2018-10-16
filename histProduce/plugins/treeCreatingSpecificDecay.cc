@@ -20,6 +20,7 @@
 
 #include <TH1.h>
 #include <TFile.h>
+#include <TLorentzVector.h>
 
 #include <set>
 #include <string>
@@ -37,8 +38,7 @@ using namespace std;
 // xyz = ps.getParameter<string>( "xyx" )
 
 
-treeCreatingSpecificDecay::treeCreatingSpecificDecay( const edm::ParameterSet& ps ) :
-    dir( fs->mkdir("SDanalyzer") ), myData( &dir )
+treeCreatingSpecificDecay::treeCreatingSpecificDecay( const edm::ParameterSet& ps ) 
 {
 
   useOnia = ( SET_LABEL( oniaCandsLabel, ps ) != "" );
@@ -46,6 +46,10 @@ treeCreatingSpecificDecay::treeCreatingSpecificDecay( const edm::ParameterSet& p
   usepL0B = ( SET_LABEL( pL0BCandsLabel, ps ) != "" );
   usenTks = ( SET_LABEL( nTksCandsLabel, ps ) != "" );
   usenL0B = ( SET_LABEL( nL0BCandsLabel, ps ) != "" );
+  useLam0 = ( SET_LABEL( Lam0CandsLabel, ps ) != "" );
+  useLbL0 = ( SET_LABEL( LbL0CandsLabel, ps ) != "" );
+  useLamo = ( SET_LABEL( LamoCandsLabel, ps ) != "" );
+  useLbLo = ( SET_LABEL( LbLoCandsLabel, ps ) != "" );
   useBS   = ( SET_LABEL(   bsPointLabel, ps ) != "" );
   if ( useOnia ) consume< vector<pat::CompositeCandidate> >( oniaCandsToken,
                                                              oniaCandsLabel );
@@ -57,9 +61,25 @@ treeCreatingSpecificDecay::treeCreatingSpecificDecay( const edm::ParameterSet& p
                                                              nTksCandsLabel );
   if ( usenL0B ) consume< vector<pat::CompositeCandidate> >( nL0BCandsToken,
                                                              nL0BCandsLabel );
+  if ( useLam0 ) consume< vector<pat::CompositeCandidate> >( Lam0CandsToken,
+                                                             Lam0CandsLabel );
+  if ( useLbL0 ) consume< vector<pat::CompositeCandidate> >( LbL0CandsToken,
+                                                             LbL0CandsLabel );
+  if ( useLamo ) consume< vector<pat::CompositeCandidate> >( LamoCandsToken,
+                                                             LamoCandsLabel );
+  if ( useLbLo ) consume< vector<pat::CompositeCandidate> >( LbLoCandsToken,
+                                                             LbLoCandsLabel );
   if ( useBS )   consume< reco::BeamSpot                  >( bsPointToken,
                                                              bsPointLabel );
 
+    pL0BTree = fs->make<TTree>( "pLbTk", "pLbTk" );
+    nL0BTree = fs->make<TTree>( "nLbTk", "nLbTk" );
+    LbL0Tree = fs->make<TTree>( "pLbL0", "pLbL0" );
+    LbLoTree = fs->make<TTree>( "nLbL0", "nLbL0" );
+    pL0B.RegFormatTree( pL0BTree );
+    nL0B.RegFormatTree( nL0BTree );
+    LbL0.RegFormatTree( LbL0Tree );
+    LbLo.RegFormatTree( LbLoTree );
 }
 
 
@@ -76,6 +96,10 @@ void treeCreatingSpecificDecay::fillDescriptions(
    desc.add<string>( "pL0BCandsLabel", "" );
    desc.add<string>( "nTksCandsLabel", "" );
    desc.add<string>( "nL0BCandsLabel", "" );
+   desc.add<string>( "Lam0CandsLabel", "" );
+   desc.add<string>( "LbL0CandsLabel", "" );
+   desc.add<string>( "LamoCandsLabel", "" );
+   desc.add<string>( "LbLoCandsLabel", "" );
    desc.add<string>( "bsPointLabel", "" );
    descriptions.add( "process.treeCreatingSpecificDecay", desc );
    return;
@@ -113,367 +137,617 @@ void treeCreatingSpecificDecay::analyze( const edm::Event& ev,
 
   //////////// LbTk ////////////
 
-  edm::Handle< vector<pat::CompositeCandidate> > pL0BCands;
-  edm::Handle< vector<pat::CompositeCandidate> > nL0BCands;
-  if ( usepL0B )
+  if ( usepL0B ) // Lb->JPsi p K {{{
+  {
+    edm::Handle< vector<pat::CompositeCandidate> > pL0BCands;
     pL0BCandsToken.get( ev, pL0BCands );
-  if ( usenL0B )
-    nL0BCandsToken.get( ev, nL0BCands );
-
-
-
-
-  std::vector<pat::CompositeCandidate>::const_iterator handleIter;
-  std::vector<pat::CompositeCandidate>::const_iterator handleIend;
-  // preselection for pCand {{{
-  if ( !pL0BCands.isValid() ) return;
-  if ( pL0BCands->size() == 0 ) return;
-
-  std::vector< std::pair< double, const pat::CompositeCandidate*> > candsSorted;
-  candsSorted.clear();
-  candsSorted.reserve( pL0BCands->size() );
-  handleIter = pL0BCands->begin();
-  handleIend = pL0BCands->end  ();
-  while( handleIter != handleIend )
-  {
-      const pat::CompositeCandidate& cand = *handleIter++;
-      if ( !cand.hasUserFloat("fitMass") ) continue;
-      if ( !cand.hasUserData("TkTk/Proton.fitMom") ) continue;
-      if ( !cand.hasUserData(  "TkTk/Kaon.fitMom") ) continue;
-      if ( !cand.hasUserFloat("TkTk/Proton.IPt") ) continue;
-      if ( !cand.hasUserFloat(  "TkTk/Kaon.IPt") ) continue;
-      if ( !cand.hasUserData( "fitVertex" ) ) continue;
-      if ( !cand.hasUserData( "refToJPsi" ) ) continue;
-
-      const GlobalVector* dPTR[2] = {nullptr};
-      dPTR[0] = cand.userData<GlobalVector>("TkTk/Proton.fitMom");
-      dPTR[1] = cand.userData<GlobalVector>("TkTk/Kaon.fitMom");
-
-      const GlobalVector* muPTR[2] = {nullptr};
-      muPTR[0] = cand.userData<GlobalVector>("JPsi/MuPos.fitMom");
-      muPTR[1] = cand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
-
-      fourMom pMu ( muPTR[0]->x(), muPTR[0]->y(), muPTR[0]->z() );
-      fourMom nMu ( muPTR[1]->x(), muPTR[1]->y(), muPTR[1]->z() );
-      fourMom pTk ( dPTR[0]->x(), dPTR[0]->y(), dPTR[0]->z() );
-      fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
-      //fourMom tktk = pTk+nTk;
-      fourMom fourTk = pTk+nTk+pMu+nMu;
-      // preselection
-      if ( pMu.transverse() < 5.0 ) continue;
-      if ( nMu.transverse() < 5.0 ) continue;
-      if ( pMu.Momentum()   < 5.0 ) continue;
-      if ( nMu.Momentum()   < 5.0 ) continue;
-      if ( pTk.transverse() < 1.0 ) continue;
-      if ( nTk.transverse() < 1.0 ) continue;
-      if ( pTk.Momentum()   < 1.0 ) continue;
-      if ( nTk.Momentum()   < 1.0 ) continue;
-
-      if ( fourTk.transverse()< 12. ) continue;
-      if ( fourTk.Momentum()  < 12. ) continue;
-
-
-      const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
-      if ( _vtx == nullptr ) continue;
-      double fdSig = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
-      if ( fdSig < 3.0 ) continue;
-      double cos2d = usefulFuncs::getCosa2d( cand, &bs );
-      double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
-      if ( cos2d < 0.99 ) continue;
-      if ( vtxprob < 0.15 ) continue;
-
-      candsSorted.emplace_back( vtxprob, &cand );
-  }
-  if ( candsSorted.size() == 0 ) return;
-  // preselect for pCand end }}}
-  // preselection for nCand {{{
-  if ( !nL0BCands.isValid() ) return;
-  if ( nL0BCands->size() == 0 ) return;
-
-  std::vector< std::pair< double, const pat::CompositeCandidate*> > antiCandSort;
-  antiCandSort.clear();
-  antiCandSort.reserve( nL0BCands->size() );
-  handleIter = nL0BCands->begin();
-  handleIend = nL0BCands->end  ();
-  while( handleIter != handleIend )
-  {
-      const pat::CompositeCandidate& cand = *handleIter++;
-      if ( !cand.hasUserFloat("fitMass") ) continue;
-      if ( !cand.hasUserData("TkTk/Proton.fitMom") ) continue;
-      if ( !cand.hasUserData(  "TkTk/Kaon.fitMom") ) continue;
-      if ( !cand.hasUserFloat("TkTk/Proton.IPt") ) continue;
-      if ( !cand.hasUserFloat(  "TkTk/Kaon.IPt") ) continue;
-      if ( !cand.hasUserData( "fitVertex" ) ) continue;
-      if ( !cand.hasUserData( "refToJPsi" ) ) continue;
-
-      const GlobalVector* dPTR[2] = {nullptr};
-      dPTR[0] = cand.userData<GlobalVector>("TkTk/Proton.fitMom");
-      dPTR[1] = cand.userData<GlobalVector>("TkTk/Kaon.fitMom");
-
-      const GlobalVector* muPTR[2] = {nullptr};
-      muPTR[0] = cand.userData<GlobalVector>("JPsi/MuPos.fitMom");
-      muPTR[1] = cand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
-
-      fourMom pMu ( muPTR[0]->x(), muPTR[0]->y(), muPTR[0]->z() );
-      fourMom nMu ( muPTR[1]->x(), muPTR[1]->y(), muPTR[1]->z() );
-      fourMom pTk ( dPTR[0]->x(), dPTR[0]->y(), dPTR[0]->z() );
-      fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
-      //fourMom tktk = pTk+nTk;
-      fourMom fourTk = pTk+nTk+pMu+nMu;
-      // preselection
-      if ( pMu.transverse() < 5.0 ) continue;
-      if ( nMu.transverse() < 5.0 ) continue;
-      if ( pMu.Momentum()   < 5.0 ) continue;
-      if ( nMu.Momentum()   < 5.0 ) continue;
-      if ( pTk.transverse() < 1.0 ) continue;
-      if ( nTk.transverse() < 1.0 ) continue;
-      if ( pTk.Momentum()   < 1.0 ) continue;
-      if ( nTk.Momentum()   < 1.0 ) continue;
-
-      if ( fourTk.transverse()< 12. ) continue;
-      if ( fourTk.Momentum()  < 12. ) continue;
-
-
-      const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
-      if ( _vtx == nullptr ) continue;
-      double fdSig = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
-      if ( fdSig < 3.0 ) continue;
-      double cos2d = usefulFuncs::getCosa2d( cand, &bs );
-      double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
-      if ( cos2d < 0.99 ) continue;
-      if ( vtxprob < 0.15 ) continue;
-
-      antiCandSort.emplace_back( vtxprob, &cand );
-  }
-  if ( antiCandSort.size() == 0 ) return;
-  // preselect for nCand end }}}
-
-  std::vector< std::pair< std::pair<double,const pat::CompositeCandidate*>, std::pair<double,const pat::CompositeCandidate*> > > pairCandidates;
-  pairCandidates = pairpnCands( candsSorted, antiCandSort ); 
+    std::vector<pat::CompositeCandidate>::const_iterator handleIter;
+    std::vector<pat::CompositeCandidate>::const_iterator handleIend;
+    // preselection {{{
+    if ( !pL0BCands.isValid() ) return;
+    if ( pL0BCands->size() == 0 ) return;
   
+    std::vector< std::pair< double, const pat::CompositeCandidate*> > selectedCandList;
+    selectedCandList.clear();
+    selectedCandList.reserve( pL0BCands->size() );
+    handleIter = pL0BCands->begin();
+    handleIend = pL0BCands->end  ();
+    while( handleIter != handleIend )
+    {
+        const pat::CompositeCandidate& cand = *handleIter++;
+        if ( !cand.hasUserFloat("fitMass") ) continue;
+        if ( !cand.hasUserData("TkTk/Proton.fitMom") ) continue;
+        if ( !cand.hasUserData(  "TkTk/Kaon.fitMom") ) continue;
+        if ( !cand.hasUserFloat("TkTk/Proton.IPt") ) continue;
+        if ( !cand.hasUserFloat(  "TkTk/Kaon.IPt") ) continue;
+        if ( !cand.hasUserData( "fitVertex" ) ) continue;
+        if ( !cand.hasUserData( "refToJPsi" ) ) continue;
+  
+        const GlobalVector* dPTR[2] = {nullptr};
+        dPTR[0] = cand.userData<GlobalVector>("TkTk/Proton.fitMom");
+        dPTR[1] = cand.userData<GlobalVector>("TkTk/Kaon.fitMom");
+  
+        const GlobalVector* muPTR[2] = {nullptr};
+        muPTR[0] = cand.userData<GlobalVector>("JPsi/MuPos.fitMom");
+        muPTR[1] = cand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
+  
+        fourMom pMu ( muPTR[0]->x(), muPTR[0]->y(), muPTR[0]->z() );
+        fourMom nMu ( muPTR[1]->x(), muPTR[1]->y(), muPTR[1]->z() );
+        fourMom pTk ( dPTR[0]->x(), dPTR[0]->y(), dPTR[0]->z() );
+        fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
+        //fourMom tktk = pTk+nTk;
+        fourMom fourTk = pTk+nTk+pMu+nMu;
+        // preselection
+        if ( pMu.transverse() < 4.0 ) continue;
+        if ( nMu.transverse() < 4.0 ) continue;
+        if ( pMu.Momentum()   < 4.0 ) continue;
+        if ( nMu.Momentum()   < 4.0 ) continue;
+        if ( pTk.transverse() < 0.8 ) continue;
+        //if ( nTk.transverse() < 1.0 ) continue;
+        if ( pTk.Momentum()   < 0.8 ) continue;
+        //if ( nTk.Momentum()   < 1.0 ) continue;
+  
+        if ( fourTk.transverse()< 10. ) continue;
+        if ( fourTk.Momentum()  < 10. ) continue;
+  
+  
+        const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+        if ( _vtx == nullptr ) continue;
+        double fdSig = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
+        if ( fdSig < 3.0 ) continue;
+        double cos2d = usefulFuncs::getCosa2d( cand, &bs );
+        double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
+        if ( cos2d < 0.95 ) continue;
+        if ( vtxprob < 0.03 ) continue;
+  
+        selectedCandList.emplace_back( vtxprob, &cand );
+    }
+    // preselection end }}}
+  
+    unsigned N = selectedCandList.size();
+    for ( unsigned i = 0; i < N; ++i )
+    {
+        pL0B.Clear();
+        const double candVtxprob = selectedCandList[i].first;
+        const pat::CompositeCandidate& selCand = *(selectedCandList[i].second);
+        const pat::CompositeCandidate& tktkCand = *(usefulFuncs::getByRef<pat::CompositeCandidate>( selCand, "refToTkTk" ));
+        //const pat::CompositeCandidate& jpsiCand = *(usefulFuncs::getByRef<pat::CompositeCandidate>( selCand, "refToJPsi" ));
+  
+        const GlobalVector* dPTR[2] = {nullptr};
+        dPTR[0] = selCand.userData<GlobalVector>("TkTk/Proton.fitMom");
+        dPTR[1] = selCand.userData<GlobalVector>("TkTk/Kaon.fitMom");
+  
+        const GlobalVector* muPTR[2] = {nullptr};
+        muPTR[0] = selCand.userData<GlobalVector>("JPsi/MuPos.fitMom");
+        muPTR[1] = selCand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
+        const GlobalVector* fourTk = selCand.userData<GlobalVector>("fitMomentum");
+        TLorentzVector fourTkMom( fourTk->x(), fourTk->y(), fourTk->z(), sqrt(fourTk->x()*fourTk->x()+fourTk->y()*fourTk->y()+fourTk->z()*fourTk->z()+selCand.userFloat("fitMass")*selCand.userFloat("fitMass")) );
+        const GlobalVector* twoTk  = tktkCand.userData<GlobalVector>("fitMomentum");
+        TLorentzVector twoTkMom( twoTk->x(), twoTk->y(), twoTk->z(), sqrt(twoTk->x()*twoTk->x()+twoTk->y()*twoTk->y()+twoTk->z()*twoTk->z()+tktkCand.userFloat("fitMass")*tktkCand.userFloat("fitMass")) );
+        
+        pL0B.dataD[LbTkRecord::lbtkMass] = selCand.userFloat( "fitMass" );
+        pL0B.dataD[LbTkRecord::lbtkPt] = fourTkMom.Pt();
+        pL0B.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
+        pL0B.dataD[LbTkRecord::lbtkY] = fourTkMom.Rapidity();
+        pL0B.dataD[LbTkRecord::lbtkPhi] = fourTk->phi();
+        pL0B.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( selCand, &bs );
+        pL0B.dataD[LbTkRecord::lbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( selCand, &bs );
+        const reco::Vertex* candVtx = usefulFuncs::get<reco::Vertex>( selCand, "fitVertex" );
+        pL0B.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosa2d(selCand,&bs);
+        pL0B.dataD[LbTkRecord::lbtkVtxprob] = TMath::Prob( candVtx->chi2(), candVtx->ndof() );
+        pL0B.dataD[LbTkRecord::lbtknChi2] = candVtx->chi2() / candVtx->ndof();
 
-  std::vector< std::pair< std::pair<double,const pat::CompositeCandidate*>, std::pair<double,const pat::CompositeCandidate*> > >::const_iterator iter = pairCandidates.cbegin();
-  std::vector< std::pair< std::pair<double,const pat::CompositeCandidate*>, std::pair<double,const pat::CompositeCandidate*> > >::const_iterator iend = pairCandidates.cend  ();
+        pL0B.dataD[LbTkRecord::tktkMass] = tktkCand.userFloat( "fitMass" );
+        pL0B.dataD[LbTkRecord::tktkPt] = twoTkMom.Pt();
+        pL0B.dataD[LbTkRecord::tktkEta] = twoTkMom.Eta();
+        pL0B.dataD[LbTkRecord::tktkY] = twoTkMom.Rapidity();
+        pL0B.dataD[LbTkRecord::tktkPhi] = twoTk->phi();
+        pL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance ( tktkCand, &bs );
+        pL0B.dataD[LbTkRecord::tktkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( tktkCand, &bs );
+        const reco::Vertex* tktkCandVtx = usefulFuncs::get<reco::Vertex>( tktkCand, "fitVertex" );
+        pL0B.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosa2d(tktkCand,&bs);
+        pL0B.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob( tktkCandVtx->chi2(), tktkCandVtx->ndof() );
+        pL0B.dataD[LbTkRecord::tktknChi2] = tktkCandVtx->chi2() / tktkCandVtx->ndof();
+  
+        pL0B.dataD[LbTkRecord::pmuPt] = muPTR[0]->perp();
+        pL0B.dataD[LbTkRecord::pmuP0] = sqrt(muPTR[0]->mag2()+0.105658*0.105658);
+        pL0B.dataD[LbTkRecord::pmuP1] = muPTR[0]->x();
+        pL0B.dataD[LbTkRecord::pmuP2] = muPTR[0]->y();
+        pL0B.dataD[LbTkRecord::pmuP3] = muPTR[0]->z();
+        pL0B.dataD[LbTkRecord::nmuPt] = muPTR[1]->perp();
+        pL0B.dataD[LbTkRecord::nmuP0] = sqrt(muPTR[1]->mag2()+0.105658*0.105658);
+        pL0B.dataD[LbTkRecord::nmuP1] = muPTR[1]->x();
+        pL0B.dataD[LbTkRecord::nmuP2] = muPTR[1]->y();
+        pL0B.dataD[LbTkRecord::nmuP3] = muPTR[1]->z();
 
-  while ( iter != iend )
+        pL0B.dataD[LbTkRecord::tk1Pt] = dPTR[0]->perp();
+        pL0B.dataD[LbTkRecord::tk1P0] = sqrt(dPTR[0]->mag2()+0.105658*0.105658);
+        pL0B.dataD[LbTkRecord::tk1P1] = dPTR[0]->x();
+        pL0B.dataD[LbTkRecord::tk1P2] = dPTR[0]->y();
+        pL0B.dataD[LbTkRecord::tk1P3] = dPTR[0]->z();
+        pL0B.dataD[LbTkRecord::tk2Pt] = dPTR[1]->perp();
+        pL0B.dataD[LbTkRecord::tk2P0] = sqrt(dPTR[1]->mag2()+0.105658*0.105658);
+        pL0B.dataD[LbTkRecord::tk2P1] = dPTR[1]->x();
+        pL0B.dataD[LbTkRecord::tk2P2] = dPTR[1]->y();
+        pL0B.dataD[LbTkRecord::tk2P3] = dPTR[1]->z();
+
+        pL0B.dataD[LbTkRecord::tk1IPt] = selCand.userFloat("TkTk/Proton.IPt");
+        pL0B.dataD[LbTkRecord::tk2IPt] = selCand.userFloat("TkTk/Kaon.IPt");
+        pL0B.dataD[LbTkRecord::tk1IPtErr] = selCand.userFloat("TkTk/Proton.IPt.Error");
+        pL0B.dataD[LbTkRecord::tk2IPtErr] = selCand.userFloat("TkTk/Kaon.IPt.Error");
+        if ( selCand.hasUserFloat("TkTk/Proton.dEdx.pixelHrm") )
+            pL0B.dataD[LbTkRecord::tk1DEDX_pixelHrm] = selCand.userFloat( "TkTk/Proton.dEdx.pixelHrm" );
+        if ( selCand.hasUserFloat(  "TkTk/Kaon.dEdx.pixelHrm") )
+            pL0B.dataD[LbTkRecord::tk2DEDX_pixelHrm] = selCand.userFloat( "TkTk/Kaon.dEdx.pixelHrm" );
+        if ( selCand.hasUserFloat("TkTk/Proton.dEdx.Harmonic") )
+            pL0B.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat( "TkTk/Proton.dEdx.Harmonic" );
+        if ( selCand.hasUserFloat(  "TkTk/Kaon.dEdx.Harmonic") )
+            pL0B.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat(   "TkTk/Kaon.dEdx.Harmonic" );
+  
+  
+  
+        pL0BTree->Fill();
+    }
+  } // Lb->Jpsi p K end }}}
+  if ( usenL0B ) // Lb->JPsi P k {{{
   {
-      myData.Clear();
-      const std::pair<double,const pat::CompositeCandidate*>& pSet = iter->first;
-      const std::pair<double,const pat::CompositeCandidate*>& nSet = iter->second;
-      ++iter;
+    edm::Handle< vector<pat::CompositeCandidate> > nL0BCands;
+    nL0BCandsToken.get( ev, nL0BCands );
+    std::vector<pat::CompositeCandidate>::const_iterator handleIter;
+    std::vector<pat::CompositeCandidate>::const_iterator handleIend;
+    // preselection {{{
+    if ( !nL0BCands.isValid() ) return;
+    if ( nL0BCands->size() == 0 ) return;
+  
+    std::vector< std::pair< double, const pat::CompositeCandidate*> > selectedCandList;
+    selectedCandList.clear();
+    selectedCandList.reserve( nL0BCands->size() );
+    handleIter = nL0BCands->begin();
+    handleIend = nL0BCands->end  ();
+    while( handleIter != handleIend )
+    {
+        const pat::CompositeCandidate& cand = *handleIter++;
+        if ( !cand.hasUserFloat("fitMass") ) continue;
+        if ( !cand.hasUserData("TkTk/Proton.fitMom") ) continue;
+        if ( !cand.hasUserData(  "TkTk/Kaon.fitMom") ) continue;
+        if ( !cand.hasUserFloat("TkTk/Proton.IPt") ) continue;
+        if ( !cand.hasUserFloat(  "TkTk/Kaon.IPt") ) continue;
+        if ( !cand.hasUserData( "fitVertex" ) ) continue;
+        if ( !cand.hasUserData( "refToJPsi" ) ) continue;
+  
+        const GlobalVector* dPTR[2] = {nullptr};
+        dPTR[0] = cand.userData<GlobalVector>("TkTk/Proton.fitMom");
+        dPTR[1] = cand.userData<GlobalVector>("TkTk/Kaon.fitMom");
+  
+        const GlobalVector* muPTR[2] = {nullptr};
+        muPTR[0] = cand.userData<GlobalVector>("JPsi/MuPos.fitMom");
+        muPTR[1] = cand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
+  
+        fourMom pMu ( muPTR[0]->x(), muPTR[0]->y(), muPTR[0]->z() );
+        fourMom nMu ( muPTR[1]->x(), muPTR[1]->y(), muPTR[1]->z() );
+        fourMom pTk ( dPTR[0]->x(), dPTR[0]->y(), dPTR[0]->z() );
+        fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
+        //fourMom tktk = pTk+nTk;
+        fourMom fourTk = pTk+nTk+pMu+nMu;
+        // preselection
+        if ( pMu.transverse() < 4.0 ) continue;
+        if ( nMu.transverse() < 4.0 ) continue;
+        if ( pMu.Momentum()   < 4.0 ) continue;
+        if ( nMu.Momentum()   < 4.0 ) continue;
+        if ( pTk.transverse() < 0.8 ) continue;
+        //if ( nTk.transverse() < 1.0 ) continue;
+        if ( pTk.Momentum()   < 0.8 ) continue;
+        //if ( nTk.Momentum()   < 1.0 ) continue;
+  
+        if ( fourTk.transverse()< 10. ) continue;
+        if ( fourTk.Momentum()  < 10. ) continue;
+  
+  
+        const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+        if ( _vtx == nullptr ) continue;
+        double fdSig = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
+        if ( fdSig < 3.0 ) continue;
+        double cos2d = usefulFuncs::getCosa2d( cand, &bs );
+        double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
+        if ( cos2d < 0.95 ) continue;
+        if ( vtxprob < 0.03 ) continue;
+  
+        selectedCandList.emplace_back( vtxprob, &cand );
+    }
+    // preselection end }}}
+  
+    unsigned N = selectedCandList.size();
+    for ( unsigned i = 0; i < N; ++i )
+    {
+        nL0B.Clear();
+        const double candVtxprob = selectedCandList[i].first;
+        const pat::CompositeCandidate& selCand = *(selectedCandList[i].second);
+        const pat::CompositeCandidate& tktkCand = *(usefulFuncs::getByRef<pat::CompositeCandidate>( selCand, "refToTkTk" ));
+        //const pat::CompositeCandidate& jpsiCand = *(usefulFuncs::getByRef<pat::CompositeCandidate>( selCand, "refToJPsi" ));
+  
+        const GlobalVector* dPTR[2] = {nullptr};
+        dPTR[0] = selCand.userData<GlobalVector>("TkTk/Proton.fitMom");
+        dPTR[1] = selCand.userData<GlobalVector>("TkTk/Kaon.fitMom");
+  
+        const GlobalVector* muPTR[2] = {nullptr};
+        muPTR[0] = selCand.userData<GlobalVector>("JPsi/MuPos.fitMom");
+        muPTR[1] = selCand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
+        const GlobalVector* fourTk = selCand.userData<GlobalVector>("fitMomentum");
+        TLorentzVector fourTkMom( fourTk->x(), fourTk->y(), fourTk->z(), sqrt(fourTk->x()*fourTk->x()+fourTk->y()*fourTk->y()+fourTk->z()*fourTk->z()+selCand.userFloat("fitMass")*selCand.userFloat("fitMass")) );
+        const GlobalVector* twoTk  = tktkCand.userData<GlobalVector>("fitMomentum");
+        TLorentzVector twoTkMom( twoTk->x(), twoTk->y(), twoTk->z(), sqrt(twoTk->x()*twoTk->x()+twoTk->y()*twoTk->y()+twoTk->z()*twoTk->z()+tktkCand.userFloat("fitMass")*tktkCand.userFloat("fitMass")) );
+        
+        nL0B.dataD[LbTkRecord::lbtkMass] = selCand.userFloat( "fitMass" );
+        nL0B.dataD[LbTkRecord::lbtkPt] = fourTkMom.Pt();
+        nL0B.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
+        nL0B.dataD[LbTkRecord::lbtkY] = fourTkMom.Rapidity();
+        nL0B.dataD[LbTkRecord::lbtkPhi] = fourTk->phi();
+        nL0B.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( selCand, &bs );
+        nL0B.dataD[LbTkRecord::lbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( selCand, &bs );
+        const reco::Vertex* candVtx = usefulFuncs::get<reco::Vertex>( selCand, "fitVertex" );
+        nL0B.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosa2d(selCand,&bs);
+        nL0B.dataD[LbTkRecord::lbtkVtxprob] = TMath::Prob( candVtx->chi2(), candVtx->ndof() );
+        nL0B.dataD[LbTkRecord::lbtknChi2] = candVtx->chi2() / candVtx->ndof();
 
-      const pat::CompositeCandidate* pCand = pSet.second;
-      const pat::CompositeCandidate* nCand = nSet.second;
+        nL0B.dataD[LbTkRecord::tktkMass] = tktkCand.userFloat( "fitMass" );
+        nL0B.dataD[LbTkRecord::tktkPt] = twoTkMom.Pt();
+        nL0B.dataD[LbTkRecord::tktkEta] = twoTkMom.Eta();
+        nL0B.dataD[LbTkRecord::tktkY] = twoTkMom.Rapidity();
+        nL0B.dataD[LbTkRecord::tktkPhi] = twoTk->phi();
+        nL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance ( tktkCand, &bs );
+        nL0B.dataD[LbTkRecord::tktkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( tktkCand, &bs );
+        const reco::Vertex* tktkCandVtx = usefulFuncs::get<reco::Vertex>( tktkCand, "fitVertex" );
+        nL0B.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosa2d(tktkCand,&bs);
+        nL0B.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob( tktkCandVtx->chi2(), tktkCandVtx->ndof() );
+        nL0B.dataD[LbTkRecord::tktknChi2] = tktkCandVtx->chi2() / tktkCandVtx->ndof();
+  
+        nL0B.dataD[LbTkRecord::pmuPt] = muPTR[0]->perp();
+        nL0B.dataD[LbTkRecord::pmuP0] = sqrt(muPTR[0]->mag2()+0.105658*0.105658);
+        nL0B.dataD[LbTkRecord::pmuP1] = muPTR[0]->x();
+        nL0B.dataD[LbTkRecord::pmuP2] = muPTR[0]->y();
+        nL0B.dataD[LbTkRecord::pmuP3] = muPTR[0]->z();
+        nL0B.dataD[LbTkRecord::nmuPt] = muPTR[1]->perp();
+        nL0B.dataD[LbTkRecord::nmuP0] = sqrt(muPTR[1]->mag2()+0.105658*0.105658);
+        nL0B.dataD[LbTkRecord::nmuP1] = muPTR[1]->x();
+        nL0B.dataD[LbTkRecord::nmuP2] = muPTR[1]->y();
+        nL0B.dataD[LbTkRecord::nmuP3] = muPTR[1]->z();
 
-      // pos particle rebuilt {{{
-      // first one is proton and second one is kaon ( consider bigger momentum with heavier particle )
-      const GlobalVector* pDaugsPTR[4] = {nullptr};
-      pDaugsPTR[0] = pCand->userData<GlobalVector>("JPsi/MuPos.fitMom");
-      pDaugsPTR[1] = pCand->userData<GlobalVector>("JPsi/MuNeg.fitMom");
-      pDaugsPTR[2] = pCand->userData<GlobalVector>("TkTk/Proton.fitMom");
-      pDaugsPTR[3] = pCand->userData<GlobalVector>("TkTk/Kaon.fitMom");
+        nL0B.dataD[LbTkRecord::tk1Pt] = dPTR[0]->perp();
+        nL0B.dataD[LbTkRecord::tk1P0] = sqrt(dPTR[0]->mag2()+0.105658*0.105658);
+        nL0B.dataD[LbTkRecord::tk1P1] = dPTR[0]->x();
+        nL0B.dataD[LbTkRecord::tk1P2] = dPTR[0]->y();
+        nL0B.dataD[LbTkRecord::tk1P3] = dPTR[0]->z();
+        nL0B.dataD[LbTkRecord::tk2Pt] = dPTR[1]->perp();
+        nL0B.dataD[LbTkRecord::tk2P0] = sqrt(dPTR[1]->mag2()+0.105658*0.105658);
+        nL0B.dataD[LbTkRecord::tk2P1] = dPTR[1]->x();
+        nL0B.dataD[LbTkRecord::tk2P2] = dPTR[1]->y();
+        nL0B.dataD[LbTkRecord::tk2P3] = dPTR[1]->z();
 
-      fourMom pMuPos ( pDaugsPTR[0]->x(), pDaugsPTR[0]->y(), pDaugsPTR[0]->z() );
-      fourMom pMuNeg ( pDaugsPTR[1]->x(), pDaugsPTR[1]->y(), pDaugsPTR[1]->z() );
-      pMuPos.setMass( 0.1056583745 );
-      pMuNeg.setMass( 0.1056583745 );
-      fourMom pTkPos ( pDaugsPTR[2]->x(), pDaugsPTR[2]->y(), pDaugsPTR[2]->z() );
-      fourMom pTkNeg ( pDaugsPTR[3]->x(), pDaugsPTR[3]->y(), pDaugsPTR[3]->z() );
-      fourMom pTkTk;
-      fourMom pFourTk;
-
-      // search for pentaQuark
-      // jpsip = jpsi + proton, jpsiP = jpsi + anti-proton
-      fourMom pJpsip, pJpsipBar;
-      pTkPos.setMass( BPHParticleMasses::protonMass );
-      pTkNeg.setMass( BPHParticleMasses::protonMass );
-      pJpsip = pMuPos + pMuNeg + pTkPos;
-      pJpsipBar = pMuPos + pMuNeg + pTkNeg;
-
-      myData.dataD[dataRecord::ptargetJpsiP_mass] = pJpsip.Mag();
-      myData.dataD[dataRecord::ptargetJpsiP_pt] = pJpsip.transverse();
-      myData.dataD[dataRecord::ptargetJpsiPBar_mass] = pJpsipBar.Mag();
-      myData.dataD[dataRecord::ptargetJpsiPBar_pt] = pJpsipBar.transverse();
-
-      // search for lam0
-      pTkPos.setMass( BPHParticleMasses::protonMass );
-      pTkNeg.setMass( BPHParticleMasses::  pionMass );
-      pTkTk = pTkPos + pTkNeg;
-      pFourTk = pMuPos + pMuNeg + pTkTk;
-
-      myData.dataD[dataRecord::pfake_Lam0Mass] = pTkTk.Mag();
-      myData.dataD[dataRecord::pfake_LbL0Mass] = pFourTk.Mag();
-
-      // search for k short
-      pTkPos.setMass( BPHParticleMasses::pionMass );
-      pTkNeg.setMass( BPHParticleMasses::pionMass );
-      pTkTk = pTkPos + pTkNeg;
-      pFourTk = pMuPos + pMuNeg + pTkTk;
-
-      myData.dataD[dataRecord::pfake_KshortMass] = pTkTk.Mag();
-      myData.dataD[dataRecord::pfake_mumupipiMass] = pFourTk.Mag();
-
-      // search for k(892)
-      pTkPos.setMass( BPHParticleMasses::kaonMass );
-      pTkNeg.setMass( BPHParticleMasses::pionMass );
-      pTkTk = pTkPos + pTkNeg;
-      pFourTk = pMuPos + pMuNeg + pTkTk;
-
-      myData.dataD[dataRecord::pfake_KstarMass] = pTkTk.Mag();
-      myData.dataD[dataRecord::pfake_BdMass] = pFourTk.Mag();
-
-      // search for phi(1020)
-      pTkPos.setMass( BPHParticleMasses::kaonMass );
-      pTkNeg.setMass( BPHParticleMasses::kaonMass );
-      pTkTk = pTkPos + pTkNeg;
-      pFourTk = pMuPos + pMuNeg + pTkTk;
-
-      myData.dataD[dataRecord::pfake_PhiMass] = pTkTk.Mag();
-      myData.dataD[dataRecord::pfake_BsMass] = pFourTk.Mag();
-      // pos particle rebuilt end }}}
-      // neg particle rebuilt {{{
-      // first one is proton and second one is kaon ( consider bigger momentum with heavier particle )
-      const GlobalVector* nDaugsPTR[4] = {nullptr};
-      nDaugsPTR[0] = nCand->userData<GlobalVector>("JPsi/MuPos.fitMom");
-      nDaugsPTR[1] = nCand->userData<GlobalVector>("JPsi/MuNeg.fitMom");
-      nDaugsPTR[2] = nCand->userData<GlobalVector>("TkTk/Proton.fitMom");
-      nDaugsPTR[3] = nCand->userData<GlobalVector>("TkTk/Kaon.fitMom");
-
-      fourMom nMuPos ( nDaugsPTR[0]->x(), nDaugsPTR[0]->y(), nDaugsPTR[0]->z() );
-      fourMom nMuNeg ( nDaugsPTR[1]->x(), nDaugsPTR[1]->y(), nDaugsPTR[1]->z() );
-      nMuPos.setMass( 0.1056583745 );
-      nMuNeg.setMass( 0.1056583745 );
-      fourMom nTkPos ( nDaugsPTR[2]->x(), nDaugsPTR[2]->y(), nDaugsPTR[2]->z() );
-      fourMom nTkNeg ( nDaugsPTR[3]->x(), nDaugsPTR[3]->y(), nDaugsPTR[3]->z() );
-      fourMom nTkTk;
-      fourMom nFourTk;
-
-      // search for pentaQuark
-      // jpsip = jpsi + proton, jpsiP = jpsi + anti-proton
-      fourMom nJpsip, nJpsipBar;
-      nTkPos.setMass( BPHParticleMasses::protonMass );
-      nTkNeg.setMass( BPHParticleMasses::protonMass );
-      nJpsip = nMuPos + nMuNeg + nTkPos;
-      nJpsipBar = nMuPos + nMuNeg + nTkNeg;
-
-      myData.dataD[dataRecord::ntargetJpsiP_mass] = nJpsip.Mag();
-      myData.dataD[dataRecord::ntargetJpsiP_pt] = nJpsip.transverse();
-      myData.dataD[dataRecord::ntargetJpsiPBar_mass] = nJpsipBar.Mag();
-      myData.dataD[dataRecord::ntargetJpsiPBar_pt] = nJpsipBar.transverse();
-
-      // search for lam0
-      nTkPos.setMass( BPHParticleMasses::protonMass );
-      nTkNeg.setMass( BPHParticleMasses::  pionMass );
-      nTkTk = nTkPos + nTkNeg;
-      nFourTk = nMuPos + nMuNeg + nTkTk;
-
-      myData.dataD[dataRecord::nfake_Lam0Mass] = nTkTk.Mag();
-      myData.dataD[dataRecord::nfake_LbL0Mass] = nFourTk.Mag();
-
-      // search for k short
-      nTkPos.setMass( BPHParticleMasses::pionMass );
-      nTkNeg.setMass( BPHParticleMasses::pionMass );
-      nTkTk = nTkPos + nTkNeg;
-      nFourTk = nMuPos + nMuNeg + nTkTk;
-
-      myData.dataD[dataRecord::nfake_KshortMass] = nTkTk.Mag();
-      myData.dataD[dataRecord::nfake_mumupipiMass] = nFourTk.Mag();
-
-      // search for k(892)
-      nTkPos.setMass( BPHParticleMasses::kaonMass );
-      nTkNeg.setMass( BPHParticleMasses::pionMass );
-      nTkTk = nTkPos + nTkNeg;
-      nFourTk = nMuPos + nMuNeg + nTkTk;
-
-      myData.dataD[dataRecord::nfake_KstarMass] = nTkTk.Mag();
-      myData.dataD[dataRecord::nfake_BdMass] = nFourTk.Mag();
-
-      // search for phi(1020)
-      nTkPos.setMass( BPHParticleMasses::kaonMass );
-      nTkNeg.setMass( BPHParticleMasses::kaonMass );
-      nTkTk = nTkPos + nTkNeg;
-      nFourTk = nMuPos + nMuNeg + nTkTk;
-
-      myData.dataD[dataRecord::nfake_PhiMass] = nTkTk.Mag();
-      myData.dataD[dataRecord::nfake_BsMass] = nFourTk.Mag();
-      // neg particle rebuilt end }}}
-
-
-      //const pat::CompositeCandidate* pJpsi = usefulFuncs::getByRef<pat::CompositeCandidate>( *pCand, "refToJPsi" );
-      //const reco::Vertex* pv = usefulFuncs::get<reco::Vertex>( *pJpsi, "fitVertex" );
-
-      myData.dataD[dataRecord::plbtkMass] = pCand->userFloat( "fitMass" );
-      myData.dataD[dataRecord::plbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( *pCand, &bs );
-      myData.dataD[dataRecord::plbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( *pCand, &bs );
-
-      const reco::Vertex* pCandVtx = usefulFuncs::get<reco::Vertex>( *pCand, "fitVertex" );
-      myData.dataD[dataRecord::plbtkVtxprob] = TMath::Prob( pCandVtx->chi2(), pCandVtx->ndof() );
-      myData.dataD[dataRecord::plbtkCosa2d] = usefulFuncs::getCosa2d(*pCand,&bs);
-
-      myData.dataD[dataRecord::plbtkMom]= pFourTk.Momentum();
-      myData.dataD[dataRecord::plbtkPt] = pFourTk.transverse();
-      myData.dataD[dataRecord::ptktkPt] = pTkTk.transverse();
-      myData.dataD[dataRecord::ptktkMom]= pTkTk.Momentum();
-      myData.dataD[dataRecord::pptonPt]  = pTkPos.transverse();
-      myData.dataD[dataRecord::pkaonPt]  = pTkNeg.transverse();
-      myData.dataD[dataRecord::pptonMom] = pTkPos.Momentum();
-      myData.dataD[dataRecord::pkaonMom] = pTkNeg.Momentum();
-      myData.dataD[dataRecord::pptonIPt] = pCand->userFloat("TkTk/Proton.IPt");
-      myData.dataD[dataRecord::pkaonIPt] = pCand->userFloat("TkTk/Kaon.IPt");
-      myData.dataD[dataRecord::pptonIPtErr] = pCand->userFloat("TkTk/Proton.IPt.Error");
-      myData.dataD[dataRecord::pkaonIPtErr] = pCand->userFloat("TkTk/Kaon.IPt.Error");
-      if ( pCand->hasUserFloat("TkTk/Proton.dEdx.pixelHrm") )
-          myData.dataD[dataRecord::pptonDEDX_pixelHrm] = pCand->userFloat( "TkTk/Proton.dEdx.pixelHrm" );
-      if ( pCand->hasUserFloat(  "TkTk/Kaon.dEdx.pixelHrm") )
-          myData.dataD[dataRecord::pkaonDEDX_pixelHrm] = pCand->userFloat( "TkTk/Kaon.dEdx.pixelHrm" );
-      if ( pCand->hasUserFloat("TkTk/Proton.dEdx.Harmonic") )
-          myData.dataD[dataRecord::pptonDEDX_Harmonic] = pCand->userFloat( "TkTk/Proton.dEdx.Harmonic" );
-      if ( pCand->hasUserFloat(  "TkTk/Kaon.dEdx.Harmonic") )
-          myData.dataD[dataRecord::pkaonDEDX_Harmonic] = pCand->userFloat(   "TkTk/Kaon.dEdx.Harmonic" );
+        nL0B.dataD[LbTkRecord::tk1IPt] = selCand.userFloat("TkTk/Proton.IPt");
+        nL0B.dataD[LbTkRecord::tk2IPt] = selCand.userFloat("TkTk/Kaon.IPt");
+        nL0B.dataD[LbTkRecord::tk1IPtErr] = selCand.userFloat("TkTk/Proton.IPt.Error");
+        nL0B.dataD[LbTkRecord::tk2IPtErr] = selCand.userFloat("TkTk/Kaon.IPt.Error");
+        if ( selCand.hasUserFloat("TkTk/Proton.dEdx.pixelHrm") )
+            nL0B.dataD[LbTkRecord::tk1DEDX_pixelHrm] = selCand.userFloat( "TkTk/Proton.dEdx.pixelHrm" );
+        if ( selCand.hasUserFloat(  "TkTk/Kaon.dEdx.pixelHrm") )
+            nL0B.dataD[LbTkRecord::tk2DEDX_pixelHrm] = selCand.userFloat( "TkTk/Kaon.dEdx.pixelHrm" );
+        if ( selCand.hasUserFloat("TkTk/Proton.dEdx.Harmonic") )
+            nL0B.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat( "TkTk/Proton.dEdx.Harmonic" );
+        if ( selCand.hasUserFloat(  "TkTk/Kaon.dEdx.Harmonic") )
+            nL0B.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat(   "TkTk/Kaon.dEdx.Harmonic" );
+  
+  
+  
+        nL0BTree->Fill();
+    }
+  } // Lb->Jpsi P k end }}}
 
 
+  //////////// LbL0 ////////////
+  if ( useLbL0 ) // Lb->JPsi Lam0 {{{
+  {
+    edm::Handle< vector<pat::CompositeCandidate> > LbL0Cands;
+    LbL0CandsToken.get( ev, LbL0Cands );
+    std::vector<pat::CompositeCandidate>::const_iterator handleIter;
+    std::vector<pat::CompositeCandidate>::const_iterator handleIend;
+    // preselection {{{
+    if ( !LbL0Cands.isValid() ) return;
+    if ( LbL0Cands->size() == 0 ) return;
+  
+    std::vector< std::pair< double, const pat::CompositeCandidate*> > selectedCandList;
+    selectedCandList.clear();
+    selectedCandList.reserve( LbL0Cands->size() );
+    handleIter = LbL0Cands->begin();
+    handleIend = LbL0Cands->end  ();
+    while( handleIter != handleIend )
+    {
+        const pat::CompositeCandidate& cand = *handleIter++;
+        if ( !cand.hasUserFloat("fitMass") ) continue;
+        if ( !cand.hasUserData("TkTk/Proton.fitMom") ) continue;
+        if ( !cand.hasUserData(  "TkTk/Pion.fitMom") ) continue;
+        if ( !cand.hasUserFloat("TkTk/Proton.IPt") ) continue;
+        if ( !cand.hasUserFloat(  "TkTk/Pion.IPt") ) continue;
+        if ( !cand.hasUserData( "fitVertex" ) ) continue;
+        if ( !cand.hasUserData( "refToJPsi" ) ) continue;
+  
+        const GlobalVector* dPTR[2] = {nullptr};
+        dPTR[0] = cand.userData<GlobalVector>("TkTk/Proton.fitMom");
+        dPTR[1] = cand.userData<GlobalVector>("TkTk/Pion.fitMom");
+  
+        const GlobalVector* muPTR[2] = {nullptr};
+        muPTR[0] = cand.userData<GlobalVector>("JPsi/MuPos.fitMom");
+        muPTR[1] = cand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
+  
+        fourMom pMu ( muPTR[0]->x(), muPTR[0]->y(), muPTR[0]->z() );
+        fourMom nMu ( muPTR[1]->x(), muPTR[1]->y(), muPTR[1]->z() );
+        fourMom pTk ( dPTR[0]->x(), dPTR[0]->y(), dPTR[0]->z() );
+        fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
+        //fourMom tktk = pTk+nTk;
+        fourMom fourTk = pTk+nTk+pMu+nMu;
+        // preselection
+        if ( pMu.transverse() < 4.0 ) continue;
+        if ( nMu.transverse() < 4.0 ) continue;
+        if ( pMu.Momentum()   < 4.0 ) continue;
+        if ( nMu.Momentum()   < 4.0 ) continue;
+        if ( pTk.transverse() < 0.8 ) continue;
+        //if ( nTk.transverse() < 1.0 ) continue;
+        if ( pTk.Momentum()   < 0.8 ) continue;
+        //if ( nTk.Momentum()   < 1.0 ) continue;
+  
+        if ( fourTk.transverse()< 10. ) continue;
+        if ( fourTk.Momentum()  < 10. ) continue;
+  
+  
+        const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+        if ( _vtx == nullptr ) continue;
+        double fdSig = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
+        if ( fdSig < 3.0 ) continue;
+        double cos2d = usefulFuncs::getCosa2d( cand, &bs );
+        double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
+        if ( cos2d < 0.95 ) continue;
+        if ( vtxprob < 0.03 ) continue;
+  
+        selectedCandList.emplace_back( vtxprob, &cand );
+    }
+    // preselection end }}}
+  
+    unsigned N = selectedCandList.size();
+    for ( unsigned i = 0; i < N; ++i )
+    {
+        LbL0.Clear();
+        const double candVtxprob = selectedCandList[i].first;
+        const pat::CompositeCandidate& selCand = *(selectedCandList[i].second);
+        const pat::CompositeCandidate& tktkCand = *(usefulFuncs::getByRef<pat::CompositeCandidate>( selCand, "refToTkTk" ));
+        //const pat::CompositeCandidate& jpsiCand = *(usefulFuncs::getByRef<pat::CompositeCandidate>( selCand, "refToJPsi" ));
+  
+        const GlobalVector* dPTR[2] = {nullptr};
+        dPTR[0] = selCand.userData<GlobalVector>("TkTk/Proton.fitMom");
+        dPTR[1] = selCand.userData<GlobalVector>("TkTk/Pion.fitMom");
+  
+        const GlobalVector* muPTR[2] = {nullptr};
+        muPTR[0] = selCand.userData<GlobalVector>("JPsi/MuPos.fitMom");
+        muPTR[1] = selCand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
+        const GlobalVector* fourTk = selCand.userData<GlobalVector>("fitMomentum");
+        TLorentzVector fourTkMom( fourTk->x(), fourTk->y(), fourTk->z(), sqrt(fourTk->x()*fourTk->x()+fourTk->y()*fourTk->y()+fourTk->z()*fourTk->z()+selCand.userFloat("fitMass")*selCand.userFloat("fitMass")) );
+        const GlobalVector* twoTk  = tktkCand.userData<GlobalVector>("fitMomentum");
+        TLorentzVector twoTkMom( twoTk->x(), twoTk->y(), twoTk->z(), sqrt(twoTk->x()*twoTk->x()+twoTk->y()*twoTk->y()+twoTk->z()*twoTk->z()+tktkCand.userFloat("fitMass")*tktkCand.userFloat("fitMass")) );
+        
+        LbL0.dataD[LbTkRecord::lbtkMass] = selCand.userFloat( "fitMass" );
+        LbL0.dataD[LbTkRecord::lbtkPt] = fourTkMom.Pt();
+        LbL0.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
+        LbL0.dataD[LbTkRecord::lbtkY] = fourTkMom.Rapidity();
+        LbL0.dataD[LbTkRecord::lbtkPhi] = fourTk->phi();
+        LbL0.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( selCand, &bs );
+        LbL0.dataD[LbTkRecord::lbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( selCand, &bs );
+        const reco::Vertex* candVtx = usefulFuncs::get<reco::Vertex>( selCand, "fitVertex" );
+        LbL0.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosa2d(selCand,&bs);
+        LbL0.dataD[LbTkRecord::lbtkVtxprob] = TMath::Prob( candVtx->chi2(), candVtx->ndof() );
+        LbL0.dataD[LbTkRecord::lbtknChi2] = candVtx->chi2() / candVtx->ndof();
 
+        LbL0.dataD[LbTkRecord::tktkMass] = tktkCand.userFloat( "fitMass" );
+        LbL0.dataD[LbTkRecord::tktkPt] = twoTkMom.Pt();
+        LbL0.dataD[LbTkRecord::tktkEta] = twoTkMom.Eta();
+        LbL0.dataD[LbTkRecord::tktkY] = twoTkMom.Rapidity();
+        LbL0.dataD[LbTkRecord::tktkPhi] = twoTk->phi();
+        LbL0.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance ( tktkCand, &bs );
+        LbL0.dataD[LbTkRecord::tktkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( tktkCand, &bs );
+        const reco::Vertex* tktkCandVtx = usefulFuncs::get<reco::Vertex>( tktkCand, "fitVertex" );
+        LbL0.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosa2d(tktkCand,&bs);
+        LbL0.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob( tktkCandVtx->chi2(), tktkCandVtx->ndof() );
+        LbL0.dataD[LbTkRecord::tktknChi2] = tktkCandVtx->chi2() / tktkCandVtx->ndof();
+  
+        LbL0.dataD[LbTkRecord::pmuPt] = muPTR[0]->perp();
+        LbL0.dataD[LbTkRecord::pmuP0] = sqrt(muPTR[0]->mag2()+0.105658*0.105658);
+        LbL0.dataD[LbTkRecord::pmuP1] = muPTR[0]->x();
+        LbL0.dataD[LbTkRecord::pmuP2] = muPTR[0]->y();
+        LbL0.dataD[LbTkRecord::pmuP3] = muPTR[0]->z();
+        LbL0.dataD[LbTkRecord::nmuPt] = muPTR[1]->perp();
+        LbL0.dataD[LbTkRecord::nmuP0] = sqrt(muPTR[1]->mag2()+0.105658*0.105658);
+        LbL0.dataD[LbTkRecord::nmuP1] = muPTR[1]->x();
+        LbL0.dataD[LbTkRecord::nmuP2] = muPTR[1]->y();
+        LbL0.dataD[LbTkRecord::nmuP3] = muPTR[1]->z();
 
-      //const pat::CompositeCandidate* nJpsi = usefulFuncs::getByRef<pat::CompositeCandidate>( *nCand, "refToJPsi" );
-      //const reco::Vertex* pv = usefulFuncs::get<reco::Vertex>( *nJpsi, "fitVertex" );
+        LbL0.dataD[LbTkRecord::tk1Pt] = dPTR[0]->perp();
+        LbL0.dataD[LbTkRecord::tk1P0] = sqrt(dPTR[0]->mag2()+0.105658*0.105658);
+        LbL0.dataD[LbTkRecord::tk1P1] = dPTR[0]->x();
+        LbL0.dataD[LbTkRecord::tk1P2] = dPTR[0]->y();
+        LbL0.dataD[LbTkRecord::tk1P3] = dPTR[0]->z();
+        LbL0.dataD[LbTkRecord::tk2Pt] = dPTR[1]->perp();
+        LbL0.dataD[LbTkRecord::tk2P0] = sqrt(dPTR[1]->mag2()+0.105658*0.105658);
+        LbL0.dataD[LbTkRecord::tk2P1] = dPTR[1]->x();
+        LbL0.dataD[LbTkRecord::tk2P2] = dPTR[1]->y();
+        LbL0.dataD[LbTkRecord::tk2P3] = dPTR[1]->z();
 
-      myData.dataD[dataRecord::nlbtkMass] = nCand->userFloat( "fitMass" );
-      myData.dataD[dataRecord::nlbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( *nCand, &bs );
-      myData.dataD[dataRecord::nlbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( *nCand, &bs );
+        LbL0.dataD[LbTkRecord::tk1IPt] = selCand.userFloat("TkTk/Proton.IPt");
+        LbL0.dataD[LbTkRecord::tk2IPt] = selCand.userFloat("TkTk/Pion.IPt");
+        LbL0.dataD[LbTkRecord::tk1IPtErr] = selCand.userFloat("TkTk/Proton.IPt.Error");
+        LbL0.dataD[LbTkRecord::tk2IPtErr] = selCand.userFloat("TkTk/Pion.IPt.Error");
+        if ( selCand.hasUserFloat("TkTk/Proton.dEdx.pixelHrm") )
+            LbL0.dataD[LbTkRecord::tk1DEDX_pixelHrm] = selCand.userFloat( "TkTk/Proton.dEdx.pixelHrm" );
+        if ( selCand.hasUserFloat(  "TkTk/Pion.dEdx.pixelHrm") )
+            LbL0.dataD[LbTkRecord::tk2DEDX_pixelHrm] = selCand.userFloat( "TkTk/Pion.dEdx.pixelHrm" );
+        if ( selCand.hasUserFloat("TkTk/Proton.dEdx.Harmonic") )
+            LbL0.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat( "TkTk/Proton.dEdx.Harmonic" );
+        if ( selCand.hasUserFloat(  "TkTk/Pion.dEdx.Harmonic") )
+            LbL0.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat(   "TkTk/Pion.dEdx.Harmonic" );
+  
+  
+  
+        LbL0Tree->Fill();
+    }
+  } // Lb->Jpsi Lam0 end }}}
+  if ( useLbLo ) // Lb->JPsi Lamo {{{
+  {
+    edm::Handle< vector<pat::CompositeCandidate> > LbLoCands;
+    LbLoCandsToken.get( ev, LbLoCands );
+    std::vector<pat::CompositeCandidate>::const_iterator handleIter;
+    std::vector<pat::CompositeCandidate>::const_iterator handleIend;
+    // preselection {{{
+    if ( !LbLoCands.isValid() ) return;
+    if ( LbLoCands->size() == 0 ) return;
+  
+    std::vector< std::pair< double, const pat::CompositeCandidate*> > selectedCandList;
+    selectedCandList.clear();
+    selectedCandList.reserve( LbLoCands->size() );
+    handleIter = LbLoCands->begin();
+    handleIend = LbLoCands->end  ();
+    while( handleIter != handleIend )
+    {
+        const pat::CompositeCandidate& cand = *handleIter++;
+        if ( !cand.hasUserFloat("fitMass") ) continue;
+        if ( !cand.hasUserData("TkTk/Proton.fitMom") ) continue;
+        if ( !cand.hasUserData(  "TkTk/Pion.fitMom") ) continue;
+        if ( !cand.hasUserFloat("TkTk/Proton.IPt") ) continue;
+        if ( !cand.hasUserFloat(  "TkTk/Pion.IPt") ) continue;
+        if ( !cand.hasUserData( "fitVertex" ) ) continue;
+        if ( !cand.hasUserData( "refToJPsi" ) ) continue;
+  
+        const GlobalVector* dPTR[2] = {nullptr};
+        dPTR[0] = cand.userData<GlobalVector>("TkTk/Proton.fitMom");
+        dPTR[1] = cand.userData<GlobalVector>("TkTk/Pion.fitMom");
+  
+        const GlobalVector* muPTR[2] = {nullptr};
+        muPTR[0] = cand.userData<GlobalVector>("JPsi/MuPos.fitMom");
+        muPTR[1] = cand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
+  
+        fourMom pMu ( muPTR[0]->x(), muPTR[0]->y(), muPTR[0]->z() );
+        fourMom nMu ( muPTR[1]->x(), muPTR[1]->y(), muPTR[1]->z() );
+        fourMom pTk ( dPTR[0]->x(), dPTR[0]->y(), dPTR[0]->z() );
+        fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
+        //fourMom tktk = pTk+nTk;
+        fourMom fourTk = pTk+nTk+pMu+nMu;
+        // preselection
+        if ( pMu.transverse() < 4.0 ) continue;
+        if ( nMu.transverse() < 4.0 ) continue;
+        if ( pMu.Momentum()   < 4.0 ) continue;
+        if ( nMu.Momentum()   < 4.0 ) continue;
+        if ( pTk.transverse() < 0.8 ) continue;
+        //if ( nTk.transverse() < 1.0 ) continue;
+        if ( pTk.Momentum()   < 0.8 ) continue;
+        //if ( nTk.Momentum()   < 1.0 ) continue;
+  
+        if ( fourTk.transverse()< 10. ) continue;
+        if ( fourTk.Momentum()  < 10. ) continue;
+  
+  
+        const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
+        if ( _vtx == nullptr ) continue;
+        double fdSig = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
+        if ( fdSig < 3.0 ) continue;
+        double cos2d = usefulFuncs::getCosa2d( cand, &bs );
+        double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
+        if ( cos2d < 0.95 ) continue;
+        if ( vtxprob < 0.03 ) continue;
+  
+        selectedCandList.emplace_back( vtxprob, &cand );
+    }
+    // preselection end }}}
+  
+    unsigned N = selectedCandList.size();
+    for ( unsigned i = 0; i < N; ++i )
+    {
+        LbLo.Clear();
+        const double candVtxprob = selectedCandList[i].first;
+        const pat::CompositeCandidate& selCand = *(selectedCandList[i].second);
+        const pat::CompositeCandidate& tktkCand = *(usefulFuncs::getByRef<pat::CompositeCandidate>( selCand, "refToTkTk" ));
+        //const pat::CompositeCandidate& jpsiCand = *(usefulFuncs::getByRef<pat::CompositeCandidate>( selCand, "refToJPsi" ));
+  
+        const GlobalVector* dPTR[2] = {nullptr};
+        dPTR[0] = selCand.userData<GlobalVector>("TkTk/Proton.fitMom");
+        dPTR[1] = selCand.userData<GlobalVector>("TkTk/Pion.fitMom");
+  
+        const GlobalVector* muPTR[2] = {nullptr};
+        muPTR[0] = selCand.userData<GlobalVector>("JPsi/MuPos.fitMom");
+        muPTR[1] = selCand.userData<GlobalVector>("JPsi/MuNeg.fitMom");
+        const GlobalVector* fourTk = selCand.userData<GlobalVector>("fitMomentum");
+        TLorentzVector fourTkMom( fourTk->x(), fourTk->y(), fourTk->z(), sqrt(fourTk->x()*fourTk->x()+fourTk->y()*fourTk->y()+fourTk->z()*fourTk->z()+selCand.userFloat("fitMass")*selCand.userFloat("fitMass")) );
+        const GlobalVector* twoTk  = tktkCand.userData<GlobalVector>("fitMomentum");
+        TLorentzVector twoTkMom( twoTk->x(), twoTk->y(), twoTk->z(), sqrt(twoTk->x()*twoTk->x()+twoTk->y()*twoTk->y()+twoTk->z()*twoTk->z()+tktkCand.userFloat("fitMass")*tktkCand.userFloat("fitMass")) );
+        
+        LbLo.dataD[LbTkRecord::lbtkMass] = selCand.userFloat( "fitMass" );
+        LbLo.dataD[LbTkRecord::lbtkPt] = fourTkMom.Pt();
+        LbLo.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
+        LbLo.dataD[LbTkRecord::lbtkY] = fourTkMom.Rapidity();
+        LbLo.dataD[LbTkRecord::lbtkPhi] = fourTk->phi();
+        LbLo.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( selCand, &bs );
+        LbLo.dataD[LbTkRecord::lbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( selCand, &bs );
+        const reco::Vertex* candVtx = usefulFuncs::get<reco::Vertex>( selCand, "fitVertex" );
+        LbLo.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosa2d(selCand,&bs);
+        LbLo.dataD[LbTkRecord::lbtkVtxprob] = TMath::Prob( candVtx->chi2(), candVtx->ndof() );
+        LbLo.dataD[LbTkRecord::lbtknChi2] = candVtx->chi2() / candVtx->ndof();
 
-      const reco::Vertex* nCandVtx = usefulFuncs::get<reco::Vertex>( *nCand, "fitVertex" );
-      myData.dataD[dataRecord::nlbtkVtxprob] = TMath::Prob( nCandVtx->chi2(), nCandVtx->ndof() );
-      myData.dataD[dataRecord::nlbtkCosa2d] = usefulFuncs::getCosa2d(*nCand,&bs);
+        LbLo.dataD[LbTkRecord::tktkMass] = tktkCand.userFloat( "fitMass" );
+        LbLo.dataD[LbTkRecord::tktkPt] = twoTkMom.Pt();
+        LbLo.dataD[LbTkRecord::tktkEta] = twoTkMom.Eta();
+        LbLo.dataD[LbTkRecord::tktkY] = twoTkMom.Rapidity();
+        LbLo.dataD[LbTkRecord::tktkPhi] = twoTk->phi();
+        LbLo.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance ( tktkCand, &bs );
+        LbLo.dataD[LbTkRecord::tktkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( tktkCand, &bs );
+        const reco::Vertex* tktkCandVtx = usefulFuncs::get<reco::Vertex>( tktkCand, "fitVertex" );
+        LbLo.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosa2d(tktkCand,&bs);
+        LbLo.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob( tktkCandVtx->chi2(), tktkCandVtx->ndof() );
+        LbLo.dataD[LbTkRecord::tktknChi2] = tktkCandVtx->chi2() / tktkCandVtx->ndof();
+  
+        LbLo.dataD[LbTkRecord::pmuPt] = muPTR[0]->perp();
+        LbLo.dataD[LbTkRecord::pmuP0] = sqrt(muPTR[0]->mag2()+0.105658*0.105658);
+        LbLo.dataD[LbTkRecord::pmuP1] = muPTR[0]->x();
+        LbLo.dataD[LbTkRecord::pmuP2] = muPTR[0]->y();
+        LbLo.dataD[LbTkRecord::pmuP3] = muPTR[0]->z();
+        LbLo.dataD[LbTkRecord::nmuPt] = muPTR[1]->perp();
+        LbLo.dataD[LbTkRecord::nmuP0] = sqrt(muPTR[1]->mag2()+0.105658*0.105658);
+        LbLo.dataD[LbTkRecord::nmuP1] = muPTR[1]->x();
+        LbLo.dataD[LbTkRecord::nmuP2] = muPTR[1]->y();
+        LbLo.dataD[LbTkRecord::nmuP3] = muPTR[1]->z();
 
-      myData.dataD[dataRecord::nlbtkMom]= nFourTk.Momentum();
-      myData.dataD[dataRecord::nlbtkPt] = nFourTk.transverse();
-      myData.dataD[dataRecord::ntktkPt] = nTkTk.transverse();
-      myData.dataD[dataRecord::ntktkMom]= nTkTk.Momentum();
-      myData.dataD[dataRecord::nptonPt]  = nTkPos.transverse();
-      myData.dataD[dataRecord::nkaonPt]  = nTkNeg.transverse();
-      myData.dataD[dataRecord::nptonMom] = nTkPos.Momentum();
-      myData.dataD[dataRecord::nkaonMom] = nTkNeg.Momentum();
-      myData.dataD[dataRecord::nptonIPt] = nCand->userFloat("TkTk/Proton.IPt");
-      myData.dataD[dataRecord::nkaonIPt] = nCand->userFloat("TkTk/Kaon.IPt");
-      myData.dataD[dataRecord::nptonIPtErr] = nCand->userFloat("TkTk/Proton.IPt.Error");
-      myData.dataD[dataRecord::nkaonIPtErr] = nCand->userFloat("TkTk/Kaon.IPt.Error");
-      if ( nCand->hasUserFloat("TkTk/Proton.dEdx.pixelHrm") )
-          myData.dataD[dataRecord::nptonDEDX_pixelHrm] = nCand->userFloat( "TkTk/Proton.dEdx.pixelHrm" );
-      if ( nCand->hasUserFloat(  "TkTk/Kaon.dEdx.pixelHrm") )
-          myData.dataD[dataRecord::nkaonDEDX_pixelHrm] = nCand->userFloat( "TkTk/Kaon.dEdx.pixelHrm" );
-      if ( nCand->hasUserFloat("TkTk/Proton.dEdx.Harmonic") )
-          myData.dataD[dataRecord::nptonDEDX_Harmonic] = nCand->userFloat( "TkTk/Proton.dEdx.Harmonic" );
-      if ( nCand->hasUserFloat(  "TkTk/Kaon.dEdx.Harmonic") )
-          myData.dataD[dataRecord::nkaonDEDX_Harmonic] = nCand->userFloat(   "TkTk/Kaon.dEdx.Harmonic" );
+        LbLo.dataD[LbTkRecord::tk1Pt] = dPTR[0]->perp();
+        LbLo.dataD[LbTkRecord::tk1P0] = sqrt(dPTR[0]->mag2()+0.105658*0.105658);
+        LbLo.dataD[LbTkRecord::tk1P1] = dPTR[0]->x();
+        LbLo.dataD[LbTkRecord::tk1P2] = dPTR[0]->y();
+        LbLo.dataD[LbTkRecord::tk1P3] = dPTR[0]->z();
+        LbLo.dataD[LbTkRecord::tk2Pt] = dPTR[1]->perp();
+        LbLo.dataD[LbTkRecord::tk2P0] = sqrt(dPTR[1]->mag2()+0.105658*0.105658);
+        LbLo.dataD[LbTkRecord::tk2P1] = dPTR[1]->x();
+        LbLo.dataD[LbTkRecord::tk2P2] = dPTR[1]->y();
+        LbLo.dataD[LbTkRecord::tk2P3] = dPTR[1]->z();
 
-
-      myData.thisTree()->Fill();
-  }
-
-
-
-
-
+        LbLo.dataD[LbTkRecord::tk1IPt] = selCand.userFloat("TkTk/Proton.IPt");
+        LbLo.dataD[LbTkRecord::tk2IPt] = selCand.userFloat("TkTk/Pion.IPt");
+        LbLo.dataD[LbTkRecord::tk1IPtErr] = selCand.userFloat("TkTk/Proton.IPt.Error");
+        LbLo.dataD[LbTkRecord::tk2IPtErr] = selCand.userFloat("TkTk/Pion.IPt.Error");
+        if ( selCand.hasUserFloat("TkTk/Proton.dEdx.pixelHrm") )
+            LbLo.dataD[LbTkRecord::tk1DEDX_pixelHrm] = selCand.userFloat( "TkTk/Proton.dEdx.pixelHrm" );
+        if ( selCand.hasUserFloat(  "TkTk/Pion.dEdx.pixelHrm") )
+            LbLo.dataD[LbTkRecord::tk2DEDX_pixelHrm] = selCand.userFloat( "TkTk/Pion.dEdx.pixelHrm" );
+        if ( selCand.hasUserFloat("TkTk/Proton.dEdx.Harmonic") )
+            LbLo.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat( "TkTk/Proton.dEdx.Harmonic" );
+        if ( selCand.hasUserFloat(  "TkTk/Pion.dEdx.Harmonic") )
+            LbLo.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat(   "TkTk/Pion.dEdx.Harmonic" );
+  
+  
+  
+        LbLoTree->Fill();
+    }
+  } // Lb->Jpsi Lamo end }}}
 
   return;
 

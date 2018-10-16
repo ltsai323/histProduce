@@ -2,6 +2,8 @@
 #define __FORMATTREE_H__
 #include "TTree.h"
 #include <iostream>
+// usage:
+// need to be written!
 
 struct formatTree
 {

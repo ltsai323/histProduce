@@ -16,7 +16,8 @@
 
 #include <string>
 
-#include "histProduce/histProduce/interface/tmainpnLbTk.h"
+#include "histProduce/histProduce/interface/formatTreeLbTknew.h"
+#include "histProduce/histProduce/interface/usefulFuncs.h"
 
 class TH1F;
 class TVector3;
@@ -27,7 +28,7 @@ namespace reco {
 }
 
 // use the tree structure of treeMain, not to use the Process function.
-typedef treeMain_pnLbTk dataRecord;
+typedef formatTree_newLbTk LbTkRecord;
 class treeCreatingSpecificDecay:
       public BPHAnalyzerWrapper<BPHModuleWrapper::one_analyzer> {
 
@@ -56,26 +57,44 @@ class treeCreatingSpecificDecay:
   std::string pL0BCandsLabel;
   std::string nTksCandsLabel;
   std::string nL0BCandsLabel;
+  std::string Lam0CandsLabel;
+  std::string LbL0CandsLabel;
+  std::string LamoCandsLabel;
+  std::string LbLoCandsLabel;
   std::string   bsPointLabel;
   BPHTokenWrapper< std::vector<pat::CompositeCandidate> > oniaCandsToken;
   BPHTokenWrapper< std::vector<pat::CompositeCandidate> > pTksCandsToken;
   BPHTokenWrapper< std::vector<pat::CompositeCandidate> > pL0BCandsToken;
   BPHTokenWrapper< std::vector<pat::CompositeCandidate> > nTksCandsToken;
   BPHTokenWrapper< std::vector<pat::CompositeCandidate> > nL0BCandsToken;
+  BPHTokenWrapper< std::vector<pat::CompositeCandidate> > Lam0CandsToken;
+  BPHTokenWrapper< std::vector<pat::CompositeCandidate> > LbL0CandsToken;
+  BPHTokenWrapper< std::vector<pat::CompositeCandidate> > LamoCandsToken;
+  BPHTokenWrapper< std::vector<pat::CompositeCandidate> > LbLoCandsToken;
   BPHTokenWrapper< reco::BeamSpot                       >   bsPointToken;
   bool useOnia;
   bool usepTks;
   bool usepL0B;
   bool usenTks;
   bool usenL0B;
+  bool useLam0;
+  bool useLbL0;
+  bool useLamo;
+  bool useLbLo;
   bool useBS;
 
   edm::Service<TFileService> fs;
-  TFileDirectory dir;
+  //TFileDirectory dir;
 
   std::map<std::string,TH1F*> histoMap;
 
-  dataRecord myData;
+  LbTkRecord pL0B, nL0B;
+  LbTkRecord LbL0, LbLo;
+  TTree* pL0BTree;
+  TTree* nL0BTree;
+  TTree* LbL0Tree;
+  TTree* LbLoTree;
+
 
   void fillHisto   ( const std::string& name,
                      const pat::CompositeCandidate& cand );
