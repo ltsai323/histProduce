@@ -92,5 +92,9 @@ template< typename key, typename val >
     double logDeltaRToCompcands( const pat::CompositeCandidate* cand1, const pat::CompositeCandidate* cand2 );
     //double logDeltaRToCompcands( pat::CompositeCandidate const* cand1, pat::CompositeCandidate const* cand2 );
     double logDeltaRToDaugs( const reco::Candidate* dau1, const reco::Candidate* dau2 );
+    int recordEventSizeWithSeparator( int listSize, int sep ) { return (listSize<<2)+sep; }
+    int getEventSizeFromSizeSeparator( int sizeSeparator ) { return sizeSeparator>>2; }
+    int getSepFromSizeSeparator( int sizeSeparator ) { return sizeSeparator%4; }
+    int inverter ( int sep ) { return sep==2 ? 1:2; }
 }
 #endif

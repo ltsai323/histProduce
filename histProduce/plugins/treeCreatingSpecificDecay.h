@@ -94,6 +94,10 @@ class treeCreatingSpecificDecay:
   TTree* nL0BTree;
   TTree* LbL0Tree;
   TTree* LbLoTree;
+  int eventSeparator_pL0B;
+  int eventSeparator_nL0B;
+  int eventSeparator_LbL0;
+  int eventSeparator_LbLo;
 
 
   void fillHisto   ( const std::string& name,
