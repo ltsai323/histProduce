@@ -229,5 +229,9 @@ namespace usefulFuncs
         double deltaR2 = val1*val1+val2*val2;
         return deltaR2;
     }
+    int recordEventSizeWithSeparator( int listSize, int sep ) { return (listSize<<2)+sep; }
+    int getEventSizeFromSizeSeparator( int sizeSeparator ) { return sizeSeparator>>2; }
+    int getSepFromSizeSeparator( int sizeSeparator ) { return sizeSeparator%4; }
+    int inverter ( int sep ) { return sep==2 ? 1:2; }
 
 }

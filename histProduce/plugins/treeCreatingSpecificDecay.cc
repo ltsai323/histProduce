@@ -289,13 +289,13 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
                 pL0B.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
             if (selCand.hasUserFloat("TkTk/Kaon.dEdx.Harmonic"))
                 pL0B.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
-            pL0B.dataI[LbTkRecord::eventSize] = recordEventSizeWithSeparator(int (N), eventSeparator_pL0B);
+            pL0B.dataI[LbTkRecord::eventSize] = usefulFuncs::recordEventSizeWithSeparator(int (N), eventSeparator_pL0B);
 
 
 
             pL0BTree->Fill();
         }
-        eventSeparator_pL0B = inverter(eventSeparator_pL0B);
+        eventSeparator_pL0B = usefulFuncs::inverter(eventSeparator_pL0B);
     }                           // Lb->Jpsi p K end }}}
     if (usenL0B)                // Lb->JPsi P k {{{
     {
@@ -447,13 +447,13 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
                 nL0B.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
             if (selCand.hasUserFloat("TkTk/Kaon.dEdx.Harmonic"))
                 nL0B.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
-            nL0B.dataI[LbTkRecord::eventSize] = recordEventSizeWithSeparator(int (N), eventSeparator_nL0B);
+            nL0B.dataI[LbTkRecord::eventSize] = usefulFuncs::recordEventSizeWithSeparator(int (N), eventSeparator_nL0B);
 
 
 
             nL0BTree->Fill();
         }
-        eventSeparator_nL0B = inverter(eventSeparator_nL0B);
+        eventSeparator_nL0B = usefulFuncs::inverter(eventSeparator_nL0B);
     }                           // Lb->Jpsi P k end }}}
 
 
@@ -482,6 +482,7 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
             if (!cand.hasUserFloat("TkTk/Pion.IPt")) continue;
             if (!cand.hasUserData("fitVertex")) continue;
             if (!cand.hasUserData("refToJPsi")) continue;
+            if (!cand.hasUserData("refToTkTk")) continue;
 
             const GlobalVector *dPTR[2] = { nullptr };
             dPTR[0] = cand.userData < GlobalVector > ("TkTk/Proton.fitMom");
@@ -608,13 +609,13 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
                 LbL0.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
             if (selCand.hasUserFloat("TkTk/Pion.dEdx.Harmonic"))
                 LbL0.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Pion.dEdx.Harmonic");
-            LbL0.dataI[LbTkRecord::eventSize] = recordEventSizeWithSeparator(int (N), eventSeparator_LbL0);
+            LbL0.dataI[LbTkRecord::eventSize] = usefulFuncs::recordEventSizeWithSeparator(int (N), eventSeparator_LbL0);
 
 
 
             LbL0Tree->Fill();
         }
-        eventSeparator_LbL0 = inverter(eventSeparator_LbL0);
+        eventSeparator_LbL0 = usefulFuncs::inverter(eventSeparator_LbL0);
     }                           // Lb->Jpsi Lam0 end }}}
     if (useLbLo)                // Lb->JPsi Lamo {{{
     {
@@ -766,13 +767,13 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
                 LbLo.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
             if (selCand.hasUserFloat("TkTk/Pion.dEdx.Harmonic"))
                 LbLo.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Pion.dEdx.Harmonic");
-            LbLo.dataI[LbTkRecord::eventSize] = recordEventSizeWithSeparator(int (N), eventSeparator_LbLo);
+            LbLo.dataI[LbTkRecord::eventSize] = usefulFuncs::recordEventSizeWithSeparator(int (N), eventSeparator_LbLo);
 
 
 
             LbLoTree->Fill();
         }
-        eventSeparator_LbLo = inverter(eventSeparator_LbLo);
+        eventSeparator_LbLo = usefulFuncs::inverter(eventSeparator_LbLo);
     }                           // Lb->Jpsi Lamo end }}}
 
     return;
