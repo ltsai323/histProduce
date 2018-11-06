@@ -66,6 +66,11 @@ treeCreatingSpecificDecay::treeCreatingSpecificDecay(const edm::ParameterSet & p
     nL0BTree = fs->make < TTree > ("nLbTk", "nLbTk");
     LbL0Tree = fs->make < TTree > ("pLbL0", "pLbL0");
     LbLoTree = fs->make < TTree > ("nLbL0", "nLbL0");
+    createHisto("lam0Test", 60, 1.0, 1.3);
+    if ( useLam0 )
+        createHisto( "lam0Mass", 60, 1.0, 1.3 );
+    if ( useLbL0 )
+        createHisto( "LbL0Mass", 80, 5.4, 5.8 );
     pL0B.RegFormatTree(pL0BTree);
     nL0B.RegFormatTree(nL0BTree);
     LbL0.RegFormatTree(LbL0Tree);
@@ -143,8 +148,8 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
     {
         edm::Handle < vector < pat::CompositeCandidate > >pL0BCands;
         pL0BCandsToken.get(ev, pL0BCands);
-        std::vector < pat::CompositeCandidate >::const_iterator handleIter;
-        std::vector < pat::CompositeCandidate >::const_iterator handleIend;
+        std::vector < pat::CompositeCandidate >::const_iterator handleIter = pL0BCands->cbegin();
+        std::vector < pat::CompositeCandidate >::const_iterator handleIend = pL0BCands->cend  ();
         // preselection {{{
         if (!pL0BCands.isValid()) return;
         if (pL0BCands->size() == 0) return;
@@ -301,8 +306,8 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
     {
         edm::Handle < vector < pat::CompositeCandidate > >nL0BCands;
         nL0BCandsToken.get(ev, nL0BCands);
-        std::vector < pat::CompositeCandidate >::const_iterator handleIter;
-        std::vector < pat::CompositeCandidate >::const_iterator handleIend;
+        std::vector < pat::CompositeCandidate >::const_iterator handleIter = nL0BCands->cbegin();
+        std::vector < pat::CompositeCandidate >::const_iterator handleIend = nL0BCands->cend  ();
         // preselection {{{
         if (!nL0BCands.isValid()) return;
         if (nL0BCands->size() == 0) return;
@@ -458,12 +463,28 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
 
 
     //////////// LbL0 ////////////
+    if (useLam0)
+    {
+        edm::Handle < vector < pat::CompositeCandidate > >lam0Cands;
+        Lam0CandsToken.get(ev, lam0Cands);
+        std::vector < pat::CompositeCandidate >::const_iterator handleIter = lam0Cands->cbegin();
+        std::vector < pat::CompositeCandidate >::const_iterator handleIend = lam0Cands->cend  ();
+        while ( handleIter != handleIend )
+        {
+            const pat::CompositeCandidate& cand = *handleIter++;
+            if ( cand.hasUserFloat("fitMass") )
+                fillHisto( "lam0Mass", cand.userFloat("fitMass") );
+
+                fillHisto( "lam0Test", cand.mass() );
+        }
+    }
+
     if (useLbL0)                // Lb->JPsi Lam0 {{{
     {
         edm::Handle < vector < pat::CompositeCandidate > >LbL0Cands;
         LbL0CandsToken.get(ev, LbL0Cands);
-        std::vector < pat::CompositeCandidate >::const_iterator handleIter;
-        std::vector < pat::CompositeCandidate >::const_iterator handleIend;
+        std::vector < pat::CompositeCandidate >::const_iterator handleIter = LbL0Cands->cbegin();
+        std::vector < pat::CompositeCandidate >::const_iterator handleIend = LbL0Cands->cend  ();
         // preselection {{{
         if (!LbL0Cands.isValid()) return;
         if (LbL0Cands->size() == 0) return;
@@ -471,10 +492,10 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
         std::vector < std::pair < double, const pat::CompositeCandidate * >>selectedCandList;
         selectedCandList.clear();
         selectedCandList.reserve(LbL0Cands->size());
-        handleIter = LbL0Cands->begin();
-        handleIend = LbL0Cands->end();
+        std::cout << "LbL0 found : " << LbL0Cands->size() << "\n";
         while (handleIter != handleIend) {
             const pat::CompositeCandidate & cand = *handleIter++;
+            fillHisto("LbL0Mass", cand.userFloat("fitMass"));
             if (!cand.hasUserFloat("fitMass")) continue;
             if (!cand.hasUserData("TkTk/Proton.fitMom")) continue;
             if (!cand.hasUserData("TkTk/Pion.fitMom")) continue;
@@ -621,8 +642,8 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
     {
         edm::Handle < vector < pat::CompositeCandidate > >LbLoCands;
         LbLoCandsToken.get(ev, LbLoCands);
-        std::vector < pat::CompositeCandidate >::const_iterator handleIter;
-        std::vector < pat::CompositeCandidate >::const_iterator handleIend;
+        std::vector < pat::CompositeCandidate >::const_iterator handleIter = LbLoCands->cbegin();
+        std::vector < pat::CompositeCandidate >::const_iterator handleIend = LbLoCands->cend  ();
         // preselection {{{
         if (!LbLoCands.isValid()) return;
         if (LbLoCands->size() == 0) return;

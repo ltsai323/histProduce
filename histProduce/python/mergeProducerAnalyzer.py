@@ -3,8 +3,8 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("bphAnalysis")
 
-#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+#process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
 process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load('Configuration.StandardSequences.Services_cff')
@@ -64,10 +64,13 @@ from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_2016LegacyRepro_v3', '')
 #process.GlobalTag = GlobalTag(process.GlobalTag, '94X_dataRun2_ReReco_EOY17_v1', '')
 
-#HLTName='HLT_DoubleMu4_JpsiTrk_Displaced_v*'
-HLTName='HLT_DoubleMu4_3_Jpsi_Displaced_v*'
 from HLTrigger.HLTfilters.hltHighLevel_cfi import hltHighLevel
-process.hltHighLevel= hltHighLevel.clone(HLTPaths = cms.vstring(HLTName))
+process.hltHighLevel= hltHighLevel.clone(HLTPaths = cms.vstring(
+'HLT_DoubleMu4_JpsiTrk_Displaced_v*',
+'HLT_DoubleMu4_3_Jpsi_Displaced_v*',
+'HLT_Dimuon20_Jpsi_v*',
+'HLT_Dimuon16_Jpsi_v*',
+    ))
 
 # preselect pat muon and pat tracks choose for CMSSW version
 process.load("BPHAnalysis.PreselectFilter.FilterConf9_cfi")
@@ -127,16 +130,17 @@ process.lbSpecificDecay = cms.EDAnalyzer('treeCreatingSpecificDecay',
 )
 
 process.myfilterpath = cms.Path(
-      process.hltHighLevel
+    # process.hltHighLevel
 
     # for CMSSW9
-    * process.myMuonsSequence
+      process.myMuonsSequence
     * process.myTrackSequence
 
     # for CMSSW8
     # * process.selectedMuons
     # * process.selectedTracks
     * process.lbWriteSpecificDecay
+    * process.hltHighLevel
     * process.lbSpecificDecay
 )
 
@@ -149,7 +153,8 @@ process.out = cms.OutputModule(
         "keep *_lbWriteSpecificDecay_*_bphAnalysis",
         "keep *_offlineBeamSpot_*_RECO",
         "keep *_offlinePrimaryVertices_*_RECO",
-        "keep *_genParticles__HLT"
+        "keep *_genParticles__HLT",
+        "keep *_TriggerResults__HLT",
     ),
     SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('myfilterpath') )
 )
