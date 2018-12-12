@@ -87,14 +87,9 @@ treeCreatingSpecificDecay::~treeCreatingSpecificDecay()
 void treeCreatingSpecificDecay::fillDescriptions(edm::ConfigurationDescriptions & descriptions)
 {
     edm::ParameterSetDescription desc;
-    desc.add < string > ("oniaCandsLabel", "");
-    desc.add < string > ("pTksCandsLabel", "");
     desc.add < string > ("pL0BCandsLabel", "");
-    desc.add < string > ("nTksCandsLabel", "");
     desc.add < string > ("nL0BCandsLabel", "");
-    desc.add < string > ("Lam0CandsLabel", "");
     desc.add < string > ("LbL0CandsLabel", "");
-    desc.add < string > ("LamoCandsLabel", "");
     desc.add < string > ("LbLoCandsLabel", "");
     desc.add < string > ("bsPointLabel", "");
     descriptions.add("process.treeCreatingSpecificDecay", desc);
@@ -227,6 +222,39 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
             muPTR[0] = selCand.userData < GlobalVector > ("JPsi/MuPos.fitMom");
             muPTR[1] = selCand.userData < GlobalVector > ("JPsi/MuNeg.fitMom");
             const GlobalVector *fourTk = selCand.userData < GlobalVector > ("fitMomentum");
+            // check particles {{{
+            {
+                TLorentzVector pMU, nMU, pTK, nTK;
+                TLorentzVector fourTkMom, twoTkMom;
+                pMU.SetXYZM( muPTR[0]->x(), muPTR[0]->y(), muPTR[0]->z(), BPHParticleMasses::muonMass );
+                nMU.SetXYZM( muPTR[1]->x(), muPTR[1]->y(), muPTR[0]->z(), BPHParticleMasses::muonMass );
+
+                // bd
+                pTK.SetXYZM(  dPTR[0]->x(),  dPTR[0]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+                nTK.SetXYZM(  dPTR[1]->x(),  dPTR[1]->y(),  dPTR[0]->z(), BPHParticleMasses::pionMass );
+
+                fourTkMom = pMU+nMU+pTK+nTK;
+                if ( fabs( fourTkMom.Mag() - BPHParticleMasses::bdMass ) < 2.5*BPHParticleMasses::bdMWidth ) 
+                    pL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<1;
+                // bd bar
+                pTK.SetXYZM(  dPTR[0]->x(),  dPTR[0]->y(),  dPTR[0]->z(), BPHParticleMasses::pionMass );
+                nTK.SetXYZM(  dPTR[1]->x(),  dPTR[1]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+
+                fourTkMom = pMU+nMU+pTK+nTK;
+                if ( fabs( fourTkMom.Mag() - BPHParticleMasses::bdMass ) < 2.5*BPHParticleMasses::bdMWidth ) 
+                    pL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<2;
+
+                // bs
+                pTK.SetXYZM(  dPTR[0]->x(),  dPTR[0]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+                nTK.SetXYZM(  dPTR[1]->x(),  dPTR[1]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+
+                fourTkMom = pMU+nMU+pTK+nTK;
+                twoTkMom  = pTK+nTK;
+                if ( fabs( fourTkMom.Mag() - BPHParticleMasses::bsMass  ) < 2.5*BPHParticleMasses::bsMWidth  &&
+                     fabs( fourTkMom.Mag() - BPHParticleMasses::phiMass ) < 2.5*BPHParticleMasses::phiMWidth )
+                    pL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
+            } // check particles end }}}
+
             TLorentzVector fourTkMom(fourTk->x(), fourTk->y(), fourTk->z(),
                                      sqrt(fourTk->x() * fourTk->x() + fourTk->y() * fourTk->y() +
                                           fourTk->z() * fourTk->z() +
@@ -235,7 +263,6 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
             TLorentzVector twoTkMom(twoTk->x(), twoTk->y(), twoTk->z(),
                                     sqrt(twoTk->x() * twoTk->x() + twoTk->y() * twoTk->y() + twoTk->z() * twoTk->z() +
                                          tktkCand.userFloat("fitMass") * tktkCand.userFloat("fitMass")));
-
             pL0B.dataD[LbTkRecord::lbtkMass] = selCand.userFloat("fitMass");
             pL0B.dataD[LbTkRecord::lbtkPt] = fourTkMom.Pt();
             pL0B.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
@@ -261,23 +288,23 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
             pL0B.dataD[LbTkRecord::tktknChi2] = tktkCandVtx->chi2() / tktkCandVtx->ndof();
 
             pL0B.dataD[LbTkRecord::pmuPt] = muPTR[0]->perp();
-            pL0B.dataD[LbTkRecord::pmuP0] = sqrt(muPTR[0]->mag2() + 0.105658 * 0.105658);
+            pL0B.dataD[LbTkRecord::pmuP0] = sqrt(muPTR[0]->mag2() + BPHParticleMasses::muonMass*BPHParticleMasses::muonMass);
             pL0B.dataD[LbTkRecord::pmuP1] = muPTR[0]->x();
             pL0B.dataD[LbTkRecord::pmuP2] = muPTR[0]->y();
             pL0B.dataD[LbTkRecord::pmuP3] = muPTR[0]->z();
             pL0B.dataD[LbTkRecord::nmuPt] = muPTR[1]->perp();
-            pL0B.dataD[LbTkRecord::nmuP0] = sqrt(muPTR[1]->mag2() + 0.105658 * 0.105658);
+            pL0B.dataD[LbTkRecord::nmuP0] = sqrt(muPTR[1]->mag2() + BPHParticleMasses::muonMass*BPHParticleMasses::muonMass);
             pL0B.dataD[LbTkRecord::nmuP1] = muPTR[1]->x();
             pL0B.dataD[LbTkRecord::nmuP2] = muPTR[1]->y();
             pL0B.dataD[LbTkRecord::nmuP3] = muPTR[1]->z();
 
             pL0B.dataD[LbTkRecord::tk1Pt] = dPTR[0]->perp();
-            pL0B.dataD[LbTkRecord::tk1P0] = sqrt(dPTR[0]->mag2() + 0.105658 * 0.105658);
+            pL0B.dataD[LbTkRecord::tk1P0] = sqrt(dPTR[0]->mag2() + BPHParticleMasses::protonMass*BPHParticleMasses::protonMass);
             pL0B.dataD[LbTkRecord::tk1P1] = dPTR[0]->x();
             pL0B.dataD[LbTkRecord::tk1P2] = dPTR[0]->y();
             pL0B.dataD[LbTkRecord::tk1P3] = dPTR[0]->z();
             pL0B.dataD[LbTkRecord::tk2Pt] = dPTR[1]->perp();
-            pL0B.dataD[LbTkRecord::tk2P0] = sqrt(dPTR[1]->mag2() + 0.105658 * 0.105658);
+            pL0B.dataD[LbTkRecord::tk2P0] = sqrt(dPTR[1]->mag2() + BPHParticleMasses::kaonMass*BPHParticleMasses::kaonMass);
             pL0B.dataD[LbTkRecord::tk2P1] = dPTR[1]->x();
             pL0B.dataD[LbTkRecord::tk2P2] = dPTR[1]->y();
             pL0B.dataD[LbTkRecord::tk2P3] = dPTR[1]->z();
@@ -385,6 +412,39 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
             muPTR[0] = selCand.userData < GlobalVector > ("JPsi/MuPos.fitMom");
             muPTR[1] = selCand.userData < GlobalVector > ("JPsi/MuNeg.fitMom");
             const GlobalVector *fourTk = selCand.userData < GlobalVector > ("fitMomentum");
+            // check particles {{{
+            {
+                TLorentzVector pMU, nMU, pTK, nTK;
+                TLorentzVector fourTkMom, twoTkMom;
+                pMU.SetXYZM( muPTR[0]->x(), muPTR[0]->y(), muPTR[0]->z(), BPHParticleMasses::muonMass );
+                nMU.SetXYZM( muPTR[1]->x(), muPTR[1]->y(), muPTR[0]->z(), BPHParticleMasses::muonMass );
+
+                // bd
+                pTK.SetXYZM(  dPTR[0]->x(),  dPTR[0]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+                nTK.SetXYZM(  dPTR[1]->x(),  dPTR[1]->y(),  dPTR[0]->z(), BPHParticleMasses::pionMass );
+
+                fourTkMom = pMU+nMU+pTK+nTK;
+                if ( fabs( fourTkMom.Mag() - BPHParticleMasses::bdMass ) < 2.5*BPHParticleMasses::bdMWidth ) 
+                    nL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<1;
+
+                // bd bar
+                pTK.SetXYZM(  dPTR[0]->x(),  dPTR[0]->y(),  dPTR[0]->z(), BPHParticleMasses::pionMass );
+                nTK.SetXYZM(  dPTR[1]->x(),  dPTR[1]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+
+                fourTkMom = pMU+nMU+pTK+nTK;
+                if ( fabs( fourTkMom.Mag() - BPHParticleMasses::bdMass ) < 2.5*BPHParticleMasses::bdMWidth ) 
+                    nL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<2;
+
+                // bs
+                pTK.SetXYZM(  dPTR[0]->x(),  dPTR[0]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+                nTK.SetXYZM(  dPTR[1]->x(),  dPTR[1]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+
+                fourTkMom = pMU+nMU+pTK+nTK;
+                twoTkMom  = pTK+nTK;
+                if ( fabs( fourTkMom.Mag() - BPHParticleMasses::bsMass  ) < 2.5*BPHParticleMasses::bsMWidth  &&
+                     fabs( fourTkMom.Mag() - BPHParticleMasses::phiMass ) < 2.5*BPHParticleMasses::phiMWidth )
+                    nL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
+            } // check particles end }}}
             TLorentzVector fourTkMom(fourTk->x(), fourTk->y(), fourTk->z(),
                                      sqrt(fourTk->x() * fourTk->x() + fourTk->y() * fourTk->y() +
                                           fourTk->z() * fourTk->z() +
@@ -419,23 +479,23 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
             nL0B.dataD[LbTkRecord::tktknChi2] = tktkCandVtx->chi2() / tktkCandVtx->ndof();
 
             nL0B.dataD[LbTkRecord::pmuPt] = muPTR[0]->perp();
-            nL0B.dataD[LbTkRecord::pmuP0] = sqrt(muPTR[0]->mag2() + 0.105658 * 0.105658);
+            nL0B.dataD[LbTkRecord::pmuP0] = sqrt(muPTR[0]->mag2() + BPHParticleMasses::muonMass*BPHParticleMasses::muonMass);
             nL0B.dataD[LbTkRecord::pmuP1] = muPTR[0]->x();
             nL0B.dataD[LbTkRecord::pmuP2] = muPTR[0]->y();
             nL0B.dataD[LbTkRecord::pmuP3] = muPTR[0]->z();
             nL0B.dataD[LbTkRecord::nmuPt] = muPTR[1]->perp();
-            nL0B.dataD[LbTkRecord::nmuP0] = sqrt(muPTR[1]->mag2() + 0.105658 * 0.105658);
+            nL0B.dataD[LbTkRecord::nmuP0] = sqrt(muPTR[1]->mag2() + BPHParticleMasses::muonMass*BPHParticleMasses::muonMass);
             nL0B.dataD[LbTkRecord::nmuP1] = muPTR[1]->x();
             nL0B.dataD[LbTkRecord::nmuP2] = muPTR[1]->y();
             nL0B.dataD[LbTkRecord::nmuP3] = muPTR[1]->z();
 
             nL0B.dataD[LbTkRecord::tk1Pt] = dPTR[0]->perp();
-            nL0B.dataD[LbTkRecord::tk1P0] = sqrt(dPTR[0]->mag2() + 0.105658 * 0.105658);
+            nL0B.dataD[LbTkRecord::tk1P0] = sqrt(dPTR[0]->mag2() + BPHParticleMasses::kaonMass*BPHParticleMasses::kaonMass);
             nL0B.dataD[LbTkRecord::tk1P1] = dPTR[0]->x();
             nL0B.dataD[LbTkRecord::tk1P2] = dPTR[0]->y();
             nL0B.dataD[LbTkRecord::tk1P3] = dPTR[0]->z();
             nL0B.dataD[LbTkRecord::tk2Pt] = dPTR[1]->perp();
-            nL0B.dataD[LbTkRecord::tk2P0] = sqrt(dPTR[1]->mag2() + 0.105658 * 0.105658);
+            nL0B.dataD[LbTkRecord::tk2P0] = sqrt(dPTR[1]->mag2() + BPHParticleMasses::protonMass*BPHParticleMasses::protonMass);
             nL0B.dataD[LbTkRecord::tk2P1] = dPTR[1]->x();
             nL0B.dataD[LbTkRecord::tk2P2] = dPTR[1]->y();
             nL0B.dataD[LbTkRecord::tk2P3] = dPTR[1]->z();
@@ -563,6 +623,39 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
             muPTR[0] = selCand.userData < GlobalVector > ("JPsi/MuPos.fitMom");
             muPTR[1] = selCand.userData < GlobalVector > ("JPsi/MuNeg.fitMom");
             const GlobalVector *fourTk = selCand.userData < GlobalVector > ("fitMomentum");
+            // check particles {{{
+            {
+                TLorentzVector pMU, nMU, pTK, nTK;
+                TLorentzVector fourTkMom, twoTkMom;
+                pMU.SetXYZM( muPTR[0]->x(), muPTR[0]->y(), muPTR[0]->z(), BPHParticleMasses::muonMass );
+                nMU.SetXYZM( muPTR[1]->x(), muPTR[1]->y(), muPTR[0]->z(), BPHParticleMasses::muonMass );
+
+                // bd
+                pTK.SetXYZM(  dPTR[0]->x(),  dPTR[0]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+                nTK.SetXYZM(  dPTR[1]->x(),  dPTR[1]->y(),  dPTR[0]->z(), BPHParticleMasses::pionMass );
+
+                fourTkMom = pMU+nMU+pTK+nTK;
+                if ( fabs( fourTkMom.Mag() - BPHParticleMasses::bdMass ) < 2.5*BPHParticleMasses::bdMWidth ) 
+                    LbL0.dataI[LbTkRecord::mightBeOtherParticle] += 1<<1;
+
+                // bd bar
+                pTK.SetXYZM(  dPTR[0]->x(),  dPTR[0]->y(),  dPTR[0]->z(), BPHParticleMasses::pionMass );
+                nTK.SetXYZM(  dPTR[1]->x(),  dPTR[1]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+
+                fourTkMom = pMU+nMU+pTK+nTK;
+                if ( fabs( fourTkMom.Mag() - BPHParticleMasses::bdMass ) < 2.5*BPHParticleMasses::bdMWidth ) 
+                    LbL0.dataI[LbTkRecord::mightBeOtherParticle] += 1<<2;
+
+                // bs
+                pTK.SetXYZM(  dPTR[0]->x(),  dPTR[0]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+                nTK.SetXYZM(  dPTR[1]->x(),  dPTR[1]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+
+                fourTkMom = pMU+nMU+pTK+nTK;
+                twoTkMom  = pTK+nTK;
+                if ( fabs( fourTkMom.Mag() - BPHParticleMasses::bsMass  ) < 2.5*BPHParticleMasses::bsMWidth  &&
+                     fabs( fourTkMom.Mag() - BPHParticleMasses::phiMass ) < 2.5*BPHParticleMasses::phiMWidth )
+                    LbL0.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
+            } // check particles end }}}
             TLorentzVector fourTkMom(fourTk->x(), fourTk->y(), fourTk->z(),
                                      sqrt(fourTk->x() * fourTk->x() + fourTk->y() * fourTk->y() +
                                           fourTk->z() * fourTk->z() +
@@ -597,23 +690,23 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
             LbL0.dataD[LbTkRecord::tktknChi2] = tktkCandVtx->chi2() / tktkCandVtx->ndof();
 
             LbL0.dataD[LbTkRecord::pmuPt] = muPTR[0]->perp();
-            LbL0.dataD[LbTkRecord::pmuP0] = sqrt(muPTR[0]->mag2() + 0.105658 * 0.105658);
+            LbL0.dataD[LbTkRecord::pmuP0] = sqrt(muPTR[0]->mag2() + BPHParticleMasses::muonMass*BPHParticleMasses::muonMass);
             LbL0.dataD[LbTkRecord::pmuP1] = muPTR[0]->x();
             LbL0.dataD[LbTkRecord::pmuP2] = muPTR[0]->y();
             LbL0.dataD[LbTkRecord::pmuP3] = muPTR[0]->z();
             LbL0.dataD[LbTkRecord::nmuPt] = muPTR[1]->perp();
-            LbL0.dataD[LbTkRecord::nmuP0] = sqrt(muPTR[1]->mag2() + 0.105658 * 0.105658);
+            LbL0.dataD[LbTkRecord::nmuP0] = sqrt(muPTR[1]->mag2() + BPHParticleMasses::muonMass*BPHParticleMasses::muonMass);
             LbL0.dataD[LbTkRecord::nmuP1] = muPTR[1]->x();
             LbL0.dataD[LbTkRecord::nmuP2] = muPTR[1]->y();
             LbL0.dataD[LbTkRecord::nmuP3] = muPTR[1]->z();
 
             LbL0.dataD[LbTkRecord::tk1Pt] = dPTR[0]->perp();
-            LbL0.dataD[LbTkRecord::tk1P0] = sqrt(dPTR[0]->mag2() + 0.105658 * 0.105658);
+            LbL0.dataD[LbTkRecord::tk1P0] = sqrt(dPTR[0]->mag2() + BPHParticleMasses::protonMass*BPHParticleMasses::protonMass);
             LbL0.dataD[LbTkRecord::tk1P1] = dPTR[0]->x();
             LbL0.dataD[LbTkRecord::tk1P2] = dPTR[0]->y();
             LbL0.dataD[LbTkRecord::tk1P3] = dPTR[0]->z();
             LbL0.dataD[LbTkRecord::tk2Pt] = dPTR[1]->perp();
-            LbL0.dataD[LbTkRecord::tk2P0] = sqrt(dPTR[1]->mag2() + 0.105658 * 0.105658);
+            LbL0.dataD[LbTkRecord::tk2P0] = sqrt(dPTR[1]->mag2() + BPHParticleMasses::pionMass*BPHParticleMasses::pionMass);
             LbL0.dataD[LbTkRecord::tk2P1] = dPTR[1]->x();
             LbL0.dataD[LbTkRecord::tk2P2] = dPTR[1]->y();
             LbL0.dataD[LbTkRecord::tk2P3] = dPTR[1]->z();
@@ -721,6 +814,39 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
             muPTR[0] = selCand.userData < GlobalVector > ("JPsi/MuPos.fitMom");
             muPTR[1] = selCand.userData < GlobalVector > ("JPsi/MuNeg.fitMom");
             const GlobalVector *fourTk = selCand.userData < GlobalVector > ("fitMomentum");
+            // check particles {{{
+            {
+                TLorentzVector pMU, nMU, pTK, nTK;
+                TLorentzVector fourTkMom, twoTkMom;
+                pMU.SetXYZM( muPTR[0]->x(), muPTR[0]->y(), muPTR[0]->z(), BPHParticleMasses::muonMass );
+                nMU.SetXYZM( muPTR[1]->x(), muPTR[1]->y(), muPTR[0]->z(), BPHParticleMasses::muonMass );
+
+                // bd
+                pTK.SetXYZM(  dPTR[0]->x(),  dPTR[0]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+                nTK.SetXYZM(  dPTR[1]->x(),  dPTR[1]->y(),  dPTR[0]->z(), BPHParticleMasses::pionMass );
+
+                fourTkMom = pMU+nMU+pTK+nTK;
+                if ( fabs( fourTkMom.Mag() - BPHParticleMasses::bdMass ) < 2.5*BPHParticleMasses::bdMWidth ) 
+                    LbLo.dataI[LbTkRecord::mightBeOtherParticle] += 1<<1;
+
+                // bd bar
+                pTK.SetXYZM(  dPTR[0]->x(),  dPTR[0]->y(),  dPTR[0]->z(), BPHParticleMasses::pionMass );
+                nTK.SetXYZM(  dPTR[1]->x(),  dPTR[1]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+
+                fourTkMom = pMU+nMU+pTK+nTK;
+                if ( fabs( fourTkMom.Mag() - BPHParticleMasses::bdMass ) < 2.5*BPHParticleMasses::bdMWidth ) 
+                    LbLo.dataI[LbTkRecord::mightBeOtherParticle] += 1<<2;
+
+                // bs
+                pTK.SetXYZM(  dPTR[0]->x(),  dPTR[0]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+                nTK.SetXYZM(  dPTR[1]->x(),  dPTR[1]->y(),  dPTR[0]->z(), BPHParticleMasses::kaonMass );
+
+                fourTkMom = pMU+nMU+pTK+nTK;
+                twoTkMom  = pTK+nTK;
+                if ( fabs( fourTkMom.Mag() - BPHParticleMasses::bsMass  ) < 2.5*BPHParticleMasses::bsMWidth  &&
+                     fabs( fourTkMom.Mag() - BPHParticleMasses::phiMass ) < 2.5*BPHParticleMasses::phiMWidth )
+                    LbLo.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
+            } // check particles end }}}
             TLorentzVector fourTkMom(fourTk->x(), fourTk->y(), fourTk->z(),
                                      sqrt(fourTk->x() * fourTk->x() + fourTk->y() * fourTk->y() +
                                           fourTk->z() * fourTk->z() +
@@ -755,23 +881,23 @@ void treeCreatingSpecificDecay::analyze(const edm::Event & ev, const edm::EventS
             LbLo.dataD[LbTkRecord::tktknChi2] = tktkCandVtx->chi2() / tktkCandVtx->ndof();
 
             LbLo.dataD[LbTkRecord::pmuPt] = muPTR[0]->perp();
-            LbLo.dataD[LbTkRecord::pmuP0] = sqrt(muPTR[0]->mag2() + 0.105658 * 0.105658);
+            LbLo.dataD[LbTkRecord::pmuP0] = sqrt(muPTR[0]->mag2() + BPHParticleMasses::muonMass*BPHParticleMasses::muonMass);
             LbLo.dataD[LbTkRecord::pmuP1] = muPTR[0]->x();
             LbLo.dataD[LbTkRecord::pmuP2] = muPTR[0]->y();
             LbLo.dataD[LbTkRecord::pmuP3] = muPTR[0]->z();
             LbLo.dataD[LbTkRecord::nmuPt] = muPTR[1]->perp();
-            LbLo.dataD[LbTkRecord::nmuP0] = sqrt(muPTR[1]->mag2() + 0.105658 * 0.105658);
+            LbLo.dataD[LbTkRecord::nmuP0] = sqrt(muPTR[1]->mag2() + BPHParticleMasses::muonMass*BPHParticleMasses::muonMass);
             LbLo.dataD[LbTkRecord::nmuP1] = muPTR[1]->x();
             LbLo.dataD[LbTkRecord::nmuP2] = muPTR[1]->y();
             LbLo.dataD[LbTkRecord::nmuP3] = muPTR[1]->z();
 
             LbLo.dataD[LbTkRecord::tk1Pt] = dPTR[0]->perp();
-            LbLo.dataD[LbTkRecord::tk1P0] = sqrt(dPTR[0]->mag2() + 0.105658 * 0.105658);
+            LbLo.dataD[LbTkRecord::tk1P0] = sqrt(dPTR[0]->mag2() + BPHParticleMasses::pionMass*BPHParticleMasses::pionMass);
             LbLo.dataD[LbTkRecord::tk1P1] = dPTR[0]->x();
             LbLo.dataD[LbTkRecord::tk1P2] = dPTR[0]->y();
             LbLo.dataD[LbTkRecord::tk1P3] = dPTR[0]->z();
             LbLo.dataD[LbTkRecord::tk2Pt] = dPTR[1]->perp();
-            LbLo.dataD[LbTkRecord::tk2P0] = sqrt(dPTR[1]->mag2() + 0.105658 * 0.105658);
+            LbLo.dataD[LbTkRecord::tk2P0] = sqrt(dPTR[1]->mag2() + BPHParticleMasses::protonMass*BPHParticleMasses::protonMass);
             LbLo.dataD[LbTkRecord::tk2P1] = dPTR[1]->x();
             LbLo.dataD[LbTkRecord::tk2P2] = dPTR[1]->y();
             LbLo.dataD[LbTkRecord::tk2P3] = dPTR[1]->z();

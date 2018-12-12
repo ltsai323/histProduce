@@ -64,6 +64,10 @@ void formatTree_newLbTk::RegFormatTree(TTree* t)
     t->Branch( "tk2IPt"               , &dataD[tk2IPt]               , "tk2IPt/D" );
     t->Branch( "tk2IPtErr"            , &dataD[tk2IPtErr]            , "tk2IPtErr/D" );
 
+    t->Branch( "eventSize"            , &dataI[eventSize]            , "eventSize/I" );
+    t->Branch( "mightBeOtherParticle" , &dataI[mightBeOtherParticle] , "mightBeOtherParticle/I" );
+
+
     return;
 }
 
@@ -128,6 +132,9 @@ void formatTree_newLbTk::LoadFormatSourceBranch(TTree* t)
     t->SetBranchAddress( "tk2DEDX_pixelHrm"     , &readD[tk2DEDX_pixelHrm]     );
     t->SetBranchAddress( "tk2IPt"               , &readD[tk2IPt]               );
     t->SetBranchAddress( "tk2IPtErr"            , &readD[tk2IPtErr]            );
+
+    t->SetBranchAddress( "eventSize"            , &readI[eventSize]            );
+    t->SetBranchAddress( "mightBeOtherParticle" , &readI[mightBeOtherParticle] );
     return;
 }
 

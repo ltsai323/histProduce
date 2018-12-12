@@ -17,7 +17,7 @@ struct formatTree_newLbTk : public formatTree
         };
         enum readVarI
         {
-            eventSize,
+            eventSize, mightBeOtherParticle,
             comNumI
         };
         virtual void RegFormatTree(TTree* t) override;
