@@ -44,6 +44,7 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
+#include <stdio.h>
 
 #include <memory>
 #include <string>
@@ -140,8 +141,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         edm::Handle < vector < reco::VertexCompositeCandidate > >pL0BCands;
         ev.getByToken( pL0BCandsToken, pL0BCands );
         // preselection {{{
-        if (!pL0BCands.isValid()) return;
-        if (pL0BCands->size() == 0) return;
+        if (!pL0BCands.isValid()) goto endOfpL0B;
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = pL0BCands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = pL0BCands->cend  ();
@@ -175,7 +175,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             //double cos2d = usefulFuncs::getCosa2d(cand, &bs);
             double vtxprob = TMath::Prob(cand.vertexChi2(), cand.vertexNdof());
             //if (cos2d < 0.95) continue;
-            if (vtxprob < 0.03) continue;
+            // if (vtxprob < 0.03) continue;
             selectedCandList.emplace_back(vtxprob, &cand);
         }
         // preselection end }}}
@@ -303,6 +303,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         }
         //eventSeparator_pL0B = usefulFuncs::inverter(eventSeparator_pL0B);
     }                           // Lb->Jpsi p K end }}}
+    endOfpL0B:
 
     //////////// anti LbTk ////////////
 
@@ -311,8 +312,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         edm::Handle < vector < reco::VertexCompositeCandidate > >nL0BCands;
         ev.getByToken( nL0BCandsToken, nL0BCands );
         // preselection {{{
-        if (!nL0BCands.isValid()) return;
-        if (nL0BCands->size() == 0) return;
+        if (!nL0BCands.isValid()) goto endOfnL0B;
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = nL0BCands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = nL0BCands->cend  ();
@@ -335,8 +335,8 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             // preselection
             if (sqrt(muPosCandPtr->momentum().Perp2()) < 4.0) continue;
             if (sqrt(muNegCandPtr->momentum().Perp2()) < 4.0) continue;
-            if (sqrt(tkPosCandPtr->momentum().Perp2()) < 0.8) continue;
-            if (sqrt(tkNegCandPtr->momentum().Perp2()) < 0.3) continue;
+            if (sqrt(tkPosCandPtr->momentum().Perp2()) < 0.3) continue;
+            if (sqrt(tkNegCandPtr->momentum().Perp2()) < 0.8) continue;
 
             if (sqrt(cand.momentum().Perp2()) < 10.) continue;
 
@@ -346,7 +346,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             //double cos2d = usefulFuncs::getCosa2d(cand, &bs);
             double vtxprob = TMath::Prob(cand.vertexChi2(), cand.vertexNdof());
             //if (cos2d < 0.95) continue;
-            if (vtxprob < 0.03) continue;
+            //  if (vtxprob < 0.03) continue;
             selectedCandList.emplace_back(vtxprob, &cand);
         }
         // preselection end }}}
@@ -475,6 +475,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         }
         //eventSeparator_nL0B = usefulFuncs::inverter(eventSeparator_nL0B);
     }                           // Lb->Jpsi P k end }}}
+    endOfnL0B:
 
     //////////// LbL0 ////////////
 
@@ -483,8 +484,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         edm::Handle < vector < reco::VertexCompositeCandidate > >LbL0Cands;
         ev.getByToken( LbL0CandsToken, LbL0Cands );
         // preselection {{{
-        if (!LbL0Cands.isValid()) return;
-        if (LbL0Cands->size() == 0) return;
+        if (!LbL0Cands.isValid()) goto endOfLbL0;
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = LbL0Cands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = LbL0Cands->cend  ();
@@ -499,7 +499,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("MuPos") );
             const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("MuNeg") );
             const reco::VertexCompositeCandidate* twoTkCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( cand.daughter("Lam0")  );
-            //const reco::RecoChargedCandidate* twoTkCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("Lam0")  );
             //const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("Kaon") );
             //const reco::RecoChargedCandidate* tkNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("Proton") );
 
@@ -521,7 +520,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             //double cos2d = usefulFuncs::getCosa2d(cand, &bs);
             double vtxprob = TMath::Prob(cand.vertexChi2(), cand.vertexNdof());
             //if (cos2d < 0.95) continue;
-            if (vtxprob < 0.03) continue;
+            //  if (vtxprob < 0.03) continue;
             selectedCandList.emplace_back(vtxprob, &cand);
         }
         // preselection end }}}
@@ -649,6 +648,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         }
         //eventSeparator_LbL0 = usefulFuncs::inverter(eventSeparator_LbL0);
     }                           // Lb->Jpsi Lam0 end }}}
+    endOfLbL0:
 
 
     //////////// LbLo ////////////
@@ -658,8 +658,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         edm::Handle < vector < reco::VertexCompositeCandidate > >LbLoCands;
         ev.getByToken( LbLoCandsToken, LbLoCands );
         // preselection {{{
-        if (!LbLoCands.isValid()) return;
-        if (LbLoCands->size() == 0) return;
+        if (!LbLoCands.isValid()) goto endOfLbLo;
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = LbLoCands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = LbLoCands->cend  ();
@@ -682,21 +681,21 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             //reco::Particle::LorentzVector tkNegP4 = tkNegCandPtr->p4(); tkNegP4.SetE(sqrt(tkNegP4.P2()+kaonMASS*kaonMASS));
             //reco::Particle::LorentzVector tktkPreSelP4 = tkPosP4+tkNegP4;
             // preselection
-            if (sqrt(muPosCandPtr->momentum().Perp2()) < 4.0) continue;
-            if (sqrt(muNegCandPtr->momentum().Perp2()) < 4.0) continue;
-            if (sqrt(twoTkCandPtr->momentum().Perp2()) < 1.3) continue;
-            //if (sqrt(tkPosCandPtr->momentum().Perp2()) < 0.8) continue;
-            //if (sqrt(tkNegCandPtr->momentum().Perp2()) < 0.3) continue;
-
-            if (sqrt(cand.momentum().Perp2()) < 10.) continue;
-
+             if (sqrt(muPosCandPtr->momentum().Perp2()) < 4.0) continue;
+             if (sqrt(muNegCandPtr->momentum().Perp2()) < 4.0) continue;
+             if (sqrt(twoTkCandPtr->momentum().Perp2()) < 1.3) continue;
+             //if (sqrt(tkPosCandPtr->momentum().Perp2()) < 0.8) continue;
+             //if (sqrt(tkNegCandPtr->momentum().Perp2()) < 0.3) continue;
+ 
+             if (sqrt(cand.momentum().Perp2()) < 10.) continue;
+ 
             //const reco::Particle::Point& _vtx = cand.vertex();
             //double fdSig = usefulFuncs::getFlightDistanceSignificance(cand, &bs);
             //if (fdSig < 3.0) continue;
             //double cos2d = usefulFuncs::getCosa2d(cand, &bs);
             double vtxprob = TMath::Prob(cand.vertexChi2(), cand.vertexNdof());
             //if (cos2d < 0.95) continue;
-            if (vtxprob < 0.03) continue;
+            // if (vtxprob < 0.03) continue;
             selectedCandList.emplace_back(vtxprob, &cand);
         }
         // preselection end }}}
@@ -824,6 +823,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         }
         //eventSeparator_LbLo = usefulFuncs::inverter(eventSeparator_LbLo);
     }                           // Lb->Jpsi anti Lam0 end }}}
+    endOfLbLo:
 
     return;
 }
