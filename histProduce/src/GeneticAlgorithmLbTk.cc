@@ -90,7 +90,6 @@ inline void GeneticAlgorithm_LbTk::CalculateFitness( const unsigned idx, double&
     TTree* tree = lbtk.readTree();
     unsigned iEntry = 0;
     unsigned NEntries = getNEntries();
-    //unsigned NEntries = 10000;
 
     unsigned nsig = 0;
     unsigned nbkg = 0;

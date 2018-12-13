@@ -11,7 +11,7 @@ class treeMainGen_Lam0 : public treeMainGen
 public:
     treeMainGen_Lam0 ( TFileDirectory* d);
     virtual void Process( fwlite::Event* ev ) override;
-    virtual void Clear() override;
+    virtual void Clear();
     virtual void RegTree() override;
     virtual void GetByLabel( fwlite::Event* ev ) override;
 private:

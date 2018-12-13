@@ -8,7 +8,7 @@
 
 
 treeMain_LbTk::treeMain_LbTk( TFileDirectory* d ) :
-    treeMain( d, treeMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis"), "LbTk" ),
+    treeMain( d, treeMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis"), "LbTk" ),formatTree_LbTk(totNumD, totNumI),
     kaonMass ( 0.493667 ), protonMass ( 0.9382720813 ), pionMass ( 0.13957061 )
 {
     RegTree();
@@ -23,7 +23,8 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
         // pv not recorded, use BS
         if ( !beamSpotHandle.isValid() ) return;
         if ( _handle->size()  == 0 ) return;
-        const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
+        //const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
+        const reco::BeamSpot& bs = *beamSpotHandle;
 
         std::vector< std::pair< double, const pat::CompositeCandidate*> > candsSorted;
         candsSorted.clear();
@@ -71,10 +72,10 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
 
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) continue;
-            double fd = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
+            double fdSig = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
+            if ( fdSig < 3.0 ) continue;
             double cos2d = usefulFuncs::getCosa2d( cand, &bs );
             double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
-            //if ( fd < 4.0 ) continue;
             if ( cos2d < 0.99 ) continue;
             if ( vtxprob < 0.15 ) continue;
 
@@ -107,6 +108,14 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
             fourMom nTk ( dPTR[1]->x(), dPTR[1]->y(), dPTR[1]->z() );
             fourMom tktk;
             fourMom fourTk;
+
+            // search for pentaQuark
+            // jpsip = jpsi + proton, jpsiP = jpsi + anti-proton
+            fourMom jpsip, jpsipBar;
+            pTk.setMass( protonMass );
+            nTk.setMass( protonMass );
+            jpsip = pMu + nMu + pTk;
+            jpsipBar = pMu + nMu + nTk;
 
             // search for lam0
             pTk.setMass( protonMass );
@@ -149,10 +158,16 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
             const reco::Vertex* pv = usefulFuncs::get<reco::Vertex>( *jpsi, "fitVertex" );
 
             dataD[lbtkMass] = cand.userFloat( "fitMass" );
-            dataD[lbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( cand, pv );
-            dataD[lbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( cand, pv );
+            dataD[lbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( cand, &bs );
+            dataD[lbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             dataD[lbtkVtxprob] = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
+            dataD[lbtkCosa2d] = usefulFuncs::getCosa2d(cand,&bs);
+
+            dataD[targetJpsiP_mass] = jpsip.Mag();
+            dataD[targetJpsiP_pt] = jpsip.transverse();
+            dataD[targetJpsiPBar_mass] = jpsipBar.Mag();
+            dataD[targetJpsiPBar_pt] = jpsipBar.transverse();
 
             dataD[lbtkMom]= fourTk.Momentum();
             dataD[lbtkPt] = fourTk.transverse();
@@ -179,45 +194,10 @@ void treeMain_LbTk::Process( fwlite::Event* ev )
     } catch (...) {}
 }
 
-void treeMain_LbTk::Clear()
-{
-    memset( dataD, 0x00, totNumD*sizeof( double ) );
-    memset( dataI, 0x00, totNumI*sizeof( int ) );
-}
 void treeMain_LbTk::RegTree()
 {
-    thisTree()->Branch( "lbtkMass", &dataD[lbtkMass], "lbtkMass/D" );
-    thisTree()->Branch( "lbtkFD2d", &dataD[lbtkFlightDistance2d], "lbtkFD2d/D" );
-    thisTree()->Branch( "lbtkFDSig", &dataD[lbtkFlightDistanceSig], "lbtkFDSig/D" );
-    thisTree()->Branch( "lbtkVtxprob", &dataD[lbtkVtxprob], "lbtkVtxprob/D" );
-
-    thisTree()->Branch( "lbtkMom", &dataD[lbtkMom], "lbtkMom/D" );
-    thisTree()->Branch( "lbtkPt", &dataD[lbtkPt], "lbtkPt/D" );
-    thisTree()->Branch( "tktkPt", &dataD[tktkPt], "tktkPt/D" );
-    thisTree()->Branch( "tktkMom", &dataD[tktkMom], "tktkMom/D" );
-
-    thisTree()->Branch( "fake_Lam0Mass", &dataD[fake_Lam0Mass], "fake_Lam0Mass/D" );
-    thisTree()->Branch( "fake_LbL0Mass", &dataD[fake_LbL0Mass], "fake_LbL0Mass/D" );
-    thisTree()->Branch( "fake_KstarMass", &dataD[fake_KstarMass], "fake_KstarMass/D" );
-    thisTree()->Branch( "fake_BdMass", &dataD[fake_BdMass], "fake_BdMass/D" );
-    thisTree()->Branch( "fake_PhiMass", &dataD[fake_PhiMass], "fake_PhiMass/D" );
-    thisTree()->Branch( "fake_BsMass", &dataD[fake_BsMass], "fake_BsMass/D" );
-    thisTree()->Branch( "fake_KshortMass", &dataD[fake_KshortMass], "fake_KshortMass/D" );
-    thisTree()->Branch( "fake_mumupipiMass", &dataD[fake_mumupipiMass], "fake_mumupipiMass/D" );
-
-    thisTree()->Branch( "ptkPt", &dataD[ptkPt], "ptkPt/D" );
-    thisTree()->Branch( "ptkMom", &dataD[ptkMom], "ptkMom/D" );
-    thisTree()->Branch( "ptkDEDX.Harmonic", &dataD[ptkDEDX_Harmonic], "ptkDEDX.Harmonic/D" );
-    thisTree()->Branch( "ptkDEDX.pixelHrm", &dataD[ptkDEDX_pixelHrm], "ptkDEDX.pixelHrm/D" );
-    thisTree()->Branch( "ptkIPt", &dataD[ptkIPt], "ptkIPt/D" );
-    thisTree()->Branch( "ptkIPtErr", &dataD[ptkIPtErr], "ptkIPtErr/D" );
-
-    thisTree()->Branch( "ntkPt", &dataD[ntkPt], "ntkPt/D" );
-    thisTree()->Branch( "ntkMom", &dataD[ntkMom], "ntkMom/D" );
-    thisTree()->Branch( "ntkDEDX.Harmonic", &dataD[ntkDEDX_Harmonic], "ntkDEDX.Harmonic/D" );
-    thisTree()->Branch( "ntkDEDX.pixelHrm", &dataD[ntkDEDX_pixelHrm], "ntkDEDX.pixelHrm/D" );
-    thisTree()->Branch( "ntkIPt", &dataD[ntkIPt], "ntkIPt/D" );
-    thisTree()->Branch( "ntkIPtErr", &dataD[ntkIPtErr], "ntkIPtErr/D" );
+    TTree* t = thisTree();
+    RegFormatTree(t);
 }
 void treeMain_LbTk::GetByLabel( fwlite::Event* ev )
 {
@@ -231,37 +211,6 @@ inline void treeMain_LbTk::getByLabel_BS( fwlite::Event* ev )
 
 void treeMain_LbTk::setBranchAddress( TTree* inputTree )
 {
-    inputTree->SetBranchAddress( "lbtkMass", &dataD[lbtkMass] );
-    inputTree->SetBranchAddress( "lbtkFD2d", &dataD[lbtkFlightDistance2d] );
-    inputTree->SetBranchAddress( "lbtkFDSig", &dataD[lbtkFlightDistanceSig] );
-    inputTree->SetBranchAddress( "lbtkVtxprob", &dataD[lbtkVtxprob] );
-
-    inputTree->SetBranchAddress( "lbtkMom", &dataD[lbtkMom] );
-    inputTree->SetBranchAddress( "lbtkPt", &dataD[lbtkPt] );
-    inputTree->SetBranchAddress( "tktkPt", &dataD[tktkPt] );
-    inputTree->SetBranchAddress( "tktkMom", &dataD[tktkMom] );
-
-    inputTree->SetBranchAddress( "fake_Lam0Mass", &dataD[fake_Lam0Mass] );
-    inputTree->SetBranchAddress( "fake_LbL0Mass", &dataD[fake_LbL0Mass] );
-    inputTree->SetBranchAddress( "fake_KstarMass", &dataD[fake_KstarMass] );
-    inputTree->SetBranchAddress( "fake_BdMass", &dataD[fake_BdMass] );
-    inputTree->SetBranchAddress( "fake_PhiMass", &dataD[fake_PhiMass] );
-    inputTree->SetBranchAddress( "fake_BsMass", &dataD[fake_BsMass] );
-    inputTree->SetBranchAddress( "fake_KshortMass", &dataD[fake_KshortMass] );
-    inputTree->SetBranchAddress( "fake_mumupipiMass", &dataD[fake_mumupipiMass] );
-
-    inputTree->SetBranchAddress( "ptkPt", &dataD[ptkPt] );
-    inputTree->SetBranchAddress( "ptkMom", &dataD[ptkMom] );
-    inputTree->SetBranchAddress( "ptkDEDX.Harmonic", &dataD[ptkDEDX_Harmonic] );
-    inputTree->SetBranchAddress( "ptkDEDX.pixelHrm", &dataD[ptkDEDX_pixelHrm] );
-    inputTree->SetBranchAddress( "ptkIPt", &dataD[ptkIPt] );
-    inputTree->SetBranchAddress( "ptkIPtErr", &dataD[ptkIPtErr] );
-
-    inputTree->SetBranchAddress( "ntkPt", &dataD[ntkPt] );
-    inputTree->SetBranchAddress( "ntkMom", &dataD[ntkMom] );
-    inputTree->SetBranchAddress( "ntkDEDX.Harmonic", &dataD[ntkDEDX_Harmonic] );
-    inputTree->SetBranchAddress( "ntkDEDX.pixelHrm", &dataD[ntkDEDX_pixelHrm] );
-    inputTree->SetBranchAddress( "ntkIPt", &dataD[ntkIPt] );
-    inputTree->SetBranchAddress( "ntkIPtErr", &dataD[ntkIPtErr] );
+    LoadFormatSourceBranch(inputTree);
     return;
 }

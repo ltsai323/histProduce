@@ -43,6 +43,8 @@ struct fourMom
     { return sqrt( x1*x1+x2*x2 ); }
     double Momentum() const
     { return sqrt( x1*x1+x2*x2+x3*x3 ); }
+    double mag() const
+    { return sqrt( x1*x1+x2*x2+x3*x3 ); }
     double eta() const
     {
         double mom = this->Momentum();

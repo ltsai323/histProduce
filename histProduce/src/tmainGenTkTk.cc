@@ -8,7 +8,7 @@
 
 
 treeMainGen_TkTk::treeMainGen_TkTk( TFileDirectory* d ) :
-    treeMainGen( d, treeMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis"), "TkTkGenInfo" ),
+    treeMainGen( d, treeMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis"), "TkTkGenInfo" ), formatTree_TkTk( totNumD, totNumI ),
     protonMass( 0.9382720813 ), pionMass( 0.13957061 )
 {
     RegTree();
@@ -52,7 +52,7 @@ void treeMainGen_TkTk::Process( fwlite::Event* ev )
         if ( candsSorted.size() == 0 ) return;
         // preselect events end }}}
 
-        double vtxSortingNumber = 0;
+        int vtxSortingNumber = 0;
         std::vector< std::pair<double, const pat::CompositeCandidate*> >::const_iterator iter = candsSorted.begin();
         std::vector< std::pair<double, const pat::CompositeCandidate*> >::const_iterator iend = candsSorted.end  ();
 
@@ -68,7 +68,7 @@ void treeMainGen_TkTk::Process( fwlite::Event* ev )
             dataD[tktkMass] = cand.userFloat("fitMass");
             dataD[tktkPt] = cand.userData<GlobalVector>( "fitMomentum" ) -> transverse();
             dataD[tktkFlightDistance2d] = usefulFuncs::getFlightDistance ( cand, &bs );
-            dataD[tktkSortingNumber] = vtxSortingNumber++;
+            dataI[tktkSortingNumber] = vtxSortingNumber++;
 
             // first one is proton and second one is pion ( consider bigger momentum with heavier particle )
             const GlobalVector* dPTR[2] = {nullptr};
@@ -107,29 +107,14 @@ void treeMainGen_TkTk::Process( fwlite::Event* ev )
     } catch (...) {}
 }
 
-void treeMainGen_TkTk::Clear()
-{
-    memset( dataD, 0x00, totNumD*sizeof( double ) );
-    memset( dataI, 0x00, totNumI*sizeof( int ) );
-}
 void treeMainGen_TkTk::RegTree()
 {
-    thisTree()->Branch( "tktkMass", &dataD[tktkMass], "tktkMass/D" );
-    thisTree()->Branch( "tktkFlightDistance2d", &dataD[tktkFlightDistance2d], "tktkFlightDistance2d/D" );
-    thisTree()->Branch( "tktkCosa2d", &dataD[tktkCosa2d], "tktkCosa2d/D" );
-    thisTree()->Branch( "tktkPt", &dataD[tktkPt], "tktkPt/D" );
-    thisTree()->Branch( "tktkSortingNumber", &dataD[tktkSortingNumber], "tktkSortingNumber/D" );
-    thisTree()->Branch( "ptkMom", &dataD[ptkMom], "ptkMom/D" );
-    thisTree()->Branch( "ptkDEDX.Harmonic", &dataD[ptkDEDX_Harmonic], "ptkDEDX.Harmonic/D" );
-    thisTree()->Branch( "ptkDEDX.pixelHrm", &dataD[ptkDEDX_pixelHrm], "ptkDEDX.pixelHrm/D" );
-    thisTree()->Branch( "ptkIPt", &dataD[ptkIPt], "ptkIPt/D" );
-    thisTree()->Branch( "ntkMom", &dataD[ntkMom], "ntkMom/D" );
-    thisTree()->Branch( "ntkDEDX.Harmonic", &dataD[ntkDEDX_Harmonic], "ntkDEDX.Harmonic/D" );
-    thisTree()->Branch( "ntkDEDX.pixelHrm", &dataD[ntkDEDX_pixelHrm], "ntkDEDX.pixelHrm/D" );
-    thisTree()->Branch( "ntkIPt", &dataD[ntkIPt], "ntkIPt/D" );
+    TTree* t = thisTree();
+    RegFormatTree(t);
 
-    thisTree()->Branch( "ptkPID", &dataI[ptkPID], "ptkPID/I" );
-    thisTree()->Branch( "ntkPID", &dataI[ntkPID], "ntkPID/I" );
+    t->Branch( "ptkPID", &dataI[ptkPID], "ptkPID/I" );
+    t->Branch( "ntkPID", &dataI[ntkPID], "ntkPID/I" );
+    t->Branch( "tktkSortingNumber", &dataI[tktkSortingNumber], "tktkSortingNumber/I" );
 }
 void treeMainGen_TkTk::GetByLabel( fwlite::Event* ev )
 {

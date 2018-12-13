@@ -29,7 +29,6 @@ public:
 
     // functions needs to be redefined in further class
     virtual void Process( fwlite::Event* ev ) = 0;
-    virtual void Clear() = 0;
     virtual void RegTree() = 0;
     virtual void GetByLabel( fwlite::Event* ev ) = 0;
 

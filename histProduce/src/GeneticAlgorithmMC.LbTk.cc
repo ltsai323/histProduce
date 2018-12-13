@@ -13,6 +13,9 @@
 #include "RooAddPdf.h"
 #include "RooAbsReal.h"
 #include "RooGlobalFunc.h" // Minos command
+#include "RooChebychev.h"
+#include "RooPlot.h"
+
     // use bin-fit in calculate fitness.
     // to fit background shape and estimate the background number
 
@@ -32,22 +35,24 @@ namespace
 GeneticAlgorithmMC_LbTk::GeneticAlgorithmMC_LbTk( unsigned Nchromo = 10000, unsigned maxGen = 1000 ) :
     GeneticAlgorithmMC( NVAR, Nchromo, maxGen ), lbData(nullptr), sigMC(nullptr), bkgMC(nullptr)
 {
-    setSignalRegion( 5.6195, 0.04 );
+    //setSignalRegion( 5.6195, 0.04 );
+    setHistoRange( 5.35, 5.85 );
+    setHistoNBins( 75 );
     chromosRange = new double*[NVAR];
     for ( int i=0; i<NVAR; ++i )
         chromosRange[i] = new double[2];
-    chromosRange[mlbtkFDSig        ][0] =   0.111;
+    chromosRange[mlbtkFDSig        ][0] =   3.000;
     chromosRange[mlbtkFDSig        ][1] =  10.   ;
     chromosRange[mlbtkVtxprob      ][0] =   0.13 ;
-    chromosRange[mlbtkVtxprob      ][1] =   0.4  ;
-    chromosRange[mlbtkPt           ][0] =  10.   ;
+    chromosRange[mlbtkVtxprob      ][1] =   0.5  ;
+    chromosRange[mlbtkPt           ][0] =   8.   ;
     chromosRange[mlbtkPt           ][1] =  25.   ;
-    chromosRange[mtktkPt           ][0] =   3.   ;
+    chromosRange[mtktkPt           ][0] =   2.0  ;
     chromosRange[mtktkPt           ][1] =   6.   ;
-    chromosRange[mptkPt            ][0] =   2.0  ;
-    chromosRange[mptkPt            ][1] =   4.0  ;
+    chromosRange[mptkPt            ][0] =   1.0  ;
+    chromosRange[mptkPt            ][1] =   3.0  ;
     chromosRange[mntkPt            ][0] =   1.0  ;
-    chromosRange[mntkPt            ][1] =   3.0  ;
+    chromosRange[mntkPt            ][1] =   2.0  ;
 //    chromosRange[mptkDEDX_Mom_ratio][0] =   0.   ;
 //    chromosRange[mptkDEDX_Mom_ratio][1] =   1.   ;
 //    chromosRange[MptkDEDX_Mom_ratio][0] =  10.   ;
@@ -65,9 +70,9 @@ GeneticAlgorithmMC_LbTk::GeneticAlgorithmMC_LbTk( unsigned Nchromo = 10000, unsi
 //    chromosRange[MntkIPtSig        ][0] =   0.   ;
 //    chromosRange[MntkIPtSig        ][1] =  10.   ;
 
-    hData  = new TH1D("hData" , "hData" , 75, 5.2, 5.95 );
-    hSigMC = new TH1D("hSigMC", "hSigMC", 75, 5.2, 5.95 );
-    hbkgMC = new TH1D("hBkgMC", "hBkgMC", 75, 5.2, 5.95 );
+    hData  = new TH1D("hData" , "hData" , h_bins, h_min, h_max );
+    hSigMC = new TH1D("hSigMC", "hSigMC", h_bins, h_min, h_max );
+    hbkgMC = new TH1D("hBkgMC", "hBkgMC", h_bins, h_min, h_max );
     return;
 }
 GeneticAlgorithmMC_LbTk::~GeneticAlgorithmMC_LbTk()
@@ -109,6 +114,12 @@ inline void GeneticAlgorithmMC_LbTk::CalculateFitness( const unsigned idx, doubl
     fitness = fitnessErr = 0;
     hSigMC->Reset();
     hData ->Reset();
+    if ( hSigMC->GetEntries() != 0 )
+    { printf("histo MC not cleared!\n"); return; }
+    if ( hData->GetEntries() != 0 )
+    { printf("histo MC not cleared!\n"); return; }
+
+
 
     // sigMC part {{{
     if ( sigMC.readTree() )
@@ -120,13 +131,15 @@ inline void GeneticAlgorithmMC_LbTk::CalculateFitness( const unsigned idx, doubl
         while ( iEntry != NEntries )
         {
             sigMCtree->GetEntry( iEntry++ );
+            if ( sigMC.readD[readMC::lbtkMass] > h_max ) continue;
+            if ( sigMC.readD[readMC::lbtkMass] < h_min ) continue;
 
-            if ( chromos[idx][mlbtkFDSig        ] > sigMC.readD[readData::lbtkFlightDistanceSig] ) continue;
-            if ( chromos[idx][mlbtkVtxprob      ] > sigMC.readD[readData::lbtkVtxprob          ] ) continue;
-            if ( chromos[idx][mlbtkPt           ] > sigMC.readD[readData::lbtkPt               ] ) continue;
-            if ( chromos[idx][mtktkPt           ] > sigMC.readD[readData::tktkPt               ] ) continue;
-            if ( chromos[idx][mptkPt            ] > sigMC.readD[readData::ptkPt                ] ) continue;
-            if ( chromos[idx][mntkPt            ] > sigMC.readD[readData::ntkPt                ] ) continue;
+            if ( chromos[idx][mlbtkFDSig        ] > sigMC.readD[readMC::lbtkFlightDistanceSig] ) continue;
+            if ( chromos[idx][mlbtkVtxprob      ] > sigMC.readD[readMC::lbtkVtxprob          ] ) continue;
+            if ( chromos[idx][mlbtkPt           ] > sigMC.readD[readMC::lbtkPt               ] ) continue;
+            if ( chromos[idx][mtktkPt           ] > sigMC.readD[readMC::tktkPt               ] ) continue;
+            if ( chromos[idx][mptkPt            ] > sigMC.readD[readMC::ptkPt                ] ) continue;
+            if ( chromos[idx][mntkPt            ] > sigMC.readD[readMC::ntkPt                ] ) continue;
 
             //if ( chromos[idx][mptkDEDX_Mom_ratio] > sigMC.readD[readData::ptkDEDX_Harmonic]/sigMC.readD[readData::ptkMom]    ) continue;
             //if ( chromos[idx][MptkDEDX_Mom_ratio] < sigMC.readD[readData::ptkDEDX_Harmonic]/sigMC.readD[readData::ptkMom]    ) continue;
@@ -137,10 +150,7 @@ inline void GeneticAlgorithmMC_LbTk::CalculateFitness( const unsigned idx, doubl
             // if ( chromos[idx][mntkIPtSig        ] > sigMC.readD[readData::ntkIPt          ]/sigMC.readD[readData::ntkIPtErr] ) continue;
             // if ( chromos[idx][MntkIPtSig        ] < sigMC.readD[readData::ntkIPt          ]/sigMC.readD[readData::ntkIPtErr] ) continue;
 
-            double candMass = sigMC.readD[readData::lbtkMass];
-            // if ( !inCalculationRegion(candMass) ) continue;
-            // if ( inSignalRegion(candMass) ) ++nsig;
-            // else                            ++nbkg;
+            double candMass = sigMC.readD[readMC::lbtkMass];
             hSigMC->Fill(candMass);
         }
     } // sigMC part end }}}
@@ -155,6 +165,8 @@ inline void GeneticAlgorithmMC_LbTk::CalculateFitness( const unsigned idx, doubl
         while ( iEntry != NEntries )
         {
             tree->GetEntry( iEntry++ );
+            if ( lbData.readD[readData::lbtkMass] > h_max ) continue;
+            if ( lbData.readD[readData::lbtkMass] < h_min ) continue;
 
             if ( chromos[idx][mlbtkFDSig        ] > lbData.readD[readData::lbtkFlightDistanceSig] ) continue;
             if ( chromos[idx][mlbtkVtxprob      ] > lbData.readD[readData::lbtkVtxprob          ] ) continue;
@@ -167,58 +179,29 @@ inline void GeneticAlgorithmMC_LbTk::CalculateFitness( const unsigned idx, doubl
             //if ( chromos[idx][MptkDEDX_Mom_ratio] < lbData.readD[readData::ptkDEDX_Harmonic]/lbData.readD[readData::ptkMom]    ) continue;
             //if ( chromos[idx][mntkDEDX_Mom_ratio] > lbData.readD[readData::ntkDEDX_Harmonic]/lbData.readD[readData::ntkMom]    ) continue;
             //if ( chromos[idx][MntkDEDX_Mom_ratio] < lbData.readD[readData::ntkDEDX_Harmonic]/lbData.readD[readData::ntkMom]    ) continue;
-            if ( chromos[idx][mptkIPtSig        ] > lbData.readD[readData::ptkIPt          ]/lbData.readD[readData::ptkIPtErr] ) continue;
-            if ( chromos[idx][MptkIPtSig        ] < lbData.readD[readData::ptkIPt          ]/lbData.readD[readData::ptkIPtErr] ) continue;
-            if ( chromos[idx][mntkIPtSig        ] > lbData.readD[readData::ntkIPt          ]/lbData.readD[readData::ntkIPtErr] ) continue;
-            if ( chromos[idx][MntkIPtSig        ] < lbData.readD[readData::ntkIPt          ]/lbData.readD[readData::ntkIPtErr] ) continue;
+            //if ( chromos[idx][mptkIPtSig        ] > lbData.readD[readData::ptkIPt          ]/lbData.readD[readData::ptkIPtErr] ) continue;
+            //if ( chromos[idx][MptkIPtSig        ] < lbData.readD[readData::ptkIPt          ]/lbData.readD[readData::ptkIPtErr] ) continue;
+            //if ( chromos[idx][mntkIPtSig        ] > lbData.readD[readData::ntkIPt          ]/lbData.readD[readData::ntkIPtErr] ) continue;
+            //if ( chromos[idx][MntkIPtSig        ] < lbData.readD[readData::ntkIPt          ]/lbData.readD[readData::ntkIPtErr] ) continue;
 
             double candMass = lbData.readD[readData::lbtkMass];
-            // if ( !inCalculationRegion(candMass) ) continue;
-            // if ( inSignalRegion(candMass) ) ++nsig;
-            // else                            ++nbkg;
             hData->Fill(candMass);
         }
     } // data part end }}}
     if ( hSigMC->GetEntries() < 300 ) return;
     if ( hData ->GetEntries() < 300 ) return;
-//
-//    // result calculation
-//    RooRealVar varMass( "varMass", "varMass", 5.55, 5.7 );
-//    // to read data stored in dHistogram
-//    RooDataHist binnedData("binnedData", "bindata", RooArgList(varMass), hData  );
-//    RooDataHist binnedMC  ("binnedMC"  , "binmc"  , RooArgList(varMass), hSigMC );
-//
-//    // start to fit
-//    RooRealVar par_mean( "mean", "parameter to gaussian: mean", 5.619, 5.6, 5.64 );
-//    RooRealVar par_width("width","parameter to gaussian: width",0.1, 0.0001, 1. );
-//    RooGaussian pdf_gaus("gaus", "PDF : gaussian", varMass, par_mean, par_width );
-//    pdf_gaus.fitTo( binnedMC );
-//
-//    // use the result of fitting MC to fit data.
-//    par_mean.setConstant(true);
-//    par_width.setConstant(true);
-//
-//
-//    RooRealVar par_c1( "c1", "parameter to polynomial 1st order", 0.3, -10., 10. );
-//    RooRealVar par_c2( "c2", "parameter to polynomial 2nd order", 0.3, -10., 10. );
-//    RooPolynomial pdf_poly( "pdf_poly", "PDF : polynomial", varMass, RooArgSet(par_c1, par_c2) );
-//
-//    RooRealVar frac ( "frac", "fraction to gaus/poly", 0.15, 0.000001, 1.0 );
-//    RooAddPdf model( "model", "PDF : poly + gaus", RooArgList( pdf_gaus, pdf_poly ), RooArgList( frac ) );
-//
-//    model.fitTo( binnedData, RooFit::Minos(true) );
-//
-//
-    RooRealVar varMass( "varMass", "#Lambda^{0}_{b} mass(GeV)", 5.2, 5.95 );
+
+    // start fitting
+    RooRealVar varMass( "varMass", "#Lambda^{0}_{b} mass(GeV)", h_min, h_max );
     RooDataHist binnedMC("binnedMC", "lbMass in MC", RooArgList(varMass), hSigMC);
     RooDataHist binnedData("binnedData", "lbMass in Data", RooArgList(varMass), hData);
 
-    // start to fit MC
-    RooRealVar par_mean( "mean", "parameter to gaussian: mean", 5.637, 5.55, 5.7 );
+    // fit MC
+    RooRealVar par_mean( "mean", "parameter to gaussian: mean", 5.637, h_min, h_max );
     RooRealVar par_width("width","parameter to gaussian: width",0.01, 0.000001, 10. );
     RooGaussian pdf_gaus("gaus", "PDF : gaussian", varMass, par_mean, par_width );
-    RooRealVar par_mean2( "mean2", "parameter to gaussian: mean", 5.6142, 5.55, 5.7 );
-    RooRealVar par_width2("width2","parameter to gaussian: width", 0.0342, 0.000001, 1. );
+    RooRealVar par_mean2( "mean2", "parameter to gaussian: mean", 5.6142, h_min, h_max );
+    RooRealVar par_width2("width2","parameter to gaussian: width", 0.0342, 0.000001, 10. );
     RooGaussian pdf_gaus2("gaus2", "PDF : gaussian", varMass, par_mean2, par_width2 );
     RooRealVar frac( "frac", "fraction to gaussian & polynomial", 0.7, 0.001, 1.00 );
     RooAddPdf mcModel( "mcModel", "model to MC", RooArgList(pdf_gaus, pdf_gaus2), RooArgList(frac) );
@@ -231,25 +214,42 @@ inline void GeneticAlgorithmMC_LbTk::CalculateFitness( const unsigned idx, doubl
     par_width2.setConstant(true);
     frac.setConstant(true);
 
-    // start to fit Data
-    RooRealVar par_c1("c1", "parameter to polynomial : 1st order", -0.02, -10., 10. );
-    RooRealVar par_c2("c2", "parameter to polynomial : 2nd order", -0.02, -10., 10. );
-    RooPolynomial pdf_poly("poly", "PDF : polynomial", varMass, RooArgSet(par_c1, par_c2) );
+    double constr_mean  = par_mean .getVal();
+    double constr_width = par_width.getVal();
+    // set mean +- 3 sigma to be signal region, and exclude mean +- 5 sigma to be background region
+    varMass.setRange("sidebandRegion1", h_min, constr_mean - 5.*constr_width);
+    varMass.setRange("sidebandRegion2", constr_mean + 5.*constr_width, h_max);
+    varMass.setRange("signalRegion", constr_mean - 3.*constr_width, constr_mean + 3.*constr_width);
+
+    RooRealVar par_ch1("ch1", "parameter to chebychev : 1st order",  0.5, -10., 10. );
+    RooRealVar par_ch2("ch2", "parameter to chebychev : 2nd order", -0.2, -10., 10. );
+    RooRealVar par_ch3("ch3", "parameter to chebychev : 3rd order", -0.2, -10., 10. );
+    RooRealVar par_ch4("ch4", "parameter to chebychev : 4th order", -0.2, -10., 10. );
+    RooChebychev pdf_cheb("cheb", "PDF : chebychev", varMass, RooArgSet(par_ch1, par_ch2) );
+
+    pdf_cheb.fitTo(binnedData);
+    RooPlot* tmpFrame = varMass.frame(RooFit::Title("d"));
+    binnedData.plotOn(tmpFrame, RooFit::Name("a"));
+    pdf_cheb.plotOn( tmpFrame , RooFit::Name("b"));
+    double tmpChi2 = tmpFrame->chiSquare("b", "a");
+    if ( tmpChi2 >  100. ) return;
+    // fit Data with MC result
     double maxevent = (double)hData->GetEntries();
     RooRealVar ns( "nSig", "number of signal", maxevent/1000., 0., maxevent );
     RooRealVar nb( "nBkg", "number of background", maxevent, 0., maxevent);
-    RooAddPdf totModel( "totModel", "PDF : data + MC", RooArgList(mcModel, pdf_poly), RooArgList(ns,nb));
+    RooAddPdf totModel( "totModel", "PDF : data + MC", RooArgList(mcModel, pdf_cheb), RooArgList(ns,nb));
     totModel.fitTo(binnedData);
 
 
 
-    varMass.setRange("signalRegion", mSig, MSig);
     //RooAbsReal* mcIntegral   = pdf_gaus.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
     RooAbsReal* mcIntegral   = mcModel.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
-    RooAbsReal* dataIntegral = pdf_poly.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
-    double nsig = mcIntegral->getVal() * ns.getVal();
+    RooAbsReal* dataIntegral = pdf_cheb.createIntegral( varMass, RooFit::NormSet(varMass), RooFit::Range("signalRegion") );
+    double nsig =   mcIntegral->getVal() * ns.getVal();
     double nbkg = dataIntegral->getVal() * nb.getVal();
     fitness = nsig / sqrt(nsig+nbkg);
+
+    // temperary be used to represent background fit chi2
     fitnessErr = 0.;
     return;
 }
@@ -275,7 +275,7 @@ bool GeneticAlgorithmMC_LbTk::BasicCheck()
 
     return true;
 }
-void GeneticAlgorithmMC_LbTk::setSignalRegion( double mean, double width )
+void GeneticAlgorithmMC_LbTk::setSignalRegion( const double mean, const double width )
 {
     mWindow = mean - width;
     MWindow = mean + width;
@@ -283,6 +283,14 @@ void GeneticAlgorithmMC_LbTk::setSignalRegion( double mean, double width )
     MSig = mean + 0.5 * width;
     return;
 }
+void GeneticAlgorithmMC_LbTk::setHistoRange( const double m, const double M )
+{
+    h_min = m;
+    h_max = M;
+    return;
+}
+void GeneticAlgorithmMC_LbTk::setHistoNBins( const int n )
+{ h_bins = n; return; }
 bool GeneticAlgorithmMC_LbTk::inSignalRegion( double mass ) const
 {
     if ( mSig > mass ) return false;

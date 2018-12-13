@@ -1,4 +1,4 @@
-#include <memory>
+
 #include <string>
 #include <vector>
 #include <sstream>
@@ -19,6 +19,9 @@
 #include "histProduce/histProduce/interface/rooTHMain.h"
 //#include "histProduce/histProduce/interface/rooTHMainTkTk.h"
 #include "histProduce/histProduce/interface/rooTHMainLbTk.h"
+#include "histProduce/histProduce/interface/rooTHMainpnLbTk.h"
+#include "histProduce/histProduce/interface/rooTHMainGenLbTk.h"
+#include "histProduce/histProduce/interface/rooTHMainGenpnLbTk.h"
 
 // create trees from.tree based file.
 // use FWLIte to load data.
@@ -32,8 +35,8 @@
 // Normally, create a tree and fill it. Save it into root file.
 //
 // usage: modification is needed!. this is old illustration
-//     tCreate filelist=data_RunG maxEvents=1000
-//     tCreate testfile=a.root maxEvents=1000 outputEvery=1 outputFile=b.root
+//     tCreate filelist=data_RunG maxEvents=1000 readTPath=lbSpecificDecay/LbTk
+//     tCreate testfile=a.root maxEvents=1000 outputEvery=1 outputFile=b.root readTPath=lbSpecificDecay/LbTk
 //
 // create TTree.
 
@@ -69,6 +72,10 @@ int main(int argc, char* argv[])
     parser.addOption("testFile"     ,optutl::CommandLineParser::kString,"test input file, recommend to use fileList_cfi.py to put files"    ,"");
     parser.addOption("fileList"     ,optutl::CommandLineParser::kString,"input the python file records file list."                          ,"fileList");
     parser.addOption("configFile"   ,optutl::CommandLineParser::kString,"the plot options recorded in python file"                          ,"histogramPlotParameter");
+
+    // if not set, use the default value in rooTHMainABCD.cc files
+    // the default values are like   lbSpecificDecay/LbTk
+    parser.addOption("readTPath"     ,optutl::CommandLineParser::kString,"the path indicating to tree in root file"                          ,"");
     // set defaults for testFile is assigned
     parser.integerValue ("maxEvents"  ) = -1;
 
@@ -121,6 +128,7 @@ int main(int argc, char* argv[])
     // book a root file to store data.
     fwlite::TFileService fs = fwlite::TFileService(outputFile_.c_str());
     TFileDirectory dir = fs.mkdir("lbSpecificDecay");
+    //TFileDirectory dir = fs.mkdir(parser.stringValue("readPath").c_str());
 
 
     //root_TreeHistoMain::setCutList( &cutLists );
@@ -128,7 +136,10 @@ int main(int argc, char* argv[])
     // set main code.
     std::vector<root_TreeHistoMain*> mainCode;
     //mainCode.push_back( new root_TreeHistoMain_TkTk(&dir) );
-    mainCode.push_back( new root_TreeHistoMain_LbTk(&dir) );
+    //mainCode.push_back( new root_TreeHistoMain_LbTk(&dir) );
+    //mainCode.push_back( new root_TreeHistoMain_GenInfo_LbTk(&dir) );
+    //mainCode.push_back( new root_TreeHistoMain_plusminus_LbTk(&dir) );
+    mainCode.push_back( new root_TreeHistoMain_GenInfo_plusminus_LbTk(&dir) );
 
     // if maxEvent = -1, MEvent to be MAX of unsigned.
     unsigned MEvent = maxEvents_;
@@ -158,9 +169,14 @@ int main(int argc, char* argv[])
         unsigned j=0;
         for ( const auto& _main : mainCode )
         {
-            _main->SetInputFile( inFile );
+            if ( parser.stringValue("readTPath") != "" )
+                _main->ResetInputTreeName( parser.stringValue("readTPath") );
+            bool keepGoing = _main->SetInputFile( inFile );
+
+
             // use MEvent to be the counter, if MEvent to be 0, stop the code.
-            _main->LoopEvents( Mevent[++j] );
+            if ( keepGoing )
+                _main->LoopEvents( Mevent[++j] );
         }
         inFile->Close();
         if ( Mevent[0] == 0 ) break;
@@ -176,7 +192,6 @@ int main(int argc, char* argv[])
     for ( auto& _main : mainCode )
     {
         _main->SummaryCalc();
-        _main->Clear();
         delete _main;
     }
 

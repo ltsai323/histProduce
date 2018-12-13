@@ -13,6 +13,7 @@ template< typename T >
     static const T* get( const pat::CompositeCandidate& cand, const std::string& name )
     {
         if ( cand.hasUserData(name) ) return cand.userData<T>( name );
+        printf("function--usefulFuncs::get -- no %s name recorded in the candidate\n", name.c_str());
         return nullptr;
     }
 template< typename T >
@@ -22,10 +23,19 @@ template< typename T >
         {
             typedef edm::Ref< std::vector<T> > objRef;
             const objRef* ref = cand.userData<objRef>( name );
-            if ( ref ==      0 ) return nullptr;
-            if ( ref->isNull() ) return nullptr;
+            if ( ref ==      0 )
+            {
+                printf("function--usefulFuncs::getByRef -- no such content with %s in candidate\n", name.c_str());
+                return nullptr;
+            }
+            if ( ref->isNull() )
+            {
+                printf("function--usefulFuncs::getByRef -- no such content with %s in candidate\n", name.c_str());
+                return nullptr;
+            }
             return ref->get();
         }
+        printf("function--usefulFuncs::getByRef -- no %s name recorded in the candidate\n", name.c_str());
         return nullptr;
     }
 
@@ -81,8 +91,20 @@ template< typename key, typename val >
 
     SNRes SignalNumberCalculator( TH1* data, const double sigMin, const double sigMax );
     double getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
+    double getFlightDistance( const pat::CompositeCandidate& cand, const reco::BeamSpot* bs=nullptr );
+    double getFlightDistanceSignificance( const pat::CompositeCandidate& cand, const reco::BeamSpot* bs=nullptr );
     double getFlightDistanceSignificance( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
+    double getCosa2d( const pat::CompositeCandidate& cand, const reco::BeamSpot* bs=nullptr );
     double getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
+    double getCosa3d( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
 
+    double getCosAngleToVtx_PV_BS( const pat::CompositeCandidate& cand, const reco::Vertex& pv, const reco::BeamSpot& bs);
+    double logDeltaRToCompcands( const pat::CompositeCandidate* cand1, const pat::CompositeCandidate* cand2 );
+    //double logDeltaRToCompcands( pat::CompositeCandidate const* cand1, pat::CompositeCandidate const* cand2 );
+    double logDeltaRToDaugs( const reco::Candidate* dau1, const reco::Candidate* dau2 );
+    int recordEventSizeWithSeparator( int listSize, int sep );
+    int getEventSizeFromSizeSeparator( int sizeSeparator );
+    int getSepFromSizeSeparator( int sizeSeparator );
+    int inverter ( int sep );
 }
 #endif

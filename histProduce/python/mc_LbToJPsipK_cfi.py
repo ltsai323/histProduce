@@ -40,6 +40,6 @@ process = cms.PSet()
 process.runSetting = cms.PSet(
         maxEvents = cms.int32(-1),
         outEvery  = cms.uint32(0),
-        outName   = cms.string('tree_LbToJPsipK_MC_13TeV_noPU.root'),
+        outName   = cms.string('tree_LbToJPsipK_MC_13TeV_noPU_noPreSelection.root'),
         )
 process.inputFiles = cms.PSet( fileNames  = files )

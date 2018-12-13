@@ -21,25 +21,28 @@ namespace
 }
 
 root_TreeHistoMain_GenInfo_LbTk::root_TreeHistoMain_GenInfo_LbTk( TFileDirectory* d ) :
-    root_TreeHistoMain( d, "LbTkGenInfo" ),
+    root_TreeHistoMain( d, "LbTkGenInfo" ), formatTree_LbTk( totNumD, totNumI ),
     kaonMass ( 0.493667 ), protonMass ( 0.9382720813 ), pionMass ( 0.13957061 )
 {
     setInputTreeName( "lbSpecificDecay/LbTkGenInfo" );
     // gaRes = { 0.00, -0.69, 11.50, 12.47, 6.50, 5.67, 4.48, 4.51, 2.00, 2.11, 2.47, 18.95, -0.21, 15.05, -12.17, 11.88, -16.30, 19.57 };
+    //gaRes = { 3.87,0.15,17.43,0.04,4.33,0.14,2.77,0.00,1.29,-0.13,0.14,0.08,-0.02,0.09,0.02,0.34,0.01,0.00 };
+    gaRes = { 0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00,0.00, 0.00,0.00,0.00, 0.00,0.00,0.00,0.00,0.00,0.00 };
+
 
     if ( !d ) return;
     RegTree();
-    RegHisto();
+    //RegHisto();
     return;
 }
 
-void root_TreeHistoMain_GenInfo_LbTk::Process( unsigned int i )
+void root_TreeHistoMain_GenInfo_LbTk::Process( unsigned int pIdx )
 {
     // use rthMain_LbTk, needed to be modified!
     try
     {
         Clear();
-        readTree()->GetEntry( i );
+        readTree()->GetEntry( pIdx );
 
         // preselection {{{
         if ( readD[ lbtkMass ] < 5.5 ) return;
@@ -53,12 +56,6 @@ void root_TreeHistoMain_GenInfo_LbTk::Process( unsigned int i )
 
         // preselection end }}}
 
-        // for smaller tree for GA use.
-        if ( readD[lbtkMass] < 5.55 )
-            if ( readD[lbtkMass] > 5.55 )
-//                if ( readD[ptkPt] > 2.00 )
-//                    if ( readD[ntkPt] > 1.00 )
-//                        if ( readD[lbtkVtxprob] > 0.13 )
         {
 
             for ( int i=0; i<totNumD; ++i )
@@ -70,91 +67,26 @@ void root_TreeHistoMain_GenInfo_LbTk::Process( unsigned int i )
 
         // for histogram part
         // test for GA result
-    //     if ( readD[lbtkFlightDistanceSig  ] < gaRes[ 0] ) return;
-    //     if ( readD[lbtkVtxprob            ] < gaRes[ 1] ) return;
-    //     if ( readD[lbtkPt                 ] < gaRes[ 2] ) return;
-    //     //if ( readD[lbtkMom                ] < gaRes[ 3] ) return;
-    //     if ( readD[tktkPt                 ] < gaRes[ 4] ) return;
-    //     //if ( readD[tktkMom                ] < gaRes[ 5] ) return;
-    //     if ( readD[ptkPt                  ] < gaRes[ 6] ) return;
-    //     //if ( readD[ptkMom                 ] < gaRes[ 7] ) return;
-    //     if ( readD[ntkPt                  ] < gaRes[ 8] ) return;
-    //if ( readD[ntkMom                 ] < gaRes[ 9] ) return;
-    //if ( readD[ptkDEDX_Mom_ratio] < gaRes[10] ) return;
-    //if ( readD[ptkDEDX_Mom_ratio] > gaRes[11] ) return;
-    //if ( readD[ntkDEDX_Mom_ratio] < gaRes[12] ) return;
-    //if ( readD[ntkDEDX_Mom_ratio] > gaRes[13] ) return;
-    //if ( readD[ptkIPt]/readD[ptkIPtErr] < gaRes[14] ) return;
-    //if ( readD[ptkIPt]/readD[ptkIPtErr] > gaRes[15] ) return;
-    //if ( readD[ntkIPt]/readD[ntkIPtErr] < gaRes[16] ) return;
-    //if ( readD[ntkIPt]/readD[ntkIPtErr] > gaRes[17] ) return;
-        fillHisto( "mass_LbTk", readD[lbtkMass] );
+        if ( readD[lbtkFlightDistanceSig  ] < gaRes[ 0] ) return;
+        if ( readD[lbtkVtxprob            ] < gaRes[ 1] ) return;
+        if ( readD[lbtkPt                 ] < gaRes[ 2] ) return;
+        //if ( readD[lbtkMom                ] < gaRes[ 3] ) return;
+        if ( readD[tktkPt                 ] < gaRes[ 4] ) return;
+        //if ( readD[tktkMom                ] < gaRes[ 5] ) return;
+        if ( readD[ptkPt                  ] < gaRes[ 6] ) return;
+        //if ( readD[ptkMom                 ] < gaRes[ 7] ) return;
+        if ( readD[ntkPt                  ] < gaRes[ 8] ) return;
 
-        for ( int i=0; i<NUM_TESTHIST; ++i )
-        {
-            // small sig && large pt
-            //if ( readD[lbtkPt] > 30. ) continue;
-            //if ( readD[lbtkFlightDistanceSig] > 0.15 ) continue;
-            //double cutVal = cutInit + double(i)*cutInterval;
-
-            // test cut put
-            //if ( readD[lbtkFlightDistanceSig] < cutVal ) continue;
-            //if ( readD[lbtkPt] > cutVal ) continue;
-            char testhist[20];
-            sprintf( testhist, "testCut%02d", i );
-            std::string sname = testhist;
-
-            fillHisto( sname, readD[lbtkMass] );
-            break;
-        }
 
     } catch (...) {}
 }
 
-void root_TreeHistoMain_GenInfo_LbTk::Clear()
-{
-    memset( dataD, 0x00, totNumD*sizeof( double ) );
-    memset( dataI, 0x00, totNumI*sizeof( int ) );
-}
 void root_TreeHistoMain_GenInfo_LbTk::RegTree()
 {
-    // don't reg tree.
-    // return;
     if ( NoOutput() ) return;
 
     TTree* t = thisTree();
-    t->Branch( "lbtkMass", &dataD[lbtkMass], "lbtkMass/D" );
-    t->Branch( "lbtkFD2d", &dataD[lbtkFlightDistance2d], "lbtkFD2d/D" );
-    t->Branch( "lbtkFDSig", &dataD[lbtkFlightDistanceSig], "lbtkFDSig/D" );
-    t->Branch( "lbtkVtxprob", &dataD[lbtkVtxprob], "lbtkVtxprob/D" );
-
-    t->Branch( "lbtkMom", &dataD[lbtkMom], "lbtkMom/D" );
-    t->Branch( "lbtkPt", &dataD[lbtkPt], "lbtkPt/D" );
-    t->Branch( "tktkPt", &dataD[tktkPt], "tktkPt/D" );
-    t->Branch( "tktkMom", &dataD[tktkMom], "tktkMom/D" );
-
-    t->Branch( "fake_Lam0Mass", &dataD[fake_Lam0Mass], "fake_Lam0Mass/D" );
-    t->Branch( "fake_LbL0Mass", &dataD[fake_LbL0Mass], "fake_LbL0Mass/D" );
-    t->Branch( "fake_KstarMass", &dataD[fake_KstarMass], "fake_KstarMass/D" );
-    t->Branch( "fake_BdMass", &dataD[fake_BdMass], "fake_BdMass/D" );
-    t->Branch( "fake_PhiMass", &dataD[fake_PhiMass], "fake_PhiMass/D" );
-    t->Branch( "fake_BsMass", &dataD[fake_BsMass], "fake_BsMass/D" );
-    t->Branch( "fake_KshortMass", &dataD[fake_KshortMass], "fake_KshortMass/D" );
-    t->Branch( "fake_mumupipiMass", &dataD[fake_mumupipiMass], "fake_mumupipiMass/D" );
-
-    t->Branch( "ptkPt", &dataD[ptkPt], "ptkPt/D" );
-    t->Branch( "ptkMom", &dataD[ptkMom], "ptkMom/D" );
-    t->Branch( "ptkDEDX.Harmonic", &dataD[ptkDEDX_Harmonic], "ptkDEDX.Harmonic/D" );
-    t->Branch( "ptkDEDX.pixelHrm", &dataD[ptkDEDX_pixelHrm], "ptkDEDX.pixelHrm/D" );
-    t->Branch( "ptkIPt", &dataD[ptkIPt], "ptkIPt/D" );
-    t->Branch( "ptkIPtErr", &dataD[ptkIPtErr], "ptkIPtErr/D" );
-
-    t->Branch( "ntkPt", &dataD[ntkPt], "ntkPt/D" );
-    t->Branch( "ntkMom", &dataD[ntkMom], "ntkMom/D" );
-    t->Branch( "ntkDEDX.Harmonic", &dataD[ntkDEDX_Harmonic], "ntkDEDX.Harmonic/D" );
-    t->Branch( "ntkDEDX.pixelHrm", &dataD[ntkDEDX_pixelHrm], "ntkDEDX.pixelHrm/D" );
-    t->Branch( "ntkIPt", &dataD[ntkIPt], "ntkIPt/D" );
-    t->Branch( "ntkIPtErr", &dataD[ntkIPtErr], "ntkIPtErr/D" );
+    RegFormatTree(t);
 
     t->Branch( "ptkPID", &dataI[ptkPID], "ptkPID/I" );
     t->Branch( "ntkPID", &dataI[ntkPID], "ntkPID/I" );
@@ -199,41 +131,12 @@ void root_TreeHistoMain_GenInfo_LbTk::RegHisto()
 void root_TreeHistoMain_GenInfo_LbTk::LoadSourceBranch()
 {
     TTree* t = readTree();
-    t->SetBranchAddress( "lbtkMass", &readD[lbtkMass] );
-    t->SetBranchAddress( "lbtkFD2d", &readD[lbtkFlightDistance2d] );
-    t->SetBranchAddress( "lbtkFDSig", &readD[lbtkFlightDistanceSig] );
-    t->SetBranchAddress( "lbtkVtxprob", &readD[lbtkVtxprob] );
+    LoadFormatSourceBranch(t);
 
-    t->SetBranchAddress( "lbtkMom", &readD[lbtkMom] );
-    t->SetBranchAddress( "lbtkPt", &readD[lbtkPt] );
-    t->SetBranchAddress( "tktkPt", &readD[tktkPt] );
-    t->SetBranchAddress( "tktkMom", &readD[tktkMom] );
-
-    t->SetBranchAddress( "fake_Lam0Mass", &readD[fake_Lam0Mass] );
-    t->SetBranchAddress( "fake_LbL0Mass", &readD[fake_LbL0Mass] );
-    t->SetBranchAddress( "fake_KstarMass", &readD[fake_KstarMass] );
-    t->SetBranchAddress( "fake_BdMass", &readD[fake_BdMass] );
-    t->SetBranchAddress( "fake_PhiMass", &readD[fake_PhiMass] );
-    t->SetBranchAddress( "fake_BsMass", &readD[fake_BsMass] );
-    t->SetBranchAddress( "fake_KshortMass", &readD[fake_KshortMass] );
-    t->SetBranchAddress( "fake_mumupipiMass", &readD[fake_mumupipiMass] );
-
-    t->SetBranchAddress( "ptkPt", &readD[ptkPt] );
-    t->SetBranchAddress( "ptkMom", &readD[ptkMom] );
-    t->SetBranchAddress( "ptkDEDX.Harmonic", &readD[ptkDEDX_Harmonic] );
-    t->SetBranchAddress( "ptkDEDX.pixelHrm", &readD[ptkDEDX_pixelHrm] );
-    t->SetBranchAddress( "ptkIPt", &readD[ptkIPt] );
-    t->SetBranchAddress( "ptkIPtErr", &readD[ptkIPtErr] );
-
-    t->SetBranchAddress( "ntkPt", &readD[ntkPt] );
-    t->SetBranchAddress( "ntkMom", &readD[ntkMom] );
-    t->SetBranchAddress( "ntkDEDX.Harmonic", &readD[ntkDEDX_Harmonic] );
-    t->SetBranchAddress( "ntkDEDX.pixelHrm", &readD[ntkDEDX_pixelHrm] );
-    t->SetBranchAddress( "ntkIPt", &readD[ntkIPt] );
-    t->SetBranchAddress( "ntkIPtErr", &readD[ntkIPtErr] );
-
-    t->SetBranchAddress( "ptkPID", &readI[ptkPID] );
-    t->SetBranchAddress( "ntkPID", &readI[ntkPID] );
+    t->SetBranchAddress( "ptkPID",    &readI[ptkPID] );
+    t->SetBranchAddress( "ntkPID",    &readI[ntkPID] );
+    t->SetBranchAddress( "ptkMomPID", &readI[ptkMomPID] );
+    t->SetBranchAddress( "ntkMomPID", &readI[ntkMomPID] );
     return;
 }
 

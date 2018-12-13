@@ -8,7 +8,7 @@
 
 
 treeMain_TkTk::treeMain_TkTk( TFileDirectory* d ) :
-    treeMain( d, treeMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis"), "TkTk" ),
+    treeMain( d, treeMain::Label("lbWriteSpecificDecay", "TkTkFitted", "bphAnalysis"), "TkTk" ), formatTree_TkTk( totNumD, totNumI ),
     kaonMass ( 0.493667 ), protonMass ( 0.9382720813 ), pionMass ( 0.13957061 )
 {
     RegTree();
@@ -141,31 +141,11 @@ void treeMain_TkTk::Process( fwlite::Event* ev )
     } catch (...) {}
 }
 
-void treeMain_TkTk::Clear()
-{
-    memset( dataD, 0x00, totNumD*sizeof( double ) );
-    memset( dataI, 0x00, totNumI*sizeof( int ) );
-}
 void treeMain_TkTk::RegTree()
 {
-    thisTree()->Branch( "tktkMass", &dataD[tktkMass], "tktkMass/D" );
-    thisTree()->Branch( "tktkFD2d", &dataD[tktkFlightDistance2d], "tktkFD2d/D" );
-    thisTree()->Branch( "tktkVtxprob", &dataD[tktkVtxprob], "tktkVtxprob/D" );
-    thisTree()->Branch( "tktkPt", &dataD[tktkPt], "tktkPt/D" );
-    thisTree()->Branch( "fake_Lam0Mass", &dataD[fake_Lam0Mass], "fake_Lam0Mass/D" );
-    thisTree()->Branch( "fake_KstarMass", &dataD[fake_KstarMass], "fake_KstarMass/D" );
-    thisTree()->Branch( "fake_KshortMass", &dataD[fake_KshortMass], "fake_KshortMass/D" );
-    thisTree()->Branch( "fake_PhiMass", &dataD[fake_PhiMass], "fake_PhiMass/D" );
-    thisTree()->Branch( "ptkMom", &dataD[ptkMom], "ptkMom/D" );
-    thisTree()->Branch( "ptkDEDX.Harmonic", &dataD[ptkDEDX_Harmonic], "ptkDEDX.Harmonic/D" );
-    thisTree()->Branch( "ptkDEDX.pixelHrm", &dataD[ptkDEDX_pixelHrm], "ptkDEDX.pixelHrm/D" );
-    thisTree()->Branch( "ptkIPt", &dataD[ptkIPt], "ptkIPt/D" );
-    thisTree()->Branch( "ptkIPtErr", &dataD[ptkIPtErr], "ptkIPtErr/D" );
-    thisTree()->Branch( "ntkMom", &dataD[ntkMom], "ntkMom/D" );
-    thisTree()->Branch( "ntkDEDX.Harmonic", &dataD[ntkDEDX_Harmonic], "ntkDEDX.Harmonic/D" );
-    thisTree()->Branch( "ntkDEDX.pixelHrm", &dataD[ntkDEDX_pixelHrm], "ntkDEDX.pixelHrm/D" );
-    thisTree()->Branch( "ntkIPt", &dataD[ntkIPt], "ntkIPt/D" );
-    thisTree()->Branch( "ntkIPtErr", &dataD[ntkIPtErr], "ntkIPtErr/D" );
+    TTree* t = thisTree();
+    RegFormatTree(t);
+    return;
 }
 
 void treeMain_TkTk::GetByLabel( fwlite::Event* ev )

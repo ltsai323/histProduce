@@ -7,7 +7,7 @@ class treeMain_LbL0 : public treeMain
 public:
     treeMain_LbL0 ( TFileDirectory* d);
     virtual void Process( fwlite::Event* ev ) override;
-    virtual void Clear() override;
+    virtual void Clear();
 
     // automatically called by constructor.
     virtual void RegTree() override;

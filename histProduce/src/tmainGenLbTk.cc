@@ -8,11 +8,14 @@
 
 
 treeMainGen_LbTk::treeMainGen_LbTk( TFileDirectory* d ) :
-    treeMainGen( d, treeMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis"), "LbTkGenInfo" ),
+    treeMainGen( d, treeMain::Label("lbWriteSpecificDecay", "LbToTkTkFitted", "bphAnalysis"), "LbTkGenInfo" ), formatTree_LbTk( totNumD, totNumI ),
     kaonMass ( 0.493667 ), protonMass( 0.9382720813 ), pionMass( 0.13957061 )
 {
     RegTree();
     hSummary = createHisto( "selCand_totCand", 10, 0., 10., 10, 0., 10. );
+    hParEta  = createHisto("par_eta", 100, -5., 5.);
+    hParCos2D= createHisto("par_cosTheta2D", 210, -1.05, 1.05);
+    hParCos3D= createHisto("par_cosTheta3D", 210, -1.05, 1.05);
 }
 void treeMainGen_LbTk::Process( fwlite::Event* ev )
 {
@@ -26,7 +29,9 @@ void treeMainGen_LbTk::Process( fwlite::Event* ev )
         if ( !_genHandle.isValid() ) return;
         if ( _handle->size()  == 0 ) return;
         if ( _genHandle->size() == 0 ) return;
-        const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
+        //if (  primaryVHandle.isValid() ) std::cout << "number of pv in this event: " << primaryVHandle->size() << "\n";
+        //const reco::Vertex bs( (*beamSpotHandle).position(), (*beamSpotHandle).covariance3D() );
+        const reco::BeamSpot& bs = *beamSpotHandle;
 
         std::vector< std::pair< double, const pat::CompositeCandidate*> > candsSorted;
         candsSorted.reserve( _handle->size() );
@@ -75,10 +80,10 @@ void treeMainGen_LbTk::Process( fwlite::Event* ev )
 
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             if ( _vtx == nullptr ) continue;
-            double fd = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
+            double fdSig = usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
             double cos2d = usefulFuncs::getCosa2d( cand, &bs );
             double vtxprob = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
-            //if ( fd < 4.0 ) continue;
+            if ( fdSig < 3.0 ) continue;
             if ( cos2d < 0.99 ) continue;
             if ( vtxprob < 0.15 ) continue;
 
@@ -127,6 +132,8 @@ void treeMainGen_LbTk::Process( fwlite::Event* ev )
             MatchRes mcRes = matchMC_CompositeCand( cand, daug, 1.0 );
 
             if ( !mcRes.isValid() ) continue;
+            // only choose lambda0_b
+            if ( mcRes.getCand()->pdgId() != 5122 ) continue;
             for ( unsigned int i=0; i< mcRes.getNDaughterRecorded(); ++i )
             {
                 unsigned mcDaugID = mcRes.getmcDaugID(i);
@@ -144,6 +151,15 @@ void treeMainGen_LbTk::Process( fwlite::Event* ev )
                 }
             } // find for pID end }}}
             if ( !(dataI[ptkPID]&&dataI[ntkPID]) ) continue;
+
+            // search for pentaQuark
+            // jpsip = jpsi + proton, jpsipBar = jpsi + anti-proton
+            fourMom jpsip, jpsipBar;
+            pTk.setMass( protonMass );
+            nTk.setMass( protonMass );
+            jpsip = pMu + nMu + pTk;
+            jpsipBar = pMu + nMu + nTk;
+
             // search for lam0
             pTk.setMass( protonMass );
             nTk.setMass(   pionMass );
@@ -185,10 +201,17 @@ void treeMainGen_LbTk::Process( fwlite::Event* ev )
             const reco::Vertex* pv = usefulFuncs::get<reco::Vertex>( *jpsi, "fitVertex" );
 
             dataD[lbtkMass] = cand.userFloat( "fitMass" );
-            dataD[lbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( cand, pv );
-            dataD[lbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( cand, pv );
+            dataD[lbtkFlightDistance2d] = usefulFuncs::getFlightDistance ( cand, &bs );
+            dataD[lbtkFlightDistanceSig]= usefulFuncs::getFlightDistanceSignificance ( cand, &bs );
             const reco::Vertex* _vtx = usefulFuncs::get<reco::Vertex>( cand, "fitVertex" );
             dataD[lbtkVtxprob] = TMath::Prob( _vtx->chi2(), _vtx->ndof() );
+            dataD[lbtkCosa2d] = usefulFuncs::getCosa2d(cand,&bs);
+            //dataD[lbtkCosAngleToVtx_PV_BS] = usefulFuncs::getCosAngleToVtx_PV_BS( cand, *pv, bs );
+
+            dataD[targetJpsiP_mass] = jpsip.Mag();
+            dataD[targetJpsiP_pt] = jpsip.transverse();
+            dataD[targetJpsiPBar_mass] = jpsipBar.Mag();
+            dataD[targetJpsiPBar_pt] = jpsipBar.transverse();
 
             dataD[lbtkMom]= fourTk.Momentum();
             dataD[lbtkPt] = fourTk.transverse();
@@ -212,51 +235,20 @@ void treeMainGen_LbTk::Process( fwlite::Event* ev )
                 dataD[ntkDEDX_Harmonic] = cand.userFloat(   "TkTk/Kaon.dEdx.Harmonic" );
             ++selCand;
             thisTree()->Fill();
+
+            hParEta  ->Fill(fourTk.eta());
+            hParCos2D->Fill(usefulFuncs::getCosa2d(cand,pv));
+            hParCos3D->Fill(usefulFuncs::getCosa3d(cand,pv));
         }
         hSummary->Fill( selCand, totCand );
+
     } catch (...) {}
 }
 
-void treeMainGen_LbTk::Clear()
-{
-    memset( dataD, 0x00, totNumD*sizeof( double ) );
-    memset( dataI, 0x00, totNumI*sizeof( int ) );
-}
 void treeMainGen_LbTk::RegTree()
 {
     TTree* t = thisTree();
-    t->Branch( "lbtkMass", &dataD[lbtkMass], "lbtkMass/D" );
-    t->Branch( "lbtkFD2d", &dataD[lbtkFlightDistance2d], "lbtkFD2d/D" );
-    t->Branch( "lbtkFDSig", &dataD[lbtkFlightDistanceSig], "lbtkFDSig/D" );
-    t->Branch( "lbtkVtxprob", &dataD[lbtkVtxprob], "lbtkVtxprob/D" );
-
-    t->Branch( "lbtkMom", &dataD[lbtkMom], "lbtkMom/D" );
-    t->Branch( "lbtkPt", &dataD[lbtkPt], "lbtkPt/D" );
-    t->Branch( "tktkPt", &dataD[tktkPt], "tktkPt/D" );
-    t->Branch( "tktkMom", &dataD[tktkMom], "tktkMom/D" );
-
-    t->Branch( "fake_Lam0Mass", &dataD[fake_Lam0Mass], "fake_Lam0Mass/D" );
-    t->Branch( "fake_LbL0Mass", &dataD[fake_LbL0Mass], "fake_LbL0Mass/D" );
-    t->Branch( "fake_KstarMass", &dataD[fake_KstarMass], "fake_KstarMass/D" );
-    t->Branch( "fake_BdMass", &dataD[fake_BdMass], "fake_BdMass/D" );
-    t->Branch( "fake_PhiMass", &dataD[fake_PhiMass], "fake_PhiMass/D" );
-    t->Branch( "fake_BsMass", &dataD[fake_BsMass], "fake_BsMass/D" );
-    t->Branch( "fake_KshortMass", &dataD[fake_KshortMass], "fake_KshortMass/D" );
-    t->Branch( "fake_mumupipiMass", &dataD[fake_mumupipiMass], "fake_mumupipiMass/D" );
-
-    t->Branch( "ptkPt", &dataD[ptkPt], "ptkPt/D" );
-    t->Branch( "ptkMom", &dataD[ptkMom], "ptkMom/D" );
-    t->Branch( "ptkDEDX.Harmonic", &dataD[ptkDEDX_Harmonic], "ptkDEDX.Harmonic/D" );
-    t->Branch( "ptkDEDX.pixelHrm", &dataD[ptkDEDX_pixelHrm], "ptkDEDX.pixelHrm/D" );
-    t->Branch( "ptkIPt", &dataD[ptkIPt], "ptkIPt/D" );
-    t->Branch( "ptkIPtErr", &dataD[ptkIPtErr], "ptkIPtErr/D" );
-
-    t->Branch( "ntkPt", &dataD[ntkPt], "ntkPt/D" );
-    t->Branch( "ntkMom", &dataD[ntkMom], "ntkMom/D" );
-    t->Branch( "ntkDEDX.Harmonic", &dataD[ntkDEDX_Harmonic], "ntkDEDX.Harmonic/D" );
-    t->Branch( "ntkDEDX.pixelHrm", &dataD[ntkDEDX_pixelHrm], "ntkDEDX.pixelHrm/D" );
-    t->Branch( "ntkIPt", &dataD[ntkIPt], "ntkIPt/D" );
-    t->Branch( "ntkIPtErr", &dataD[ntkIPtErr], "ntkIPtErr/D" );
+    RegFormatTree(t);
 
     t->Branch( "ptkPID", &dataI[ptkPID], "ptkPID/I" );
     t->Branch( "ntkPID", &dataI[ntkPID], "ntkPID/I" );
@@ -268,44 +260,16 @@ void treeMainGen_LbTk::GetByLabel( fwlite::Event* ev )
     getByLabel_Cand( ev );
     getByLabel_genParticle( ev );
     getByLabel_BS( ev );
+    getByLabel_PV( ev );
 }
 
 inline void treeMainGen_LbTk::getByLabel_BS( fwlite::Event* ev )
 { beamSpotHandle.getByLabel( *ev,"offlineBeamSpot", "", "RECO"  ); return; }
+inline void treeMainGen_LbTk::getByLabel_PV( fwlite::Event* ev )
+{ primaryVHandle.getByLabel( *ev,"offlinePrimaryVertices", "", "RECO"  ); return; }
 void treeMainGen_LbTk::setBranchAddress( TTree* inputTree )
 {
-    inputTree->SetBranchAddress( "lbtkMass", &dataD[lbtkMass] );
-    inputTree->SetBranchAddress( "lbtkFD2d", &dataD[lbtkFlightDistance2d] );
-    inputTree->SetBranchAddress( "lbtkFDSig", &dataD[lbtkFlightDistanceSig] );
-    inputTree->SetBranchAddress( "lbtkVtxprob", &dataD[lbtkVtxprob] );
-
-    inputTree->SetBranchAddress( "lbtkMom", &dataD[lbtkMom] );
-    inputTree->SetBranchAddress( "lbtkPt", &dataD[lbtkPt] );
-    inputTree->SetBranchAddress( "tktkPt", &dataD[tktkPt] );
-    inputTree->SetBranchAddress( "tktkMom", &dataD[tktkMom] );
-
-    inputTree->SetBranchAddress( "fake_Lam0Mass", &dataD[fake_Lam0Mass] );
-    inputTree->SetBranchAddress( "fake_LbL0Mass", &dataD[fake_LbL0Mass] );
-    inputTree->SetBranchAddress( "fake_KstarMass", &dataD[fake_KstarMass] );
-    inputTree->SetBranchAddress( "fake_BdMass", &dataD[fake_BdMass] );
-    inputTree->SetBranchAddress( "fake_PhiMass", &dataD[fake_PhiMass] );
-    inputTree->SetBranchAddress( "fake_BsMass", &dataD[fake_BsMass] );
-    inputTree->SetBranchAddress( "fake_KshortMass", &dataD[fake_KshortMass] );
-    inputTree->SetBranchAddress( "fake_mumupipiMass", &dataD[fake_mumupipiMass] );
-
-    inputTree->SetBranchAddress( "ptkPt", &dataD[ptkPt] );
-    inputTree->SetBranchAddress( "ptkMom", &dataD[ptkMom] );
-    inputTree->SetBranchAddress( "ptkDEDX.Harmonic", &dataD[ptkDEDX_Harmonic] );
-    inputTree->SetBranchAddress( "ptkDEDX.pixelHrm", &dataD[ptkDEDX_pixelHrm] );
-    inputTree->SetBranchAddress( "ptkIPt", &dataD[ptkIPt] );
-    inputTree->SetBranchAddress( "ptkIPtErr", &dataD[ptkIPtErr] );
-
-    inputTree->SetBranchAddress( "ntkPt", &dataD[ntkPt] );
-    inputTree->SetBranchAddress( "ntkMom", &dataD[ntkMom] );
-    inputTree->SetBranchAddress( "ntkDEDX.Harmonic", &dataD[ntkDEDX_Harmonic] );
-    inputTree->SetBranchAddress( "ntkDEDX.pixelHrm", &dataD[ntkDEDX_pixelHrm] );
-    inputTree->SetBranchAddress( "ntkIPt", &dataD[ntkIPt] );
-    inputTree->SetBranchAddress( "ntkIPtErr", &dataD[ntkIPtErr] );
+    LoadFormatSourceBranch(inputTree);
 
     inputTree->SetBranchAddress( "ptkPID", &dataI[ptkPID] );
     inputTree->SetBranchAddress( "ntkPID", &dataI[ntkPID] );

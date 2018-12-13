@@ -22,6 +22,8 @@
   <bin name="testLite"                  file="FWLiteWithPythonConfig.cc"></bin>
   <bin name="histoProducer"             file="FWLiteMyCustomTest.cc"></bin>
   <bin name="hOutAllHists"              file="RootPrintAllHistogramAsPDF.cc"></bin>
+  <bin name="pullDistribution"          file="RootPullDistribution.cc"></bin>
 
   <bin name="tmpReader"                 file="RootTmpReader.cc"></bin>
+  <bin name="tmpReader2"                file="RootTmpReader2.cc"></bin>
 </environment>
