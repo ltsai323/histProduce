@@ -24,8 +24,9 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 #from histProduce.histProduce.data_2016RunG_LbL0_cfi import files
 #process.source = cms.Source("PoolSource",fileNames = files,
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring(
-'file:///home/ltsai/ReceivedFile/tmp/vertexProducer_BdRemoved_1-1.root',
-'file:///home/ltsai/ReceivedFile/tmp/vertexProducer_BdRemoved_1-10.root'
+'file:vertexProducer_BdRemoved.root'
+#'file:///home/ltsai/ReceivedFile/tmp/vertexProducer_BdRemoved_1-1.root',
+#'file:///home/ltsai/ReceivedFile/tmp/vertexProducer_BdRemoved_1-10.root'
 ),
         duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 )
