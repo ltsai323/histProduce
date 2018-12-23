@@ -140,8 +140,8 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         edm::Handle < vector < reco::VertexCompositeCandidate > >pL0BCands;
         ev.getByToken( pL0BCandsToken, pL0BCands );
         // preselection {{{
-        if (!pL0BCands.isValid()) return;
-        if (pL0BCands->size() == 0) return;
+        if (!pL0BCands.isValid()) goto endOfpL0B;
+        if (pL0BCands->size() == 0) goto endOfpL0B;
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = pL0BCands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = pL0BCands->cend  ();
@@ -303,6 +303,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         }
         //eventSeparator_pL0B = usefulFuncs::inverter(eventSeparator_pL0B);
     }                           // Lb->Jpsi p K end }}}
+    endOfpL0B:
 
     //////////// anti LbTk ////////////
 
@@ -311,8 +312,8 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         edm::Handle < vector < reco::VertexCompositeCandidate > >nL0BCands;
         ev.getByToken( nL0BCandsToken, nL0BCands );
         // preselection {{{
-        if (!nL0BCands.isValid()) return;
-        if (nL0BCands->size() == 0) return;
+        if (!nL0BCands.isValid()) goto endOfnL0B;
+        if (nL0BCands->size() == 0) goto endOfnL0B;
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = nL0BCands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = nL0BCands->cend  ();
@@ -335,8 +336,8 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             // preselection
             if (sqrt(muPosCandPtr->momentum().Perp2()) < 4.0) continue;
             if (sqrt(muNegCandPtr->momentum().Perp2()) < 4.0) continue;
-            if (sqrt(tkPosCandPtr->momentum().Perp2()) < 0.8) continue;
-            if (sqrt(tkNegCandPtr->momentum().Perp2()) < 0.3) continue;
+            if (sqrt(tkPosCandPtr->momentum().Perp2()) < 0.3) continue;
+            if (sqrt(tkNegCandPtr->momentum().Perp2()) < 0.8) continue;
 
             if (sqrt(cand.momentum().Perp2()) < 10.) continue;
 
@@ -475,6 +476,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         }
         //eventSeparator_nL0B = usefulFuncs::inverter(eventSeparator_nL0B);
     }                           // Lb->Jpsi P k end }}}
+    endOfnL0B:
 
     //////////// LbL0 ////////////
 
@@ -483,8 +485,8 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         edm::Handle < vector < reco::VertexCompositeCandidate > >LbL0Cands;
         ev.getByToken( LbL0CandsToken, LbL0Cands );
         // preselection {{{
-        if (!LbL0Cands.isValid()) return;
-        if (LbL0Cands->size() == 0) return;
+        if (!LbL0Cands.isValid()) goto endOfLbL0;
+        if (LbL0Cands->size() == 0) goto endOfLbL0;
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = LbL0Cands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = LbL0Cands->cend  ();
@@ -649,6 +651,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         }
         //eventSeparator_LbL0 = usefulFuncs::inverter(eventSeparator_LbL0);
     }                           // Lb->Jpsi Lam0 end }}}
+    endOfLbL0:
 
 
     //////////// LbLo ////////////
@@ -658,8 +661,8 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         edm::Handle < vector < reco::VertexCompositeCandidate > >LbLoCands;
         ev.getByToken( LbLoCandsToken, LbLoCands );
         // preselection {{{
-        if (!LbLoCands.isValid()) return;
-        if (LbLoCands->size() == 0) return;
+        if (!LbLoCands.isValid()) goto endOfLbLo;
+        if (LbLoCands->size() == 0) goto endOfLbLo;
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = LbLoCands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = LbLoCands->cend  ();
@@ -824,6 +827,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         }
         //eventSeparator_LbLo = usefulFuncs::inverter(eventSeparator_LbLo);
     }                           // Lb->Jpsi anti Lam0 end }}}
+    endOfLbLo:
 
     return;
 }
