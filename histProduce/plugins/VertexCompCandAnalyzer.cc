@@ -44,6 +44,7 @@
 #include <iostream>
 #include <fstream>
 #include <math.h>
+#include <stdio.h>
 
 #include <memory>
 #include <string>
@@ -141,7 +142,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         ev.getByToken( pL0BCandsToken, pL0BCands );
         // preselection {{{
         if (!pL0BCands.isValid()) goto endOfpL0B;
-        if (pL0BCands->size() == 0) goto endOfpL0B;
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = pL0BCands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = pL0BCands->cend  ();
@@ -313,7 +313,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         ev.getByToken( nL0BCandsToken, nL0BCands );
         // preselection {{{
         if (!nL0BCands.isValid()) goto endOfnL0B;
-        if (nL0BCands->size() == 0) goto endOfnL0B;
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = nL0BCands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = nL0BCands->cend  ();
@@ -486,7 +485,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         ev.getByToken( LbL0CandsToken, LbL0Cands );
         // preselection {{{
         if (!LbL0Cands.isValid()) goto endOfLbL0;
-        if (LbL0Cands->size() == 0) goto endOfLbL0;
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = LbL0Cands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = LbL0Cands->cend  ();
@@ -501,7 +499,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("MuPos") );
             const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("MuNeg") );
             const reco::VertexCompositeCandidate* twoTkCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( cand.daughter("Lam0")  );
-            //const reco::RecoChargedCandidate* twoTkCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("Lam0")  );
             //const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("Kaon") );
             //const reco::RecoChargedCandidate* tkNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("Proton") );
 
@@ -662,7 +659,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         ev.getByToken( LbLoCandsToken, LbLoCands );
         // preselection {{{
         if (!LbLoCands.isValid()) goto endOfLbLo;
-        if (LbLoCands->size() == 0) goto endOfLbLo;
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = LbLoCands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = LbLoCands->cend  ();
