@@ -49,7 +49,6 @@
 #include <memory>
 #include <string>
 
-#include "histProduce/histProduce/interface/usefulFuncs.h"
 #include "histProduce/histProduce/interface/fourMom.h"
 #include "histProduce/histProduce/plugins/VertexCompCandAnalyzer.h"
 
@@ -130,9 +129,9 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
     edm::Handle < reco::BeamSpot > beamSpotHandle;
     if (useBS)
         ev.getByToken( bsPointToken, beamSpotHandle );
-    if (!beamSpotHandle.isValid())
-        return;
-    const reco::BeamSpot & bs = *beamSpotHandle;
+    //if (!beamSpotHandle.isValid())
+    //    return;
+    //const reco::BeamSpot & bs = *beamSpotHandle;
 
 
     //////////// LbTk ////////////
@@ -143,6 +142,10 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         ev.getByToken( pL0BCandsToken, pL0BCands );
         // preselection {{{
         if (!pL0BCands.isValid()) goto endOfpL0B;
+<<<<<<< HEAD
+        if (pL0BCands->size() == 0) goto endOfpL0B;
+=======
+>>>>>>> 63d50e6249a3790720c3210c2fdb3f036bc92515
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = pL0BCands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = pL0BCands->cend  ();
@@ -170,14 +173,13 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 
             if (sqrt(cand.momentum().Perp2()) < 10.) continue;
 
-            //const GlobalPoint
             //const reco::Particle::Point& _vtx = cand.vertex();
             //double fdSig = usefulFuncs::getFlightDistanceSignificance(cand, &bs);
             //if (fdSig < 3.0) continue;
             //double cos2d = usefulFuncs::getCosa2d(cand, &bs);
             double vtxprob = TMath::Prob(cand.vertexChi2(), cand.vertexNdof());
             //if (cos2d < 0.95) continue;
-            if (vtxprob < 0.03) continue;
+            // if (vtxprob < 0.03) continue;
             selectedCandList.emplace_back(vtxprob, &cand);
         }
         // preselection end }}}
@@ -193,7 +195,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("MuNeg") );
             const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("Proton") );
             const reco::RecoChargedCandidate* tkNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("Kaon") );
-
 
             reco::Particle::LorentzVector muPosP4 = muPosCandPtr->p4(); muPosP4.SetE(sqrt(muPosP4.P2()+muonMASS*muonMASS));
             reco::Particle::LorentzVector muNegP4 = muNegCandPtr->p4(); muNegP4.SetE(sqrt(muNegP4.P2()+muonMASS*muonMASS));
@@ -230,16 +231,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
                     pL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
 
             } // check particles end }}}
-            GlobalPoint bsVtx2D( bs.x( tkPosCandPtr->vertex().z() ), bs.y( tkPosCandPtr->vertex().z() ), 0. );
-            GlobalPoint tktkVtx2D( tkPosCandPtr->vertex().x(),tkPosCandPtr->vertex().y(),  0. );
-            GlobalPoint mumuVtx2D( muPosCandPtr->vertex().x(),muPosCandPtr->vertex().y(),  0. );
-            GlobalPoint fourTkVtx2D( selCand.vertex().x(), selCand.vertex().y(), 0. );
-            GlobalVector tktkMom2D( tktkSelP4.x(), tktkSelP4.y(), 0. );
-            GlobalVector fourTkMom2D( selCand.momentum().x(), selCand.momentum().y(), 0. );
-            const usefulFuncs::SMatrixSym3D& bsCOV = bs.rotatedCovariance3D();
-            const usefulFuncs::SMatrixSym3D& tktkCOV = tkPosCandPtr->vertexCovariance();
-            const usefulFuncs::SMatrixSym3D& mumuCOV = muPosCandPtr->vertexCovariance();
-            const usefulFuncs::SMatrixSym3D& fourTkCOV = selCand.vertexCovariance();
 
 
             tkPosP4.SetE(sqrt(tkPosP4.P2()+protonMASS*protonMASS));
@@ -255,9 +246,10 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             pL0B.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
             pL0B.dataD[LbTkRecord::lbtkY] = fourTkMom.Rapidity();
             pL0B.dataD[LbTkRecord::lbtkPhi] = fourTkMom.Phi();
-            pL0B.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
-            pL0B.dataD[LbTkRecord::lbtkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
-            pL0B.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
+            //pL0B.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance(selCand, &bs);
+            //pL0B.dataD[LbTkRecord::lbtkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(selCand, &bs);
+            //const reco::Particle::Point& candVtx = selCand.vertex();
+            //pL0B.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosa2d(selCand, &bs);
             pL0B.dataD[LbTkRecord::lbtkVtxprob] = candVtxprob;
             pL0B.dataD[LbTkRecord::lbtknChi2] = selCand.vertexChi2() / selCand.vertexNdof();
 
@@ -266,9 +258,10 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             pL0B.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
             pL0B.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
             pL0B.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
-            pL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, bsVtx2D);
-            pL0B.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
-            pL0B.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
+            //pL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkCand, &bs);
+            //pL0B.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkCand, &bs);
+            //const reco::Particle::Point& tktkCandVtx = tkPosCandPtr->vertex();
+            //pL0B.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosa2d(tktkCand, &bs);
             pL0B.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(tkPosCandPtr->vertexChi2(), tkPosCandPtr->vertexNdof());
             pL0B.dataD[LbTkRecord::tktknChi2] = tkPosCandPtr->vertexChi2() / tkPosCandPtr->vertexNdof();
 
@@ -324,6 +317,10 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         ev.getByToken( nL0BCandsToken, nL0BCands );
         // preselection {{{
         if (!nL0BCands.isValid()) goto endOfnL0B;
+<<<<<<< HEAD
+        if (nL0BCands->size() == 0) goto endOfnL0B;
+=======
+>>>>>>> 63d50e6249a3790720c3210c2fdb3f036bc92515
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = nL0BCands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = nL0BCands->cend  ();
@@ -357,7 +354,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             //double cos2d = usefulFuncs::getCosa2d(cand, &bs);
             double vtxprob = TMath::Prob(cand.vertexChi2(), cand.vertexNdof());
             //if (cos2d < 0.95) continue;
-            if (vtxprob < 0.03) continue;
+            //  if (vtxprob < 0.03) continue;
             selectedCandList.emplace_back(vtxprob, &cand);
         }
         // preselection end }}}
@@ -410,30 +407,25 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
                     nL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
 
             } // check particles end }}}
-            GlobalPoint bsVtx2D( bs.x( tkPosCandPtr->vertex().z() ), bs.y( tkPosCandPtr->vertex().z() ), 0. );
-            GlobalPoint tktkVtx2D( tkPosCandPtr->vertex().x(),tkPosCandPtr->vertex().y(),  0. );
-            GlobalPoint mumuVtx2D( muPosCandPtr->vertex().x(),muPosCandPtr->vertex().y(),  0. );
-            GlobalPoint fourTkVtx2D( selCand.vertex().x(), selCand.vertex().y(), 0. );
-            GlobalVector tktkMom2D( tktkSelP4.x(), tktkSelP4.y(), 0. );
-            GlobalVector fourTkMom2D( selCand.momentum().x(), selCand.momentum().y(), 0. );
-            const usefulFuncs::SMatrixSym3D& bsCOV = bs.rotatedCovariance3D();
-            const usefulFuncs::SMatrixSym3D& tktkCOV = tkPosCandPtr->vertexCovariance();
-            const usefulFuncs::SMatrixSym3D& mumuCOV = muPosCandPtr->vertexCovariance();
-            const usefulFuncs::SMatrixSym3D& fourTkCOV = selCand.vertexCovariance();
 
 
             tkPosP4.SetE(sqrt(tkPosP4.P2()+kaonMASS*kaonMASS));
             tkNegP4.SetE(sqrt(tkNegP4.P2()+protonMASS*protonMASS));
             reco::Particle::LorentzVector fourTkMom = selCand.p4();
             reco::Particle::LorentzVector tktkMom = tkPosP4+tkNegP4;
+            //const GlobalVector *twoTk = tktkCand.userData < GlobalVector > ("fitMomentum");
+            //TLorentzVector twoTkMom(twoTk->x(), twoTk->y(), twoTk->z(),
+            //                        sqrt(twoTk->x() * twoTk->x() + twoTk->y() * twoTk->y() + twoTk->z() * twoTk->z() +
+            //                             tktkCand.userFloat("fitMass") * tktkCand.userFloat("fitMass")));
             nL0B.dataD[LbTkRecord::lbtkMass] = selCand.mass();
             nL0B.dataD[LbTkRecord::lbtkPt] = fourTkMom.Pt();
             nL0B.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
             nL0B.dataD[LbTkRecord::lbtkY] = fourTkMom.Rapidity();
             nL0B.dataD[LbTkRecord::lbtkPhi] = fourTkMom.Phi();
-            nL0B.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
-            nL0B.dataD[LbTkRecord::lbtkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
-            nL0B.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
+            //nL0B.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance(selCand, &bs);
+            //nL0B.dataD[LbTkRecord::lbtkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(selCand, &bs);
+            //const reco::Particle::Point& candVtx = selCand.vertex();
+            //nL0B.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosa2d(selCand, &bs);
             nL0B.dataD[LbTkRecord::lbtkVtxprob] = candVtxprob;
             nL0B.dataD[LbTkRecord::lbtknChi2] = selCand.vertexChi2() / selCand.vertexNdof();
 
@@ -442,9 +434,10 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             nL0B.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
             nL0B.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
             nL0B.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
-            pL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, bsVtx2D);
-            pL0B.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
-            pL0B.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
+            //nL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkCand, &bs);
+            //nL0B.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkCand, &bs);
+            //const reco::Particle::Point& tktkCandVtx = tkPosCandPtr->vertex();
+            //nL0B.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosa2d(tktkCand, &bs);
             nL0B.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(tkPosCandPtr->vertexChi2(), tkPosCandPtr->vertexNdof());
             nL0B.dataD[LbTkRecord::tktknChi2] = tkPosCandPtr->vertexChi2() / tkPosCandPtr->vertexNdof();
 
@@ -500,6 +493,10 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         ev.getByToken( LbL0CandsToken, LbL0Cands );
         // preselection {{{
         if (!LbL0Cands.isValid()) goto endOfLbL0;
+<<<<<<< HEAD
+        if (LbL0Cands->size() == 0) goto endOfLbL0;
+=======
+>>>>>>> 63d50e6249a3790720c3210c2fdb3f036bc92515
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = LbL0Cands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = LbL0Cands->cend  ();
@@ -535,7 +532,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             //double cos2d = usefulFuncs::getCosa2d(cand, &bs);
             double vtxprob = TMath::Prob(cand.vertexChi2(), cand.vertexNdof());
             //if (cos2d < 0.95) continue;
-            if (vtxprob < 0.03) continue;
+            //  if (vtxprob < 0.03) continue;
             selectedCandList.emplace_back(vtxprob, &cand);
         }
         // preselection end }}}
@@ -589,16 +586,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             //        LbL0.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
 
             //} // check particles end }}}
-            GlobalPoint bsVtx2D( bs.x( twoTkCandPtr->vertex().z() ), bs.y( twoTkCandPtr->vertex().z() ), 0. );
-            GlobalPoint tktkVtx2D( twoTkCandPtr->vertex().x(),twoTkCandPtr->vertex().y(),  0. );
-            GlobalPoint mumuVtx2D( muPosCandPtr->vertex().x(),muPosCandPtr->vertex().y(),  0. );
-            GlobalPoint fourTkVtx2D( selCand.vertex().x(), selCand.vertex().y(), 0. );
-            GlobalVector tktkMom2D( twoTkP4.x(), twoTkP4.y(), 0. );
-            GlobalVector fourTkMom2D( selCand.momentum().x(), selCand.momentum().y(), 0. );
-            const usefulFuncs::SMatrixSym3D& bsCOV = bs.rotatedCovariance3D();
-            const usefulFuncs::SMatrixSym3D& tktkCOV = twoTkCandPtr->vertexCovariance();
-            const usefulFuncs::SMatrixSym3D& mumuCOV = muPosCandPtr->vertexCovariance();
-            const usefulFuncs::SMatrixSym3D& fourTkCOV = selCand.vertexCovariance();
 
 
             reco::Particle::LorentzVector fourTkMom = selCand.p4();
@@ -612,20 +599,22 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             LbL0.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
             LbL0.dataD[LbTkRecord::lbtkY] = fourTkMom.Rapidity();
             LbL0.dataD[LbTkRecord::lbtkPhi] = fourTkMom.Phi();
+            //LbL0.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance(selCand, &bs);
+            //LbL0.dataD[LbTkRecord::lbtkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(selCand, &bs);
+            //const reco::Particle::Point& candVtx = selCand.vertex();
+            //LbL0.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosa2d(selCand, &bs);
             LbL0.dataD[LbTkRecord::lbtkVtxprob] = candVtxprob;
             LbL0.dataD[LbTkRecord::lbtknChi2] = selCand.vertexChi2() / selCand.vertexNdof();
-            nL0B.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
-            nL0B.dataD[LbTkRecord::lbtkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
-            nL0B.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
 
             LbL0.dataD[LbTkRecord::tktkMass] = tktkMom.mass();
             LbL0.dataD[LbTkRecord::tktkPt] = tktkMom.Pt();
             LbL0.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
             LbL0.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
             LbL0.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
-            LbL0.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, bsVtx2D);
-            LbL0.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
-            LbL0.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
+            //LbL0.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkCand, &bs);
+            //LbL0.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkCand, &bs);
+            //const reco::Particle::Point& tktkCandVtx = twoTkCandPtr->vertex();
+            //LbL0.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosa2d(tktkCand, &bs);
             LbL0.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(twoTkCandPtr->vertexChi2(), twoTkCandPtr->vertexNdof());
             LbL0.dataD[LbTkRecord::tktknChi2] = twoTkCandPtr->vertexChi2() / twoTkCandPtr->vertexNdof();
 
@@ -682,6 +671,10 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
         ev.getByToken( LbLoCandsToken, LbLoCands );
         // preselection {{{
         if (!LbLoCands.isValid()) goto endOfLbLo;
+<<<<<<< HEAD
+        if (LbLoCands->size() == 0) goto endOfLbLo;
+=======
+>>>>>>> 63d50e6249a3790720c3210c2fdb3f036bc92515
 
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = LbLoCands->cbegin();
         std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = LbLoCands->cend  ();
@@ -704,21 +697,21 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             //reco::Particle::LorentzVector tkNegP4 = tkNegCandPtr->p4(); tkNegP4.SetE(sqrt(tkNegP4.P2()+kaonMASS*kaonMASS));
             //reco::Particle::LorentzVector tktkPreSelP4 = tkPosP4+tkNegP4;
             // preselection
-            if (sqrt(muPosCandPtr->momentum().Perp2()) < 4.0) continue;
-            if (sqrt(muNegCandPtr->momentum().Perp2()) < 4.0) continue;
-            if (sqrt(twoTkCandPtr->momentum().Perp2()) < 1.3) continue;
-            //if (sqrt(tkPosCandPtr->momentum().Perp2()) < 0.8) continue;
-            //if (sqrt(tkNegCandPtr->momentum().Perp2()) < 0.3) continue;
-
-            if (sqrt(cand.momentum().Perp2()) < 10.) continue;
-
+             if (sqrt(muPosCandPtr->momentum().Perp2()) < 4.0) continue;
+             if (sqrt(muNegCandPtr->momentum().Perp2()) < 4.0) continue;
+             if (sqrt(twoTkCandPtr->momentum().Perp2()) < 1.3) continue;
+             //if (sqrt(tkPosCandPtr->momentum().Perp2()) < 0.8) continue;
+             //if (sqrt(tkNegCandPtr->momentum().Perp2()) < 0.3) continue;
+ 
+             if (sqrt(cand.momentum().Perp2()) < 10.) continue;
+ 
             //const reco::Particle::Point& _vtx = cand.vertex();
             //double fdSig = usefulFuncs::getFlightDistanceSignificance(cand, &bs);
             //if (fdSig < 3.0) continue;
             //double cos2d = usefulFuncs::getCosa2d(cand, &bs);
             double vtxprob = TMath::Prob(cand.vertexChi2(), cand.vertexNdof());
             //if (cos2d < 0.95) continue;
-            if (vtxprob < 0.03) continue;
+            // if (vtxprob < 0.03) continue;
             selectedCandList.emplace_back(vtxprob, &cand);
         }
         // preselection end }}}
@@ -772,29 +765,23 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             //        LbLo.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
 
             //} // check particles end }}}
-            GlobalPoint bsVtx2D( bs.x( twoTkCandPtr->vertex().z() ), bs.y( twoTkCandPtr->vertex().z() ), 0. );
-            GlobalPoint tktkVtx2D( twoTkCandPtr->vertex().x(),twoTkCandPtr->vertex().y(),  0. );
-            GlobalPoint mumuVtx2D( muPosCandPtr->vertex().x(),muPosCandPtr->vertex().y(),  0. );
-            GlobalPoint fourTkVtx2D( selCand.vertex().x(), selCand.vertex().y(), 0. );
-            GlobalVector tktkMom2D( twoTkP4.x(), twoTkP4.y(), 0. );
-            GlobalVector fourTkMom2D( selCand.momentum().x(), selCand.momentum().y(), 0. );
-            const usefulFuncs::SMatrixSym3D& bsCOV = bs.rotatedCovariance3D();
-            const usefulFuncs::SMatrixSym3D& tktkCOV = twoTkCandPtr->vertexCovariance();
-            const usefulFuncs::SMatrixSym3D& mumuCOV = muPosCandPtr->vertexCovariance();
-            const usefulFuncs::SMatrixSym3D& fourTkCOV = selCand.vertexCovariance();
 
 
             reco::Particle::LorentzVector fourTkMom = selCand.p4();
             reco::Particle::LorentzVector tktkMom = twoTkP4;
-            
+            //const GlobalVector *twoTk = tktkCand.userData < GlobalVector > ("fitMomentum");
+            //TLorentzVector twoTkMom(twoTk->x(), twoTk->y(), twoTk->z(),
+            //                        sqrt(twoTk->x() * twoTk->x() + twoTk->y() * twoTk->y() + twoTk->z() * twoTk->z() +
+            //                             tktkCand.userFloat("fitMass") * tktkCand.userFloat("fitMass")));
             LbLo.dataD[LbTkRecord::lbtkMass] = selCand.mass();
             LbLo.dataD[LbTkRecord::lbtkPt] = fourTkMom.Pt();
             LbLo.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
             LbLo.dataD[LbTkRecord::lbtkY] = fourTkMom.Rapidity();
             LbLo.dataD[LbTkRecord::lbtkPhi] = fourTkMom.Phi();
-            LbLo.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
-            LbLo.dataD[LbTkRecord::lbtkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
-            LbLo.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
+            //LbLo.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance(selCand, &bs);
+            //LbLo.dataD[LbTkRecord::lbtkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(selCand, &bs);
+            //const reco::Particle::Point& candVtx = selCand.vertex();
+            //LbLo.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosa2d(selCand, &bs);
             LbLo.dataD[LbTkRecord::lbtkVtxprob] = candVtxprob;
             LbLo.dataD[LbTkRecord::lbtknChi2] = selCand.vertexChi2() / selCand.vertexNdof();
 
@@ -803,9 +790,10 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             LbLo.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
             LbLo.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
             LbLo.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
-            LbLo.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, bsVtx2D);
-            LbLo.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
-            LbLo.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
+            //LbLo.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkCand, &bs);
+            //LbLo.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkCand, &bs);
+            //const reco::Particle::Point& tktkCandVtx = twoTkCandPtr->vertex();
+            //LbLo.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosa2d(tktkCand, &bs);
             LbLo.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(twoTkCandPtr->vertexChi2(), twoTkCandPtr->vertexNdof());
             LbLo.dataD[LbTkRecord::tktknChi2] = twoTkCandPtr->vertexChi2() / twoTkCandPtr->vertexNdof();
 

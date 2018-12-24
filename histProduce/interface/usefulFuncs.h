@@ -4,8 +4,11 @@
 #include <utility> // std::pair
 #include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
-#include "TVector2.h"
-#include "TH1.h"
+#include <TVector2.h>
+#include <TH1.h>
+#include <Math/Functions.h>
+#include <Math/SVector.h>
+#include <Math/SMatrix.h>
 
 namespace usefulFuncs
 {
@@ -84,6 +87,8 @@ template< typename key, typename val >
         double deltaR2 = val1*val1+val2*val2;
         return sqrt(deltaR2) ;
     }
+    typedef ROOT::Math::SMatrix < double, 3, 3, ROOT::Math::MatRepSym < double, 3 > >SMatrixSym3D;
+    typedef ROOT::Math::SVector < double, 3 > SVector3;
 
 
 
@@ -92,12 +97,18 @@ template< typename key, typename val >
     SNRes SignalNumberCalculator( TH1* data, const double sigMin, const double sigMax );
     double getFlightDistance( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
     double getFlightDistance( const pat::CompositeCandidate& cand, const reco::BeamSpot* bs=nullptr );
+    double getFlightDistance( const GlobalPoint& c1Pos, const GlobalPoint& c2Pos );
+    double getFlightDistanceError( const GlobalPoint& c1Pos, const SMatrixSym3D& c1Err, const GlobalPoint& c2Pos, const SMatrixSym3D& c2Err );
     double getFlightDistanceSignificance( const pat::CompositeCandidate& cand, const reco::BeamSpot* bs=nullptr );
     double getFlightDistanceSignificance( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
+    double getFlightDistanceSignificance( const GlobalPoint& c1Pos, const SMatrixSym3D& c1Err, const GlobalPoint& c2Pos, const SMatrixSym3D& c2Err );
+
     double getCosa2d( const pat::CompositeCandidate& cand, const reco::BeamSpot* bs=nullptr );
     double getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
+
     double getCosa3d( const pat::CompositeCandidate& cand, const reco::Vertex* _pv=nullptr );
 
+    double getCosAngle( const GlobalVector& mom, const GlobalPoint& c1Pos, const GlobalPoint& c2Pos );
     double getCosAngleToVtx_PV_BS( const pat::CompositeCandidate& cand, const reco::Vertex& pv, const reco::BeamSpot& bs);
     double logDeltaRToCompcands( const pat::CompositeCandidate* cand1, const pat::CompositeCandidate* cand2 );
     //double logDeltaRToCompcands( pat::CompositeCandidate const* cand1, pat::CompositeCandidate const* cand2 );
