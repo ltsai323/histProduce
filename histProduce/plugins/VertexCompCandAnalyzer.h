@@ -25,6 +25,7 @@ Implementation:
 
 // user include files
 
+#include "FWCore/Common/interface/TriggerNames.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
@@ -35,14 +36,16 @@ Implementation:
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
 
+#include "DataFormats/Candidate/interface/VertexCompositeCandidate.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 //#include "DataFormats/V0Candidate/interface/V0Candidate.h"
-#include "DataFormats/Candidate/interface/VertexCompositeCandidate.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 
 //#include "vertexProducer/vertexProducer/interface/ccLoader.h"
 #include "histProduce/histProduce/interface/formatTreeLbTknew.h"
+#include "histProduce/histProduce/interface/TriggerBooking.h"
 typedef formatTree_newLbTk LbTkRecord;
 
 namespace
@@ -80,16 +83,19 @@ private:
     std::string nL0BCandsLabel;
     std::string LbL0CandsLabel;
     std::string LbLoCandsLabel;
+    std::string HLTRecordLabel;
     std::string   bsPointLabel;
     edm::EDGetTokenT< reco::VertexCompositeCandidateCollection > pL0BCandsToken;
     edm::EDGetTokenT< reco::VertexCompositeCandidateCollection > nL0BCandsToken;
     edm::EDGetTokenT< reco::VertexCompositeCandidateCollection > LbL0CandsToken;
     edm::EDGetTokenT< reco::VertexCompositeCandidateCollection > LbLoCandsToken;
+    edm::EDGetTokenT< edm::TriggerResults                      > HLTRecordToken;
     edm::EDGetTokenT< reco::BeamSpot > bsPointToken;
     bool usepL0B;
     bool usenL0B;
     bool useLbL0;
     bool useLbLo;
+    bool useHLT;
     bool useBS;
 
     LbTkRecord pL0B, nL0B;

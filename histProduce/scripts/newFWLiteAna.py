@@ -10,10 +10,10 @@ ccRE = re.compile (r'(\w+)\.cc')
 
 def extractBuildFilePiece (buildfile, copy, target = 'dummy'):
     """Extracts necessary piece of the buildfile.  Returns empty
-    string if not found."""    
+    string if not found."""
     try:
         build = open (buildfile, 'r')
-    except:        
+    except:
         raise RuntimeError, \
               "Could not open BuildFile '%s' for reading. Aboring." \
               % buildfile
