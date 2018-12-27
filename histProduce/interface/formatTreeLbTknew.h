@@ -17,7 +17,7 @@ public:
 	};
 	enum readVarI
 	{
-		eventNum, trigVanish, trigNotRun, trigReject, trigError, totallyTriggered,
+		eventEntry, trigVanish, trigNotRun, trigReject, trigError, totallyTriggered,
 		comNumI
 	};
 	virtual void RegFormatTree(TTree* t) override;

@@ -9,7 +9,6 @@ void formatTree_newLbTk::RegFormatTree(TTree* t)
         printf("formatTree LbTk:        error to get tree to register!\n");
         exit(1);
     }
-    SetReadMode();
     t->Branch( "lbtkMass"             , &dataD[lbtkMass]             , "lbtkMass/D" );
     t->Branch( "lbtkPt"               , &dataD[lbtkPt]               , "lbtkPt/D" );
     t->Branch( "lbtkEta"              , &dataD[lbtkEta]              , "lbtkEta/D" );
@@ -65,7 +64,7 @@ void formatTree_newLbTk::RegFormatTree(TTree* t)
     t->Branch( "tk2IPtErr"            , &dataD[tk2IPtErr]            , "tk2IPtErr/D" );
 
 
-    t->Branch( "eventNum"             , &dataI[eventNum]             , "eventNum/I"  );
+    t->Branch( "eventEntry"           , &dataI[eventEntry]           , "eventEntry/I"  );
     t->Branch( "trigVanish"           , &dataI[trigVanish]           , "trigVanish/I" );
     t->Branch( "trigNotRun"           , &dataI[trigNotRun]           , "trigNotRun/I" );
     t->Branch( "trigReject"           , &dataI[trigReject]           , "trigReject/I" );
@@ -84,6 +83,7 @@ void formatTree_newLbTk::LoadFormatSourceBranch(TTree* t)
         printf("formatTree LbTk:        error to old tree to read!\n");
         exit(1);
     }
+    SetReadMode();
     t->SetBranchAddress( "lbtkMass"             , &readD[lbtkMass]             );
     t->SetBranchAddress( "lbtkPt"               , &readD[lbtkPt]               );
     t->SetBranchAddress( "lbtkEta"              , &readD[lbtkEta]              );
@@ -139,7 +139,7 @@ void formatTree_newLbTk::LoadFormatSourceBranch(TTree* t)
     t->SetBranchAddress( "tk2IPtErr"            , &readD[tk2IPtErr]            );
 
 
-    t->SetBranchAddress( "eventNum"             , &dataI[eventNum]             );
+    t->SetBranchAddress( "eventEntry"           , &dataI[eventEntry]           );
     t->SetBranchAddress( "trigVanish"           , &dataI[trigVanish]           );
     t->SetBranchAddress( "trigNotRun"           , &dataI[trigNotRun]           );
     t->SetBranchAddress( "trigReject"           , &dataI[trigReject]           );

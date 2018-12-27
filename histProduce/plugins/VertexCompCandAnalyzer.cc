@@ -54,7 +54,6 @@
 #include "histProduce/histProduce/interface/usefulFuncs.h"
 #include "histProduce/histProduce/interface/fourMom.h"
 #include "histProduce/histProduce/plugins/VertexCompCandAnalyzer.h"
-
 using namespace std;
 
 // Constructor
@@ -64,11 +63,14 @@ VertexCompCandAnalyzer::VertexCompCandAnalyzer(const edm::ParameterSet& iConfig)
 	LbL0CandsLabel(iConfig.getParameter<std::string>("LbL0CandsLabel")),
 	LbLoCandsLabel(iConfig.getParameter<std::string>("LbLoCandsLabel")),
 	HLTRecordLabel(iConfig.getParameter<std::string>("HLTRecordLabel")),
+	MCReserveLabel(iConfig.getParameter<std::string>("MCReserveLabel")),
+	bsPointLabel(iConfig.getParameter<std::string>(  "bsPointLabel")),
 	pL0BCandsToken(consumes < vector < reco::VertexCompositeCandidate > >(pL0BCandsLabel) ),
 	nL0BCandsToken(consumes < vector < reco::VertexCompositeCandidate > >(nL0BCandsLabel) ),
 	LbL0CandsToken(consumes < vector < reco::VertexCompositeCandidate > >(LbL0CandsLabel) ),
 	LbLoCandsToken(consumes < vector < reco::VertexCompositeCandidate > >(LbLoCandsLabel) ),
 	HLTRecordToken(consumes < edm::TriggerResults                       >(HLTRecordLabel) ),
+	MCReserveToken(consumes < vector < reco::GenParticle >              >(MCReserveLabel) ),
 	bsPointToken(consumes < reco::BeamSpot > (bsPointLabel) )
 {
 	usepL0B = (pL0BCandsLabel != "");
@@ -76,12 +78,18 @@ VertexCompCandAnalyzer::VertexCompCandAnalyzer(const edm::ParameterSet& iConfig)
 	useLbL0 = (LbL0CandsLabel != "");
 	useLbLo = (LbLoCandsLabel != "");
 	useHLT  = (HLTRecordLabel != "");
-	useBS   = (bsPointLabel   != "");
+	useMC   = (MCReserveLabel != "");
+	useBS   = (  bsPointLabel != "");
 
 	pL0BTree = fs->make < TTree > ("pLbTk", "pLbTk");
 	nL0BTree = fs->make < TTree > ("nLbTk", "nLbTk");
 	LbL0Tree = fs->make < TTree > ("pLbL0", "pLbL0");
 	LbLoTree = fs->make < TTree > ("nLbL0", "nLbL0");
+	if ( useMC )
+	{
+		mcTree = fs->make < TTree > ("mc", "mc" );
+		mc.RegFormatTree(mcTree);
+	}
 	pL0B.RegFormatTree(pL0BTree);
 	nL0B.RegFormatTree(nL0BTree);
 	LbL0.RegFormatTree(LbL0Tree);
@@ -103,7 +111,8 @@ void VertexCompCandAnalyzer::fillDescriptions( edm::ConfigurationDescriptions& d
 	desc.add < string > ("LbL0CandsLabel", "");
 	desc.add < string > ("LbLoCandsLabel", "");
 	desc.add < string > ("HLTRecordLabel", "");
-	desc.add < string > ("bsPointLabel", "");
+	desc.add < string > ("MCReserveLabel", "");
+	desc.add < string > (  "bsPointLabel", "");
 	descriptions.add("process.treeCreatingSpecificDecay", desc);
 	return;
 }
@@ -122,8 +131,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 	// get object collections
 	// collections are got through "BPHTokenWrapper" interface to allow
 	// uniform access in different CMSSW versions
-
-	int a = 0;
 
 	edm::Handle < reco::BeamSpot > beamSpotHandle;
 	if (useBS)
@@ -160,10 +167,12 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 		while (handleIter != handleIend)
 		{
 			const reco::VertexCompositeCandidate & cand = *handleIter++;
-			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("MuPos") );
-			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("MuNeg") );
-			const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("Proton") );
-			const reco::RecoChargedCandidate* tkNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("Kaon") );
+			const reco::VertexCompositeCandidate* mumuCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( cand.daughter("JPsi") );
+			const reco::VertexCompositeCandidate* tktkCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( cand.daughter("TkTk") );
+			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuPos") );
+			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuNeg") );
+			const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( tktkCandPtr->daughter("Proton") );
+			const reco::RecoChargedCandidate* tkNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( tktkCandPtr->daughter("Kaon") );
 
 			reco::Particle::LorentzVector tkPosP4 = tkPosCandPtr->p4(); tkPosP4.SetE(sqrt(tkPosP4.P2()+protonMASS*protonMASS));
 			reco::Particle::LorentzVector tkNegP4 = tkNegCandPtr->p4(); tkNegP4.SetE(sqrt(tkNegP4.P2()+kaonMASS*kaonMASS));
@@ -198,16 +207,19 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 			const double candVtxprob = selectedCandList[i].first;
 			const reco::VertexCompositeCandidate& selCand = *(selectedCandList[i].second);
 
-			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("MuPos") );
-			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("MuNeg") );
-			const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("Proton") );
-			const reco::RecoChargedCandidate* tkNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("Kaon") );
+			const reco::VertexCompositeCandidate* mumuCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( selCand.daughter("JPsi") );
+			const reco::VertexCompositeCandidate* tktkCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( selCand.daughter("TkTk") );
+			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuPos") );
+			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuNeg") );
+			const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( tktkCandPtr->daughter("Proton") );
+			const reco::RecoChargedCandidate* tkNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( tktkCandPtr->daughter("Kaon") );
 
 			reco::Particle::LorentzVector muPosP4 = muPosCandPtr->p4(); muPosP4.SetE(sqrt(muPosP4.P2()+muonMASS*muonMASS));
 			reco::Particle::LorentzVector muNegP4 = muNegCandPtr->p4(); muNegP4.SetE(sqrt(muNegP4.P2()+muonMASS*muonMASS));
 			reco::Particle::LorentzVector tkPosP4 = tkPosCandPtr->p4(); tkPosP4.SetE(sqrt(tkPosP4.P2()+protonMASS*protonMASS));
 			reco::Particle::LorentzVector tkNegP4 = tkNegCandPtr->p4(); tkNegP4.SetE(sqrt(tkNegP4.P2()+kaonMASS*kaonMASS));
 			reco::Particle::LorentzVector tktkSelP4 = tkPosP4+tkNegP4;
+
 			//reco::Particle::LorentzVector fourTkSelP4 = muPosP4+muNegP4+tkPosP4+tkNegP4;
 
 //			// check particles {{{
@@ -238,15 +250,15 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 //                   fabs(   tktkSelP4.mag() -phiMASS ) < 2.5*phiWIDTH )
 //					pL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
 //			}				// check particles end }}}
-			GlobalPoint bsVtx2D( bs.x( tkPosCandPtr->vertex().z() ), bs.y( tkPosCandPtr->vertex().z() ), 0. );
-			GlobalPoint tktkVtx2D( tkPosCandPtr->vertex().x(),tkPosCandPtr->vertex().y(),  0. );
-			GlobalPoint mumuVtx2D( muPosCandPtr->vertex().x(),muPosCandPtr->vertex().y(),  0. );
+			GlobalPoint bsVtx2D( bs.x( tktkCandPtr->vertex().z() ), bs.y( tktkCandPtr->vertex().z() ), 0. );
+			GlobalPoint tktkVtx2D( tktkCandPtr->vertex().x(),tktkCandPtr->vertex().y(),  0. );
+			GlobalPoint mumuVtx2D( mumuCandPtr->vertex().x(),mumuCandPtr->vertex().y(),  0. );
 			GlobalPoint fourTkVtx2D( selCand.vertex().x(), selCand.vertex().y(), 0. );
 			GlobalVector tktkMom2D( tktkSelP4.x(), tktkSelP4.y(), 0. );
 			GlobalVector fourTkMom2D( selCand.momentum().x(), selCand.momentum().y(), 0. );
 			const usefulFuncs::SMatrixSym3D& bsCOV = bs.rotatedCovariance3D();
-			const usefulFuncs::SMatrixSym3D& tktkCOV = tkPosCandPtr->vertexCovariance();
-			const usefulFuncs::SMatrixSym3D& mumuCOV = muPosCandPtr->vertexCovariance();
+			const usefulFuncs::SMatrixSym3D& tktkCOV = tktkCandPtr->vertexCovariance();
+			const usefulFuncs::SMatrixSym3D& mumuCOV = mumuCandPtr->vertexCovariance();
 			const usefulFuncs::SMatrixSym3D& fourTkCOV = selCand.vertexCovariance();
 
 			tkPosP4.SetE(sqrt(tkPosP4.P2()+protonMASS*protonMASS));
@@ -314,7 +326,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 			//    pL0B.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
 			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.Harmonic"))
 			//    pL0B.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
-			//pL0B.dataI[LbTkRecord::eventSize] = usefulFuncs::recordEventSizeWithSeparator(int (N), eventSeparator_pL0B);
+			pL0B.dataI[LbTkRecord::eventEntry] = entry;
 
 			if ( useHLT )
 			{
@@ -372,10 +384,12 @@ endOfpL0B:
 		while (handleIter != handleIend)
 		{
 			const reco::VertexCompositeCandidate & cand = *handleIter++;
-			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("MuPos") );
-			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("MuNeg") );
-			const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("Kaon") );
-			const reco::RecoChargedCandidate* tkNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("Proton") );
+			const reco::VertexCompositeCandidate* mumuCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( cand.daughter("JPsi") );
+			const reco::VertexCompositeCandidate* tktkCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( cand.daughter("TkTk") );
+			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuPos") );
+			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuNeg") );
+			const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( tktkCandPtr->daughter("Kaon") );
+			const reco::RecoChargedCandidate* tkNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( tktkCandPtr->daughter("Proton") );
 
 			reco::Particle::LorentzVector tkPosP4 = tkPosCandPtr->p4(); tkPosP4.SetE(sqrt(tkPosP4.P2()+protonMASS*protonMASS));
 			reco::Particle::LorentzVector tkNegP4 = tkNegCandPtr->p4(); tkNegP4.SetE(sqrt(tkNegP4.P2()+kaonMASS*kaonMASS));
@@ -409,16 +423,19 @@ endOfpL0B:
 			const double candVtxprob = selectedCandList[i].first;
 			const reco::VertexCompositeCandidate& selCand = *(selectedCandList[i].second);
 
-			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("MuPos") );
-			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("MuNeg") );
-			const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("Proton") );
-			const reco::RecoChargedCandidate* tkNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("Kaon") );
+			const reco::VertexCompositeCandidate* mumuCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( selCand.daughter("JPsi") );
+			const reco::VertexCompositeCandidate* tktkCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( selCand.daughter("TkTk") );
+			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuPos") );
+			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuNeg") );
+			const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( tktkCandPtr->daughter("Kaon") );
+			const reco::RecoChargedCandidate* tkNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( tktkCandPtr->daughter("Proton") );
 
 			reco::Particle::LorentzVector muPosP4 = muPosCandPtr->p4(); muPosP4.SetE(sqrt(muPosP4.P2()+muonMASS*muonMASS));
 			reco::Particle::LorentzVector muNegP4 = muNegCandPtr->p4(); muNegP4.SetE(sqrt(muNegP4.P2()+muonMASS*muonMASS));
 			reco::Particle::LorentzVector tkPosP4 = tkPosCandPtr->p4(); tkPosP4.SetE(sqrt(tkPosP4.P2()+kaonMASS*kaonMASS));
 			reco::Particle::LorentzVector tkNegP4 = tkNegCandPtr->p4(); tkNegP4.SetE(sqrt(tkNegP4.P2()+protonMASS*protonMASS));
 			reco::Particle::LorentzVector tktkSelP4 = tkPosP4+tkNegP4;
+
 			//reco::Particle::LorentzVector fourTkSelP4 = muPosP4+muNegP4+tkPosP4+tkNegP4;
 
 //			// check particles {{{
@@ -449,15 +466,15 @@ endOfpL0B:
 //				    fabs(   tktkSelP4.mag() -phiMASS ) < 2.5*phiWIDTH )
 //					nL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
 //			}				// check particles end }}}
-			GlobalPoint bsVtx2D( bs.x( tkPosCandPtr->vertex().z() ), bs.y( tkPosCandPtr->vertex().z() ), 0. );
-			GlobalPoint tktkVtx2D( tkPosCandPtr->vertex().x(),tkPosCandPtr->vertex().y(),  0. );
-			GlobalPoint mumuVtx2D( muPosCandPtr->vertex().x(),muPosCandPtr->vertex().y(),  0. );
+			GlobalPoint bsVtx2D( bs.x( tktkCandPtr->vertex().z() ), bs.y( tktkCandPtr->vertex().z() ), 0. );
+			GlobalPoint tktkVtx2D( tktkCandPtr->vertex().x(),tktkCandPtr->vertex().y(),  0. );
+			GlobalPoint mumuVtx2D( mumuCandPtr->vertex().x(),mumuCandPtr->vertex().y(),  0. );
 			GlobalPoint fourTkVtx2D( selCand.vertex().x(), selCand.vertex().y(), 0. );
 			GlobalVector tktkMom2D( tktkSelP4.x(), tktkSelP4.y(), 0. );
 			GlobalVector fourTkMom2D( selCand.momentum().x(), selCand.momentum().y(), 0. );
 			const usefulFuncs::SMatrixSym3D& bsCOV = bs.rotatedCovariance3D();
-			const usefulFuncs::SMatrixSym3D& tktkCOV = tkPosCandPtr->vertexCovariance();
-			const usefulFuncs::SMatrixSym3D& mumuCOV = muPosCandPtr->vertexCovariance();
+			const usefulFuncs::SMatrixSym3D& tktkCOV = tktkCandPtr->vertexCovariance();
+			const usefulFuncs::SMatrixSym3D& mumuCOV = mumuCandPtr->vertexCovariance();
 			const usefulFuncs::SMatrixSym3D& fourTkCOV = selCand.vertexCovariance();
 
 			tkPosP4.SetE(sqrt(tkPosP4.P2()+kaonMASS*kaonMASS));
@@ -520,7 +537,7 @@ endOfpL0B:
 			//    nL0B.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
 			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.Harmonic"))
 			//    nL0B.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
-			//nL0B.dataI[LbTkRecord::eventSize] = usefulFuncs::recordEventSizeWithSeparator(int (N), eventSeparator_nL0B);
+			nL0B.dataI[LbTkRecord::eventEntry] = entry;
 
 			if ( useHLT )
 			{
@@ -578,8 +595,9 @@ endOfnL0B:
 		while (handleIter != handleIend)
 		{
 			const reco::VertexCompositeCandidate & cand = *handleIter++;
-			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("MuPos") );
-			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("MuNeg") );
+			const reco::VertexCompositeCandidate* mumuCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( cand.daughter("JPsi") );
+			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuPos") );
+			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuNeg") );
 			const reco::VertexCompositeCandidate* twoTkCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( cand.daughter("Lam0")  );
 
 			//const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("Kaon") );
@@ -618,8 +636,9 @@ endOfnL0B:
 			const double candVtxprob = selectedCandList[i].first;
 			const reco::VertexCompositeCandidate& selCand = *(selectedCandList[i].second);
 
-			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("MuPos") );
-			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("MuNeg") );
+			const reco::VertexCompositeCandidate* mumuCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( selCand.daughter("JPsi") );
+			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuPos") );
+			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuNeg") );
 			const reco::VertexCompositeCandidate* twoTkCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( selCand.daughter("Lam0")  );
 
 			//const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("Proton") );
@@ -670,7 +689,7 @@ endOfnL0B:
 			GlobalVector fourTkMom2D( selCand.momentum().x(), selCand.momentum().y(), 0. );
 			const usefulFuncs::SMatrixSym3D& bsCOV = bs.rotatedCovariance3D();
 			const usefulFuncs::SMatrixSym3D& tktkCOV = twoTkCandPtr->vertexCovariance();
-			const usefulFuncs::SMatrixSym3D& mumuCOV = muPosCandPtr->vertexCovariance();
+			const usefulFuncs::SMatrixSym3D& mumuCOV = mumuCandPtr->vertexCovariance();
 			const usefulFuncs::SMatrixSym3D& fourTkCOV = selCand.vertexCovariance();
 
 			reco::Particle::LorentzVector fourTkMom = selCand.p4();
@@ -736,7 +755,7 @@ endOfnL0B:
 			//    LbL0.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
 			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.Harmonic"))
 			//    LbL0.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
-			//LbL0.dataI[LbTkRecord::eventSize] = usefulFuncs::recordEventSizeWithSeparator(int (N), eventSeparator_LbL0);
+			LbL0.dataI[LbTkRecord::eventEntry] = entry;
 
 			if ( useHLT )
 			{
@@ -794,8 +813,9 @@ endOfLbL0:
 		while (handleIter != handleIend)
 		{
 			const reco::VertexCompositeCandidate & cand = *handleIter++;
-			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("MuPos") );
-			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("MuNeg") );
+			const reco::VertexCompositeCandidate* mumuCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( cand.daughter("JPsi") );
+			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuPos") );
+			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuNeg") );
 			const reco::VertexCompositeCandidate* twoTkCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( cand.daughter("Lam0")  );
 
 			//const reco::RecoChargedCandidate* twoTkCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( cand.daughter("Lam0")  );
@@ -835,8 +855,9 @@ endOfLbL0:
 			const double candVtxprob = selectedCandList[i].first;
 			const reco::VertexCompositeCandidate& selCand = *(selectedCandList[i].second);
 
-			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("MuPos") );
-			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("MuNeg") );
+			const reco::VertexCompositeCandidate* mumuCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( selCand.daughter("JPsi") );
+			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuPos") );
+			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuNeg") );
 			const reco::VertexCompositeCandidate* twoTkCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( selCand.daughter("Lam0")  );
 
 			//const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( selCand.daughter("Proton") );
@@ -887,7 +908,7 @@ endOfLbL0:
 			GlobalVector fourTkMom2D( selCand.momentum().x(), selCand.momentum().y(), 0. );
 			const usefulFuncs::SMatrixSym3D& bsCOV = bs.rotatedCovariance3D();
 			const usefulFuncs::SMatrixSym3D& tktkCOV = twoTkCandPtr->vertexCovariance();
-			const usefulFuncs::SMatrixSym3D& mumuCOV = muPosCandPtr->vertexCovariance();
+			const usefulFuncs::SMatrixSym3D& mumuCOV = mumuCandPtr->vertexCovariance();
 			const usefulFuncs::SMatrixSym3D& fourTkCOV = selCand.vertexCovariance();
 
 			reco::Particle::LorentzVector fourTkMom = selCand.p4();
@@ -949,7 +970,7 @@ endOfLbL0:
 			//    LbLo.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
 			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.Harmonic"))
 			//    LbLo.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
-			//LbLo.dataI[LbTkRecord::eventSize] = usefulFuncs::recordEventSizeWithSeparator(int (N), eventSeparator_LbLo);
+			LbLo.dataI[LbTkRecord::eventEntry] = entry;
 
 			if ( useHLT )
 			{
@@ -982,25 +1003,172 @@ endOfLbL0:
 			}
 			LbLoTree->Fill();
 		}
-
-		//eventSeparator_LbLo = usefulFuncs::inverter(eventSeparator_LbLo);
 	}							// Lb->Jpsi anti Lam0 end }}}
-endOfLbLo:
 
+endOfLbLo:
+	if ( useMC )
+	{	// MC {{{
+		edm::Handle < vector < reco::GenParticle > > mcCands;
+		ev.getByToken( MCReserveToken, mcCands );
+		if (!mcCands.isValid()) goto endOfMC;
+
+		std::vector<reco::GenParticle>::const_iterator iter = mcCands->cbegin();
+		std::vector<reco::GenParticle>::const_iterator iend = mcCands->cend  ();
+		while ( iter != iend )
+		{	// loop all particles
+			const reco::GenParticle& mcCand = *iter++;
+
+			// 0 : LambdaB // 1 : anti LambdaB
+			// 2 : jpsi // 3 : lambda0 // 4 : anti lambda0
+			// 5 : proton + // 6 : proton - // 7 : kaon + // 8 : kaon - // 9 : pion + //10 : pion -
+			unsigned candTag = 0;
+			unsigned pTkIdx = -1;
+			unsigned nTkIdx = -1;
+			unsigned tktkIdx = -1;
+			unsigned mumuIdx = -1;
+
+			// check for LambdaB->Jpsi p+ K-
+			if ( mcCand.pdgId() == 5122 ) candTag += 1 << 0;
+			if ( mcCand.pdgId() ==-5122 ) candTag += 1 << 1;
+			if ( candTag==0 ) continue;
+
+			for ( unsigned iDau = 0; iDau != mcCand.numberOfDaughters(); ++iDau )
+			{	// check daughter
+				const reco::GenParticle* daug = dynamic_cast<const reco::GenParticle*>(mcCand.daughter(iDau));
+				if ( daug->charge() == 0 )
+				{
+					switch ( daug->pdgId() )
+					{
+					case   443:	// for jpsi
+						candTag += 1 << 2; mumuIdx = iDau; break;
+					case  3122:	// lambda0
+						candTag += 1 << 3; tktkIdx = iDau; break;
+					case -3122:	// anti lambda0
+						candTag += 1 << 4; tktkIdx = iDau; break;
+					default:
+						break;
+					}
+				}
+				else
+				{
+					switch ( daug->pdgId() )
+					{
+					case  2212:	// for proton+
+						candTag += 1 << 5; pTkIdx = iDau; break;
+					case -2212:	// for proton-
+						candTag += 1 << 6; nTkIdx = iDau; break;
+					case   321:	// for kaon+
+						candTag += 1 << 7; pTkIdx = iDau; break;
+					case  -321:	// for kaon-
+						candTag += 1 << 8; nTkIdx = iDau; break;
+					default:
+						break;
+					}
+				}
+			}	// check daughter end (for loop)
+
+			if ( (candTag>>3)%2 || (candTag>>4)%2 )
+			{	// if there is lambda0 or anti lambda0
+				const reco::GenParticle* dMom = dynamic_cast<const reco::GenParticle*>(mcCand.daughter(tktkIdx));
+				for ( unsigned iDDau = 0; iDDau != dMom->numberOfDaughters(); ++iDDau )
+				{
+					const reco::GenParticle* ddaug = dynamic_cast<const reco::GenParticle*>(dMom->daughter(iDDau));
+					switch ( ddaug->pdgId() )
+					{
+					case  2212:	// for proton+
+						candTag += 1 << 5; pTkIdx = iDDau; break;
+					case -2212:	// for proton-
+						candTag += 1 << 6; nTkIdx = iDDau; break;
+					case   211:	// for pion+
+						candTag += 1 << 9; pTkIdx = iDDau; break;
+					case  -211:	// for poin-
+						candTag += 1 <<10; nTkIdx = iDDau; break;
+					default:
+						break;
+					}
+				}
+			}
+			if ( pTkIdx == (unsigned) -1 || nTkIdx == (unsigned) -1 || mumuIdx == (unsigned) -1 )
+				continue;
+			std::cout << "ptkidx, ntkidx, mumuidx = " << pTkIdx << ", " << nTkIdx << ", " << mumuIdx << "\n";
+
+			const reco::GenParticle* mumuCand = dynamic_cast<const reco::GenParticle*>(mcCand.daughter(mumuIdx));
+			const reco::GenParticle* tktkCand = tktkIdx == (unsigned) -1 ? &mcCand : dynamic_cast<const reco::GenParticle*>(mcCand.daughter(tktkIdx));
+
+			const reco::GenParticle* pMuCand = dynamic_cast<const reco::GenParticle*>(mumuCand->daughter(0));
+			const reco::GenParticle* nMuCand = dynamic_cast<const reco::GenParticle*>(mumuCand->daughter(1));
+			const reco::GenParticle* pTkCand = dynamic_cast<const reco::GenParticle*>(tktkCand->daughter(pTkIdx));
+			const reco::GenParticle* nTkCand = dynamic_cast<const reco::GenParticle*>(tktkCand->daughter(nTkIdx));
+
+			if ( pMuCand->charge() < 0) std::cout<<"----VertexCompCandAnalyzer::analyze() : pos mu own neg charge\n";
+			if ( nMuCand->charge() > 0) std::cout<<"----VertexCompCandAnalyzer::analyze() : neg mu own pos charge\n";
+
+			GlobalPoint bsVtx2D( bs.x( mcCand.vertex().z() ), bs.y( mcCand.vertex().z() ), 0. );
+			GlobalPoint tktkVtx2D( tktkCand->vertex().x(), tktkCand->vertex().y(), 0. );
+			GlobalPoint mumuVtx2D( mumuCand->vertex().x(), mumuCand->vertex().y(), 0. );
+			GlobalPoint fourTkVtx2D( mcCand.vertex().x(), mcCand.vertex().y(), 0. );
+			GlobalVector tktkMom2D( tktkCand->momentum().x(), tktkCand->momentum().y(), 0. );
+			GlobalVector fourTkMom2D( mcCand.momentum().x(), mcCand.momentum().y(), 0. );
+
+			mc.dataD[MCRecord::candMass] = mcCand.mass();
+			mc.dataD[MCRecord::candPt] = mcCand.pt();
+			mc.dataD[MCRecord::candEta] = mcCand.eta();
+			mc.dataD[MCRecord::candY] = mcCand.rapidity();
+			mc.dataD[MCRecord::candPhi] = mcCand.phi();
+			mc.dataD[MCRecord::candFlightDistance2d] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
+			mc.dataD[MCRecord::candCosa2d] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
+
+			if ( tktkIdx != (unsigned) -1 )
+			{
+				mc.dataD[MCRecord::tktkMass] = tktkCand->mass();
+				mc.dataD[MCRecord::tktkPt] = tktkCand->pt();
+				mc.dataD[MCRecord::tktkEta] = tktkCand->eta();
+				mc.dataD[MCRecord::tktkY] = tktkCand->rapidity();
+				mc.dataD[MCRecord::tktkPhi] = tktkCand->phi();
+				mc.dataD[MCRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
+				mc.dataD[MCRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
+			}
+
+			mc.dataD[MCRecord::muPosPt]  = pMuCand->pt();
+			mc.dataD[MCRecord::muPosEta] = pMuCand->eta();
+			mc.dataD[MCRecord::muPosPhi] = pMuCand->phi();
+			mc.dataD[MCRecord::muPosY]   = pMuCand->rapidity();
+
+			mc.dataD[MCRecord::muNegPt]  = nMuCand->pt();
+			mc.dataD[MCRecord::muNegEta] = nMuCand->eta();
+			mc.dataD[MCRecord::muNegPhi] = nMuCand->phi();
+			mc.dataD[MCRecord::muNegY]   = nMuCand->rapidity();
+
+			mc.dataD[MCRecord::tkPosPt]  = pTkCand->pt();
+			mc.dataD[MCRecord::tkPosEta] = pTkCand->eta();
+			mc.dataD[MCRecord::tkPosPhi] = pTkCand->phi();
+			mc.dataD[MCRecord::tkPosY]   = pTkCand->rapidity();
+
+			mc.dataD[MCRecord::tkNegPt]  = nTkCand->pt();
+			mc.dataD[MCRecord::tkNegEta] = nTkCand->eta();
+			mc.dataD[MCRecord::tkNegPhi] = nTkCand->phi();
+			mc.dataD[MCRecord::tkNegY]   = nTkCand->rapidity();
+
+			mc.dataI[MCRecord::candPID] = mcCand.pdgId();
+			mc.dataI[MCRecord::muPosPID] = pMuCand->pdgId();
+			mc.dataI[MCRecord::muNegPID] = nMuCand->pdgId();
+			mc.dataI[MCRecord::tkPosPID] = pTkCand->pdgId();
+			mc.dataI[MCRecord::tkNegPID] = nTkCand->pdgId();
+			mc.dataI[MCRecord::eventEntry] = entry;
+
+			mcTree->Fill();
+		}	// loop all particles end (while loop)
+	}	// MC end }}}
+endOfMC:
+
+	++entry;
 	return;
 }
 
 void VertexCompCandAnalyzer::beginJob()
 {
-	// this event separator will have 3 value: 0,1,2.
-	// 0 shows the first event of the file.
-	// 1 and 2 are showing the changing event.
-	// so that the event separator is 0 for first event. Then 1,2,1,2,1,2 ...
-
-	eventSeparator_pL0B = 0;
-	eventSeparator_nL0B = 0;
-	eventSeparator_LbL0 = 0;
-	eventSeparator_LbLo = 0;
+	entry = 0;
+	return;
 }
 
 void VertexCompCandAnalyzer::endJob()

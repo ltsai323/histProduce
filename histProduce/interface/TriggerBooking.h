@@ -1,11 +1,10 @@
-
 #ifndef __TriggerBooking_h__
 #define __TriggerBooking_h__
 #include <string>
 namespace HLTList
 {
-	const std::string trigName[] = {
-		"HLT_DoubleMu4_3_Jpsi_Displaced_v*",
+    const std::string trigName[] = {
+        "HLT_DoubleMu4_3_Jpsi_Displaced_v*",
 		"HLT_DoubleMu4_JpsiTrkTrk_Displaced_v*",
 		"HLT_DoubleMu4_JpsiTrk_Displaced_v*",
 		"HLT_DoubleMu4_Jpsi_Displaced_v*",
@@ -14,10 +13,10 @@ namespace HLTList
 		"HLT_Dimuon16_Jpsi_v*",
 		"HLT_Dimuon20_Jpsi_v*",
 		"HLT_Dimuon25_Jpsi_v*"
-	};
+    };
 
-	enum trigNum {
-		HLT_DoubleMu4_3_Jpsi_Displaced_v=0,
+    enum trigNum {
+        HLT_DoubleMu4_3_Jpsi_Displaced_v=0,
 		HLT_DoubleMu4_JpsiTrkTrk_Displaced_v=1,
 		HLT_DoubleMu4_JpsiTrk_Displaced_v=2,
 		HLT_DoubleMu4_Jpsi_Displaced_v=3,
@@ -26,8 +25,8 @@ namespace HLTList
 		HLT_Dimuon16_Jpsi_v=6,
 		HLT_Dimuon20_Jpsi_v=7,
 		HLT_Dimuon25_Jpsi_v=8,
-		totNum=9
-	};
+        totNum
+    };
 	int encodeHLT( int hltNum )
 	{
 		return 1<<hltNum;

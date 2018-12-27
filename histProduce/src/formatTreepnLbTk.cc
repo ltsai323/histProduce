@@ -185,4 +185,3 @@ void formatTree_plusminus_LbTk::LoadFormatSourceBranch(TTree* t)
     t->SetBranchAddress( "nkaonIPtErr", &readD[nkaonIPtErr] );
     return;
 }
-
