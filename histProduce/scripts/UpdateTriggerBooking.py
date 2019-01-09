@@ -19,7 +19,7 @@ namespace HLTList
 		return 1<<hltNum;
 	}}
 
-	bool decodeHLT( int encodeBoolInt, int num )
+	bool hasHLT( int encodeBoolInt, int num )
 	{{
 		return (encodeBoolInt>>num)%2;
 	}}
@@ -39,7 +39,7 @@ def HLTlist():
 
 
 def changeToCPPstr(nameList):
-    return ['"{}*"'.format(name) for name in nameList]
+    return ['"{}"'.format(name) for name in nameList]
 
 
 def changeToCPPenum(nameList):

@@ -78,6 +78,7 @@ process.VertexCompCandAnalyzer = cms.EDAnalyzer('VertexCompCandAnalyzer',
     nL0BCandsLabel = cms.string("fourTracksFromVCCProducer:nL0B:myVertexingProcedure"),
     LbL0CandsLabel = cms.string("fourTracksFromVCCProducer:LbL0:myVertexingProcedure"),
     LbLoCandsLabel = cms.string("fourTracksFromVCCProducer:LbLo:myVertexingProcedure"),
+    HLTRecordLabel = cms.string("TriggerResults::HLT"),
    #MCReserveLabel = cms.string("genParticles::SIM"),
       bsPointLabel = cms.string("offlineBeamSpot::RECO")
 )

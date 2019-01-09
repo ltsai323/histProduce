@@ -21,6 +21,7 @@
 //
 
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
 #include "MagneticField/Engine/interface/MagneticField.h"
@@ -286,7 +287,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 			pL0B.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
 			pL0B.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
 			pL0B.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
-			pL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, bsVtx2D);
+			pL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
 			pL0B.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
 			pL0B.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
 			pL0B.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(tkPosCandPtr->vertexChi2(), tkPosCandPtr->vertexNdof());
@@ -333,7 +334,13 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 				const edm::TriggerNames& trgNamePool = ev.triggerNames( *HLTRecordHandle );
 				for ( int iTrig = 0; iTrig != HLTList::totNum; ++iTrig )
 				{
-					unsigned trgIndex = trgNamePool.triggerIndex( HLTList::trigName[iTrig] );
+					unsigned trgIndex = trgNamePool.size();
+					for ( unsigned iPool = 0; iPool != trgNamePool.size(); ++iPool )
+					{
+						const std::string& trimmedName = HLTConfigProvider::removeVersion( trgNamePool.triggerName(iPool) );
+						if ( HLTList::trigName[iTrig] == trimmedName )
+						{ trgIndex = iPool; break; }
+					}
 					if ( trgIndex != trgNamePool.size() )
 					{
 						if ( HLTRecordHandle->wasrun(trgIndex) )
@@ -344,16 +351,16 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 								{
 									pL0B.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig);										// pass the HLT
 								}
-								else
+								else// if error
 								{ pL0B.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }									// there is error in the trigger.
 							}
-							else
+							else// if not accept
 							{ pL0B.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }							// the trigger was not accepted in the event.
 						}
-						else
+						else// if not wasrun
 						{ pL0B.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }						// the trigger was not run in the event.
 					}
-					else
+					else// if trgIndex == size
 					{ pL0B.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }					// the trigger path is not recorded in the event.
 				}
 			}
@@ -497,7 +504,7 @@ endOfpL0B:
 			nL0B.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
 			nL0B.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
 			nL0B.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
-			pL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, bsVtx2D);
+			pL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
 			pL0B.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
 			pL0B.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
 			nL0B.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(tkPosCandPtr->vertexChi2(), tkPosCandPtr->vertexNdof());
@@ -715,7 +722,7 @@ endOfnL0B:
 			LbL0.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
 			LbL0.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
 			LbL0.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
-			LbL0.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, bsVtx2D);
+			LbL0.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
 			LbL0.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
 			LbL0.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
 			LbL0.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(twoTkCandPtr->vertexChi2(), twoTkCandPtr->vertexNdof());
@@ -930,7 +937,7 @@ endOfLbL0:
 			LbLo.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
 			LbLo.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
 			LbLo.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
-			LbLo.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, bsVtx2D);
+			LbLo.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
 			LbLo.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
 			LbLo.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
 			LbLo.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(twoTkCandPtr->vertexChi2(), twoTkCandPtr->vertexNdof());
@@ -1090,7 +1097,6 @@ endOfLbLo:
 			}
 			if ( pTkIdx == (unsigned) -1 || nTkIdx == (unsigned) -1 || mumuIdx == (unsigned) -1 )
 				continue;
-			std::cout << "ptkidx, ntkidx, mumuidx = " << pTkIdx << ", " << nTkIdx << ", " << mumuIdx << "\n";
 
 			const reco::GenParticle* mumuCand = dynamic_cast<const reco::GenParticle*>(mcCand.daughter(mumuIdx));
 			const reco::GenParticle* tktkCand = tktkIdx == (unsigned) -1 ? &mcCand : dynamic_cast<const reco::GenParticle*>(mcCand.daughter(tktkIdx));
