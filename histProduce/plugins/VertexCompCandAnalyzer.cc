@@ -211,7 +211,9 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 				{
 					const std::string& trimmedName = HLTConfigProvider::removeVersion( trgNamePool.triggerName(iPool) );
 					if ( HLTList::trigName[iTrig] == trimmedName )
-					{ trgIndex = trgNamePool.triggerIndex( trgNamePool.triggerName(iPool) ); break; }
+					{ trgIndex = trgNamePool.triggerIndex( trgNamePool.triggerName(iPool) );
+					  printf("(idx,triggerIndex) = (%d, %d)\n", iPool, trgIndex);
+					  break; }
 
 					//{ trgIndex = iPool; break; }
 				}
