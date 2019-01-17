@@ -17,10 +17,12 @@
 typedef formatTree_newLbTk readData;
 
 //typedef root_TreeHistoMain_GenInfo_plusminus_LbTk readMC;#defineuyiytiyufytHLT_DoubleMu4_JpsiTrk_Displaced
-//static const int HLTSELECTED = HLTList::HLT_DoubleMu4_Jpsi_Displaced_v;
-static const int HLTSELECTED = HLTList::HLT_Dimuon16_Jpsi_v;
+//static const int HLTSELECTED = HLTList::HLT_DoubleMu4_Jpsi_Displaced;
+static const int HLTSELECTED = HLTList::HLT_Dimuon16_Jpsi;
 static const char* OUTPUTFILENAME = "smallNTupleVertexProducer_pLbTk.root";
-static const char* TREENAME = "VertexCompCandAnalyzer/pLbTk";
+
+//static const char* TREENAME = "VertexCompCandAnalyzer/pLbTk";
+static const char* TREENAME = "treeCreatingSpecificDecay/pLbTk";
 
 //#define HLTSELECTED HLT_DoubleMu4_Jpsi_Displaced;
 //#define OUTPUTFILENAME "outputFileName";
@@ -35,7 +37,9 @@ int main()
 	gaRes = { 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0, 0., 0., 0., 0., 0. };
 
 	std::vector< std::pair<std::string, std::string> > fileNameLabels;
-	fileNameLabels.emplace_back("/home/ltsai/Work/LbFrame/workspace/storeroot/tree_vertexProducer_2016RunBCDEFGH_HLTRecord.root", "2016Data");
+
+	//fileNameLabels.emplace_back("/home/ltsai/Work/LbFrame/workspace/storeroot/tree_vertexProducer_2016RunBCDEFGH_HLTRecord.root", "2016Data");
+	fileNameLabels.emplace_back("/home/ltsai/Work/LbFrame/workspace/test.root", "test");
 
 	//fileNameLabels.push_back("storeroot/tReduced/tree_forGA_removeBsBdOnly/data_2017RunBCDEF.root", "2017Data");
 
@@ -87,11 +91,11 @@ int main()
 			++eventCounter;
 
 			//if ( !HLTList::decodeHLT(data.readI[readData::totallyTriggered], HLTSELECTED) ) continue;
-			++nTrigVanish;       if ( HLTList::decodeHLT(data.readI[readData::trigVanish], HLTSELECTED)!= 0 ) ++iTrigVanish;
-			++nTrigNotRun;       if ( HLTList::decodeHLT(data.readI[readData::trigNotRun], HLTSELECTED)!= 0 ) ++iTrigNotRun;
-			++nTrigReject;       if ( HLTList::decodeHLT(data.readI[readData::trigReject], HLTSELECTED)!= 0 ) ++iTrigReject;
-			++nTrigError;        if ( HLTList::decodeHLT(data.readI[readData::trigError ], HLTSELECTED)!= 0 ) ++iTrigError;
-			++nTotallyTriggered; if ( HLTList::decodeHLT(data.readI[readData::totallyTriggered], HLTSELECTED) != 0 ) ++iTotallyTriggered;
+			++nTrigVanish;       if ( HLTList::hasHLT(data.readI[readData::trigVanish], HLTSELECTED) ) ++iTrigVanish;
+			++nTrigNotRun;       if ( HLTList::hasHLT(data.readI[readData::trigNotRun], HLTSELECTED) ) ++iTrigNotRun;
+			++nTrigReject;       if ( HLTList::hasHLT(data.readI[readData::trigReject], HLTSELECTED) ) ++iTrigReject;
+			++nTrigError;        if ( HLTList::hasHLT(data.readI[readData::trigError ], HLTSELECTED) ) ++iTrigError;
+			++nTotallyTriggered; if ( HLTList::hasHLT(data.readI[readData::totallyTriggered], HLTSELECTED) ) ++iTotallyTriggered;
 
 			if ( data.readD[readData::lbtkFlightDistanceSig] < gaRes[ 0] ) continue;
 			if ( data.readD[readData::lbtkVtxprob          ] < gaRes[ 1] ) continue;
