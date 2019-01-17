@@ -550,15 +550,15 @@ endOfpL0B:
 					}
 
 					if ( trgIndex == trgNamePool.size() )
-					{ pL0B.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
+					{ nL0B.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
 					else if ( !HLTRecordHandle->wasrun(trgIndex) )
-					{ pL0B.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
+					{ nL0B.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
 					else if ( !HLTRecordHandle->accept(trgIndex) )
-					{ pL0B.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
+					{ nL0B.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
 					else if ( HLTRecordHandle->error(trgIndex) )
-					{ pL0B.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
+					{ nL0B.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
 					else
-					{ pL0B.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
+					{ nL0B.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
 				}
 			}
 			nL0BTree->Fill();
@@ -764,15 +764,15 @@ endOfnL0B:
 					}
 
 					if ( trgIndex == trgNamePool.size() )
-					{ pL0B.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
+					{ LbL0.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
 					else if ( !HLTRecordHandle->wasrun(trgIndex) )
-					{ pL0B.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
+					{ LbL0.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
 					else if ( !HLTRecordHandle->accept(trgIndex) )
-					{ pL0B.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
+					{ LbL0.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
 					else if ( HLTRecordHandle->error(trgIndex) )
-					{ pL0B.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
+					{ LbL0.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
 					else
-					{ pL0B.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
+					{ LbL0.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
 				}
 			}
 			LbL0Tree->Fill();
@@ -975,15 +975,15 @@ endOfLbL0:
 					}
 
 					if ( trgIndex == trgNamePool.size() )
-					{ pL0B.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
+					{ LbLo.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
 					else if ( !HLTRecordHandle->wasrun(trgIndex) )
-					{ pL0B.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
+					{ LbLo.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
 					else if ( !HLTRecordHandle->accept(trgIndex) )
-					{ pL0B.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
+					{ LbLo.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
 					else if ( HLTRecordHandle->error(trgIndex) )
-					{ pL0B.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
+					{ LbLo.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
 					else
-					{ Lb0B.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
+					{ LbLo.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
 				}
 			}
 			LbLoTree->Fill();
