@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-
+# load data/triggerLIST.asc file to create interface/TriggerBooking.h
 template = '''
 #ifndef __UPDATED_TriggerBooking_h__
 #define __UPDATED_TriggerBooking_h__

@@ -5,6 +5,9 @@
 #include "histProduce/histProduce/interface/rooTHMainGenLbTk.h"
 #include "histProduce/histProduce/interface/rooTHMainGenpnLbTk.h"
 
+#include "histProduce/histProduce/interface/formatTreeLbTknew.h"
+#include "histProduce/histProduce/interface/TriggerBooking.h"
+
 #include "TTree.h"
 #include "TFile.h"
 #include "TH1D.h"

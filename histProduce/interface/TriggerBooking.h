@@ -33,7 +33,7 @@ namespace HLTList
 		return 1<<hltNum;
 	}
 
-	bool decodeHLT( int encodeBoolInt, int num )
+	bool hasHLT( int encodeBoolInt, int num )
 	{
 		return (encodeBoolInt>>num)%2;
 	}
