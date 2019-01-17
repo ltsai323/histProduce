@@ -331,6 +331,11 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 
 			if ( useHLT )
 			{
+				pL0B.dataI[LbTkRecord::trigVanish] = 0;
+				pL0B.dataI[LbTkRecord::trigNotRun] = 0;
+				pL0B.dataI[LbTkRecord::trigReject] = 0;
+				pL0B.dataI[LbTkRecord::trigError]  = 0;
+				pL0B.dataI[LbTkRecord::totallyTriggered] = 0;
 				const edm::TriggerNames& trgNamePool = ev.triggerNames( *HLTRecordHandle );
 				for ( int iTrig = 0; iTrig != HLTList::totNum; ++iTrig )
 				{
@@ -538,6 +543,11 @@ endOfpL0B:
 
 			if ( useHLT )
 			{
+				nL0B.dataI[LbTkRecord::trigVanish] = 0;
+				nL0B.dataI[LbTkRecord::trigNotRun] = 0;
+				nL0B.dataI[LbTkRecord::trigReject] = 0;
+				nL0B.dataI[LbTkRecord::trigError]  = 0;
+				nL0B.dataI[LbTkRecord::totallyTriggered] = 0;
 				const edm::TriggerNames& trgNamePool = ev.triggerNames( *HLTRecordHandle );
 				for ( int iTrig = 0; iTrig != HLTList::totNum; ++iTrig )
 				{
@@ -752,6 +762,11 @@ endOfnL0B:
 
 			if ( useHLT )
 			{
+				LbL0.dataI[LbTkRecord::trigVanish] = 0;
+				LbL0.dataI[LbTkRecord::trigNotRun] = 0;
+				LbL0.dataI[LbTkRecord::trigReject] = 0;
+				LbL0.dataI[LbTkRecord::trigError]  = 0;
+				LbL0.dataI[LbTkRecord::totallyTriggered] = 0;
 				const edm::TriggerNames& trgNamePool = ev.triggerNames( *HLTRecordHandle );
 				for ( int iTrig = 0; iTrig != HLTList::totNum; ++iTrig )
 				{
@@ -963,6 +978,11 @@ endOfLbL0:
 
 			if ( useHLT )
 			{
+				LbLo.dataI[LbTkRecord::trigVanish] = 0;
+				LbLo.dataI[LbTkRecord::trigNotRun] = 0;
+				LbLo.dataI[LbTkRecord::trigReject] = 0;
+				LbLo.dataI[LbTkRecord::trigError]  = 0;
+				LbLo.dataI[LbTkRecord::totallyTriggered] = 0;
 				const edm::TriggerNames& trgNamePool = ev.triggerNames( *HLTRecordHandle );
 				for ( int iTrig = 0; iTrig != HLTList::totNum; ++iTrig )
 				{
