@@ -201,6 +201,34 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 
 		// preselection end }}}
 
+		if ( useHLT )
+		{
+			const edm::TriggerNames& trgNamePool = ev.triggerNames( *HLTRecordHandle );
+			for ( int iTrig = 0; iTrig != HLTList::totNum; ++iTrig )
+			{
+				unsigned trgIndex = trgNamePool.size();
+				for ( unsigned iPool = 0; iPool != trgNamePool.size(); ++iPool )
+				{
+					const std::string& trimmedName = HLTConfigProvider::removeVersion( trgNamePool.triggerName(iPool) );
+					if ( HLTList::trigName[iTrig] == trimmedName )
+					{ trgIndex = trgNamePool.triggerIndex( trgNamePool.triggerName(iPool) ); break; }
+
+					//{ trgIndex = iPool; break; }
+				}
+
+				if ( trgIndex == trgNamePool.size() )
+				{ pL0B.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
+				else if ( !HLTRecordHandle->wasrun(trgIndex) )
+				{ pL0B.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
+				else if ( !HLTRecordHandle->accept(trgIndex) )
+				{ pL0B.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
+				else if ( HLTRecordHandle->error(trgIndex) )
+				{ pL0B.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
+				else
+				{ pL0B.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
+			}
+		}
+
 		unsigned N = selectedCandList.size();
 		for (unsigned i = 0; i < N; ++i)
 		{
@@ -329,36 +357,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 			//    pL0B.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
 			pL0B.dataI[LbTkRecord::eventEntry] = entry;
 
-			if ( useHLT )
-			{
-				pL0B.dataI[LbTkRecord::trigVanish] = 0;
-				pL0B.dataI[LbTkRecord::trigNotRun] = 0;
-				pL0B.dataI[LbTkRecord::trigReject] = 0;
-				pL0B.dataI[LbTkRecord::trigError]  = 0;
-				pL0B.dataI[LbTkRecord::totallyTriggered] = 0;
-				const edm::TriggerNames& trgNamePool = ev.triggerNames( *HLTRecordHandle );
-				for ( int iTrig = 0; iTrig != HLTList::totNum; ++iTrig )
-				{
-					unsigned trgIndex = trgNamePool.size();
-					for ( unsigned iPool = 0; iPool != trgNamePool.size(); ++iPool )
-					{
-						const std::string& trimmedName = HLTConfigProvider::removeVersion( trgNamePool.triggerName(iPool) );
-						if ( HLTList::trigName[iTrig] == trimmedName )
-						{ trgIndex = iPool; break; }
-					}
-
-					if ( trgIndex == trgNamePool.size() )
-					{ pL0B.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
-					else if ( !HLTRecordHandle->wasrun(trgIndex) )
-					{ pL0B.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
-					else if ( !HLTRecordHandle->accept(trgIndex) )
-					{ pL0B.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
-					else if ( HLTRecordHandle->error(trgIndex) )
-					{ pL0B.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
-					else
-					{ pL0B.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
-				}
-			}
 			pL0BTree->Fill();
 		}
 
@@ -417,6 +415,31 @@ endOfpL0B:
 		}
 
 		// preselection end }}}
+		if ( useHLT )
+		{
+			const edm::TriggerNames& trgNamePool = ev.triggerNames( *HLTRecordHandle );
+			for ( int iTrig = 0; iTrig != HLTList::totNum; ++iTrig )
+			{
+				unsigned trgIndex = trgNamePool.size();
+				for ( unsigned iPool = 0; iPool != trgNamePool.size(); ++iPool )
+				{
+					const std::string& trimmedName = HLTConfigProvider::removeVersion( trgNamePool.triggerName(iPool) );
+					if ( HLTList::trigName[iTrig] == trimmedName )
+					{ trgIndex = iPool; break; }
+				}
+
+				if ( trgIndex == trgNamePool.size() )
+				{ nL0B.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
+				else if ( !HLTRecordHandle->wasrun(trgIndex) )
+				{ nL0B.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
+				else if ( !HLTRecordHandle->accept(trgIndex) )
+				{ nL0B.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
+				else if ( HLTRecordHandle->error(trgIndex) )
+				{ nL0B.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
+				else
+				{ nL0B.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
+			}
+		}
 
 		unsigned N = selectedCandList.size();
 		for (unsigned i = 0; i < N; ++i)
@@ -541,36 +564,6 @@ endOfpL0B:
 			//    nL0B.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
 			nL0B.dataI[LbTkRecord::eventEntry] = entry;
 
-			if ( useHLT )
-			{
-				nL0B.dataI[LbTkRecord::trigVanish] = 0;
-				nL0B.dataI[LbTkRecord::trigNotRun] = 0;
-				nL0B.dataI[LbTkRecord::trigReject] = 0;
-				nL0B.dataI[LbTkRecord::trigError]  = 0;
-				nL0B.dataI[LbTkRecord::totallyTriggered] = 0;
-				const edm::TriggerNames& trgNamePool = ev.triggerNames( *HLTRecordHandle );
-				for ( int iTrig = 0; iTrig != HLTList::totNum; ++iTrig )
-				{
-					unsigned trgIndex = trgNamePool.size();
-					for ( unsigned iPool = 0; iPool != trgNamePool.size(); ++iPool )
-					{
-						const std::string& trimmedName = HLTConfigProvider::removeVersion( trgNamePool.triggerName(iPool) );
-						if ( HLTList::trigName[iTrig] == trimmedName )
-						{ trgIndex = iPool; break; }
-					}
-
-					if ( trgIndex == trgNamePool.size() )
-					{ nL0B.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
-					else if ( !HLTRecordHandle->wasrun(trgIndex) )
-					{ nL0B.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
-					else if ( !HLTRecordHandle->accept(trgIndex) )
-					{ nL0B.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
-					else if ( HLTRecordHandle->error(trgIndex) )
-					{ nL0B.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
-					else
-					{ nL0B.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
-				}
-			}
 			nL0BTree->Fill();
 		}
 
@@ -631,6 +624,31 @@ endOfnL0B:
 		}
 
 		// preselection end }}}
+		if ( useHLT )
+		{
+			const edm::TriggerNames& trgNamePool = ev.triggerNames( *HLTRecordHandle );
+			for ( int iTrig = 0; iTrig != HLTList::totNum; ++iTrig )
+			{
+				unsigned trgIndex = trgNamePool.size();
+				for ( unsigned iPool = 0; iPool != trgNamePool.size(); ++iPool )
+				{
+					const std::string& trimmedName = HLTConfigProvider::removeVersion( trgNamePool.triggerName(iPool) );
+					if ( HLTList::trigName[iTrig] == trimmedName )
+					{ trgIndex = iPool; break; }
+				}
+
+				if ( trgIndex == trgNamePool.size() )
+				{ LbL0.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
+				else if ( !HLTRecordHandle->wasrun(trgIndex) )
+				{ LbL0.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
+				else if ( !HLTRecordHandle->accept(trgIndex) )
+				{ LbL0.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
+				else if ( HLTRecordHandle->error(trgIndex) )
+				{ LbL0.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
+				else
+				{ LbL0.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
+			}
+		}
 
 		unsigned N = selectedCandList.size();
 		for (unsigned i = 0; i < N; ++i)
@@ -760,36 +778,6 @@ endOfnL0B:
 			//    LbL0.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
 			LbL0.dataI[LbTkRecord::eventEntry] = entry;
 
-			if ( useHLT )
-			{
-				LbL0.dataI[LbTkRecord::trigVanish] = 0;
-				LbL0.dataI[LbTkRecord::trigNotRun] = 0;
-				LbL0.dataI[LbTkRecord::trigReject] = 0;
-				LbL0.dataI[LbTkRecord::trigError]  = 0;
-				LbL0.dataI[LbTkRecord::totallyTriggered] = 0;
-				const edm::TriggerNames& trgNamePool = ev.triggerNames( *HLTRecordHandle );
-				for ( int iTrig = 0; iTrig != HLTList::totNum; ++iTrig )
-				{
-					unsigned trgIndex = trgNamePool.size();
-					for ( unsigned iPool = 0; iPool != trgNamePool.size(); ++iPool )
-					{
-						const std::string& trimmedName = HLTConfigProvider::removeVersion( trgNamePool.triggerName(iPool) );
-						if ( HLTList::trigName[iTrig] == trimmedName )
-						{ trgIndex = iPool; break; }
-					}
-
-					if ( trgIndex == trgNamePool.size() )
-					{ LbL0.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
-					else if ( !HLTRecordHandle->wasrun(trgIndex) )
-					{ LbL0.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
-					else if ( !HLTRecordHandle->accept(trgIndex) )
-					{ LbL0.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
-					else if ( HLTRecordHandle->error(trgIndex) )
-					{ LbL0.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
-					else
-					{ LbL0.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
-				}
-			}
 			LbL0Tree->Fill();
 		}
 
@@ -851,6 +839,31 @@ endOfLbL0:
 		}
 
 		// preselection end }}}
+		if ( useHLT )
+		{
+			const edm::TriggerNames& trgNamePool = ev.triggerNames( *HLTRecordHandle );
+			for ( int iTrig = 0; iTrig != HLTList::totNum; ++iTrig )
+			{
+				unsigned trgIndex = trgNamePool.size();
+				for ( unsigned iPool = 0; iPool != trgNamePool.size(); ++iPool )
+				{
+					const std::string& trimmedName = HLTConfigProvider::removeVersion( trgNamePool.triggerName(iPool) );
+					if ( HLTList::trigName[iTrig] == trimmedName )
+					{ trgIndex = iPool; break; }
+				}
+
+				if ( trgIndex == trgNamePool.size() )
+				{ LbLo.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
+				else if ( !HLTRecordHandle->wasrun(trgIndex) )
+				{ LbLo.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
+				else if ( !HLTRecordHandle->accept(trgIndex) )
+				{ LbLo.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
+				else if ( HLTRecordHandle->error(trgIndex) )
+				{ LbLo.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
+				else
+				{ LbLo.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
+			}
+		}
 
 		unsigned N = selectedCandList.size();
 		for (unsigned i = 0; i < N; ++i)
@@ -976,36 +989,6 @@ endOfLbL0:
 			//    LbLo.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
 			LbLo.dataI[LbTkRecord::eventEntry] = entry;
 
-			if ( useHLT )
-			{
-				LbLo.dataI[LbTkRecord::trigVanish] = 0;
-				LbLo.dataI[LbTkRecord::trigNotRun] = 0;
-				LbLo.dataI[LbTkRecord::trigReject] = 0;
-				LbLo.dataI[LbTkRecord::trigError]  = 0;
-				LbLo.dataI[LbTkRecord::totallyTriggered] = 0;
-				const edm::TriggerNames& trgNamePool = ev.triggerNames( *HLTRecordHandle );
-				for ( int iTrig = 0; iTrig != HLTList::totNum; ++iTrig )
-				{
-					unsigned trgIndex = trgNamePool.size();
-					for ( unsigned iPool = 0; iPool != trgNamePool.size(); ++iPool )
-					{
-						const std::string& trimmedName = HLTConfigProvider::removeVersion( trgNamePool.triggerName(iPool) );
-						if ( HLTList::trigName[iTrig] == trimmedName )
-						{ trgIndex = iPool; break; }
-					}
-
-					if ( trgIndex == trgNamePool.size() )
-					{ LbLo.dataI[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
-					else if ( !HLTRecordHandle->wasrun(trgIndex) )
-					{ LbLo.dataI[LbTkRecord::trigNotRun] += HLTList::encodeHLT(iTrig); }		// the trigger was not run in the event.
-					else if ( !HLTRecordHandle->accept(trgIndex) )
-					{ LbLo.dataI[LbTkRecord::trigReject] += HLTList::encodeHLT(iTrig); }		// the trigger was not accepted in the event.
-					else if ( HLTRecordHandle->error(trgIndex) )
-					{ LbLo.dataI[LbTkRecord::trigError] += HLTList::encodeHLT(iTrig); }			// there is error in the trigger.
-					else
-					{ LbLo.dataI[LbTkRecord::totallyTriggered] += HLTList::encodeHLT(iTrig); }	// pass the HLT
-				}
-			}
 			LbLoTree->Fill();
 		}
 	}							// Lb->Jpsi anti Lam0 end }}}

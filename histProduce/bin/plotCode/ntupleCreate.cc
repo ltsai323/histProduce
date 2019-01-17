@@ -17,8 +17,9 @@
 typedef formatTree_newLbTk readData;
 
 //typedef root_TreeHistoMain_GenInfo_plusminus_LbTk readMC;#defineuyiytiyufytHLT_DoubleMu4_JpsiTrk_Displaced
-//static const int HLTSELECTED = HLTList::HLT_DoubleMu4_Jpsi_Displaced;
-static const int HLTSELECTED = HLTList::HLT_Dimuon16_Jpsi;
+static const int HLTSELECTED = HLTList::HLT_DoubleMu4_Jpsi_Displaced;
+
+//static const int HLTSELECTED = HLTList::HLT_Dimuon16_Jpsi;
 static const char* OUTPUTFILENAME = "smallNTupleVertexProducer_pLbTk.root";
 
 //static const char* TREENAME = "VertexCompCandAnalyzer/pLbTk";
