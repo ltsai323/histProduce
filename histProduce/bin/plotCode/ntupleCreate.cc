@@ -14,16 +14,20 @@
 #include "histProduce/histProduce/interface/formatTreeLbTknew.h"
 #include "histProduce/histProduce/interface/TriggerBooking.h"
 
-typedef formatTree_newLbTk readData;
+typedef formatTree_LbTknew readData;
 
 //typedef root_TreeHistoMain_GenInfo_plusminus_LbTk readMC;#defineuyiytiyufytHLT_DoubleMu4_JpsiTrk_Displaced
-static const int HLTSELECTED = HLTList::HLT_DoubleMu4_Jpsi_Displaced;
+//static const int HLTSELECTED = HLTList::HLT_DoubleMu4_Jpsi_Displaced;
+static const int HLTSELECTED = HLTList::HLT_DoubleMu4_3_Jpsi_Displaced;
 
 //static const int HLTSELECTED = HLTList::HLT_Dimuon16_Jpsi;
+//static const int HLTSELECTED = HLTList::HLT_Dimuon10_Jpsi_Barrel;
+
 static const char* OUTPUTFILENAME = "smallNTupleVertexProducer_pLbTk.root";
 
-//static const char* TREENAME = "VertexCompCandAnalyzer/pLbTk";
-static const char* TREENAME = "treeCreatingSpecificDecay/pLbTk";
+static const char* TREENAME = "VertexCompCandAnalyzer/pLbTk";
+
+//static const char* TREENAME = "treeCreatingSpecificDecay/pLbTk";
 
 //#define HLTSELECTED HLT_DoubleMu4_Jpsi_Displaced;
 //#define OUTPUTFILENAME "outputFileName";
@@ -39,8 +43,9 @@ int main()
 
 	std::vector< std::pair<std::string, std::string> > fileNameLabels;
 
-	//fileNameLabels.emplace_back("/home/ltsai/Work/LbFrame/workspace/storeroot/tree_vertexProducer_2016RunBCDEFGH_HLTRecord.root", "2016Data");
-	fileNameLabels.emplace_back("/home/ltsai/Work/LbFrame/workspace/test.root", "test");
+	fileNameLabels.emplace_back("/home/ltsai/Work/LbFrame/workspace/storeroot/tree_vertexProducer_2016RunBCDEFGH_HLTRecord.root", "2016Data");
+
+	//fileNameLabels.emplace_back("/home/ltsai/Work/LbFrame/workspace/test.root", "test");
 
 	//fileNameLabels.push_back("storeroot/tReduced/tree_forGA_removeBsBdOnly/data_2017RunBCDEF.root", "2017Data");
 
@@ -70,8 +75,6 @@ int main()
 
 		unsigned i = 0;
 		unsigned N = dataTree->GetEntries();
-		unsigned hltCounter = 0;
-		unsigned eventCounter = 0;
 
 		// testing
 		unsigned iTrigVanish = 0;
@@ -89,14 +92,16 @@ int main()
 		while ( i != N )
 		{
 			dataTree->GetEntry(i++);
-			++eventCounter;
 
-			//if ( !HLTList::decodeHLT(data.readI[readData::totallyTriggered], HLTSELECTED) ) continue;
+			// apply HLT and the preselection by HLT. {{{
 			++nTrigVanish;       if ( HLTList::hasHLT(data.readI[readData::trigVanish], HLTSELECTED) ) ++iTrigVanish;
 			++nTrigNotRun;       if ( HLTList::hasHLT(data.readI[readData::trigNotRun], HLTSELECTED) ) ++iTrigNotRun;
 			++nTrigReject;       if ( HLTList::hasHLT(data.readI[readData::trigReject], HLTSELECTED) ) ++iTrigReject;
 			++nTrigError;        if ( HLTList::hasHLT(data.readI[readData::trigError ], HLTSELECTED) ) ++iTrigError;
 			++nTotallyTriggered; if ( HLTList::hasHLT(data.readI[readData::totallyTriggered], HLTSELECTED) ) ++iTotallyTriggered;
+			if ( !HLTList::hasHLT(data.readI[readData::totallyTriggered], HLTSELECTED) ) continue;
+
+			// apply HLT and the preselection by HLT end. }}}
 
 			if ( data.readD[readData::lbtkFlightDistanceSig] < gaRes[ 0] ) continue;
 			if ( data.readD[readData::lbtkVtxprob          ] < gaRes[ 1] ) continue;
@@ -111,16 +116,15 @@ int main()
 				data.readD[readData::pmuPt], data.readD[readData::nmuPt], data.readD[readData::tk1Pt], data.readD[readData::tk2Pt]
 				);
 		}
-
-		dataFile->Close();
-		delete ntData;
-		printf("this file %s with %d/%d event passed HLT\n", fName.c_str(),hltCounter,eventCounter);
-		printf("HLT results:\n");
+		printf("HLT %s results:\n", HLTList::trigName[HLTSELECTED].c_str());
 		printf("\ttrigVanish : %d/%d\n", iTrigVanish,nTrigVanish);
 		printf("\ttrigNotRun : %d/%d\n", iTrigNotRun,nTrigNotRun);
 		printf("\ttrigReject : %d/%d\n", iTrigReject,nTrigReject);
 		printf("\ttrigError  : %d/%d\n", iTrigError,nTrigError );
 		printf("\ttrigPassed : %d/%d\n", iTotallyTriggered,nTotallyTriggered);
+
+		dataFile->Close();
+		delete ntData;
 	}	// for loop for fileNameLabel
 
 	delete c1;

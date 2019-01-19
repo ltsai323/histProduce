@@ -49,7 +49,7 @@
 #include "histProduce/histProduce/interface/formatTreeLbTknew.h"
 #include "histProduce/histProduce/interface/formatTreeMC_fourDaughter.h"
 #include "histProduce/histProduce/interface/TriggerBooking.h"
-typedef formatTree_newLbTk LbTkRecord;
+typedef formatTree_LbTknew LbTkRecord;
 typedef formatTree_MC_fourDaughter MCRecord;
 
 namespace

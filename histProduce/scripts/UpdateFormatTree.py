@@ -45,7 +45,7 @@ void formatTree_{0}::RegFormatTree(TTree* t)
 {{
     if ( t == nullptr )
     {{
-        printf("formatTree {0}:        error to get tree to register!\\n");
+        printf("formatTree {0}:        ERROR   no input tree, program cannot register tree to record data!\\n");
         exit(1);
     }}
     {1}
@@ -59,7 +59,7 @@ void formatTree_{0}::LoadFormatSourceBranch(TTree* t)
 {{
     if ( t == nullptr )
     {{
-        printf("formatTree {0}:        error to old tree to read!\\n");
+        printf("formatTree {0}:        ERROR   no input tree, program cannot load tree from data!\\n");
         exit(1);
     }}
     SetReadMode();

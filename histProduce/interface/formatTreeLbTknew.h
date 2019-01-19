@@ -1,13 +1,13 @@
-#ifndef __FORMATTREE_LBTK_H__
-#define __FORMATTREE_LBTK_H__
-#include "histProduce/histProduce/interface/formatTree.h"
 
-struct formatTree_newLbTk : public formatTree
+# ifndef __UPDATED_formatTree_LbTknew__
+# define __UPDATED_formatTree_LbTknew__
+# include "histProduce/histProduce/interface/formatTree.h"
+struct formatTree_LbTknew : public formatTree
 {
 public:
 	enum readVarD
 	{
-		lbtkMass, lbtkPt, lbtkEta, lbtkY, lbtkPhi, lbtkFlightDistance2d, lbtkFlightDistanceSig, lbtkVtxprob, lbtkCosa2d, lbtknChi2,
+        lbtkMass, lbtkPt, lbtkEta, lbtkY, lbtkPhi, lbtkFlightDistance2d, lbtkFlightDistanceSig, lbtkVtxprob, lbtkCosa2d, lbtknChi2,
 		tktkMass, tktkPt, tktkEta, tktkY, tktkPhi, tktkFlightDistance2d, tktkFlightDistanceSig, tktkVtxprob, tktkCosa2d, tktknChi2,
 		pmuPt, pmuP0, pmuP1, pmuP2, pmuP3,
 		nmuPt, nmuP0, nmuP1, nmuP2, nmuP3,
@@ -16,17 +16,17 @@ public:
 		comNumD
 	};
 	enum readVarI
-	{
-		eventEntry, trigVanish, trigNotRun, trigReject, trigError, totallyTriggered,
+    {
+        eventEntry, trigVanish, trigNotRun, trigReject, trigError, totallyTriggered,
 		comNumI
 	};
 	virtual void RegFormatTree(TTree* t) override;
 	virtual void LoadFormatSourceBranch(TTree* t) override;
 
-	formatTree_newLbTk( int totNumD=comNumD, int totNumI=comNumI ) : formatTree ( totNumD, totNumI ) {
+	formatTree_LbTknew( int totNumD=comNumD, int totNumI=comNumI ) : formatTree ( totNumD, totNumI ) {
 	}
-	~formatTree_newLbTk() {
+	~formatTree_LbTknew() {
 	}
 };
 
-#endif
+# endif
