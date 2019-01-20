@@ -162,7 +162,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 				if ( HLTList::trigName[iTrig] == trimmedName )
 				{ trgIndex = trgNamePool.triggerIndex( trgNamePool.triggerName(iPool) ); break; }
 			}
-			std::cout << std::endl;
 			if ( trgIndex == trgNamePool.size() )
 			{ hltRec[LbTkRecord::trigVanish] += HLTList::encodeHLT(iTrig); }		// the trigger path is not recorded in the event.
 			else if ( !HLTRecordHandle->wasrun(trgIndex) )

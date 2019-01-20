@@ -53,5 +53,5 @@ process.VertexCompCandAnalyzer = cms.EDAnalyzer('VertexCompCandAnalyzer',
 
 
 process.p = cms.Path(
-      process.treeCreatingSpecificDecay
+      process.VertexCompCandAnalyzer
 )
