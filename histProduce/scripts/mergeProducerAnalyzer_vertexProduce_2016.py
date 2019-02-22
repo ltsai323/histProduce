@@ -25,8 +25,7 @@ process.options.allowUnscheduled = cms.untracked.bool(True)
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring(
 'file:///home/ltsai/Data/8028_2016RunG_AOD_07Aug17.root'
 ),
-
-        duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
+        #duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 )
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
@@ -67,7 +66,7 @@ process.out = cms.OutputModule(
 )
 
 
-# used for EDAnalyzer output 
+# used for EDAnalyzer output
 # cms.outputModules is disabled for delete the output of EDProducer
 process.TFileService = cms.Service('TFileService',
   fileName = cms.string('tree_VertexProducer.root'),

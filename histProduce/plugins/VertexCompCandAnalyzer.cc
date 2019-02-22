@@ -132,6 +132,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 	// get object collections
 	// collections are got through "BPHTokenWrapper" interface to allow
 	// uniform access in different CMSSW versions
+	bool fillCounter = false;
 
 	edm::Handle < reco::BeamSpot > beamSpotHandle;
 	if (useBS)
@@ -364,6 +365,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 			pL0B.dataI[LbTkRecord::totallyTriggered] = hltRec[LbTkRecord::totallyTriggered];	// pass the HLT
 
 			pL0BTree->Fill();
+			fillCounter = true;
 		}
 
 		//eventSeparator_pL0B = usefulFuncs::inverter(eventSeparator_pL0B);
@@ -552,6 +554,7 @@ endOfpL0B:
 			nL0B.dataI[LbTkRecord::totallyTriggered] = hltRec[LbTkRecord::totallyTriggered];	// pass the HLT
 
 			nL0BTree->Fill();
+			fillCounter = true;
 		}
 
 		//eventSeparator_nL0B = usefulFuncs::inverter(eventSeparator_nL0B);
@@ -747,6 +750,7 @@ endOfnL0B:
 			LbL0.dataI[LbTkRecord::totallyTriggered] = hltRec[LbTkRecord::totallyTriggered];	// pass the HLT
 
 			LbL0Tree->Fill();
+			fillCounter = true;
 		}
 
 		//eventSeparator_LbL0 = usefulFuncs::inverter(eventSeparator_LbL0);
@@ -939,6 +943,7 @@ endOfLbL0:
 			LbLo.dataI[LbTkRecord::totallyTriggered] = hltRec[LbTkRecord::totallyTriggered];	// pass the HLT
 
 			LbLoTree->Fill();
+			fillCounter = true;
 		}
 	}							// Lb->Jpsi anti Lam0 end }}}
 
@@ -958,11 +963,13 @@ endOfLbLo:
 			// 0 : LambdaB // 1 : anti LambdaB
 			// 2 : jpsi // 3 : lambda0 // 4 : anti lambda0
 			// 5 : proton + // 6 : proton - // 7 : kaon + // 8 : kaon - // 9 : pion + //10 : pion -
+			// 11: pentaQuark+ // 12: anti-pentaQuark-
 			unsigned candTag = 0;
 			unsigned pTkIdx = -1;
 			unsigned nTkIdx = -1;
 			unsigned tktkIdx = -1;
 			unsigned mumuIdx = -1;
+            unsigned penQIdx = -1;
 
 			// check for LambdaB->Jpsi p+ K-
 			if ( mcCand.pdgId() == 5122 ) candTag += 1 << 0;
@@ -973,7 +980,7 @@ endOfLbLo:
 			{	// check daughter
 				const reco::GenParticle* daug = dynamic_cast<const reco::GenParticle*>(mcCand.daughter(iDau));
 				if ( daug->charge() == 0 )
-				{
+				{	// if J/psi, Lambda0, anti-Lambda0 found
 					switch ( daug->pdgId() )
 					{
 					case   443:	// for jpsi
@@ -988,18 +995,46 @@ endOfLbLo:
 				}
 				else
 				{
-					switch ( daug->pdgId() )
-					{
-					case  2212:	// for proton+
-						candTag += 1 << 5; pTkIdx = iDau; break;
-					case -2212:	// for proton-
-						candTag += 1 << 6; nTkIdx = iDau; break;
-					case   321:	// for kaon+
-						candTag += 1 << 7; pTkIdx = iDau; break;
-					case  -321:	// for kaon-
-						candTag += 1 << 8; nTkIdx = iDau; break;
-					default:
-						break;
+					if ( daug->numberOfDaughters() == 0 )
+					{	// if p+, K- found
+						switch ( daug->pdgId() )
+						{
+						case  2212:	// for proton+
+							candTag += 1 << 5; pTkIdx = iDau; break;
+						case -2212:	// for proton-
+							candTag += 1 << 6; nTkIdx = iDau; break;
+						case   321:	// for kaon+
+							candTag += 1 << 7; pTkIdx = iDau; break;
+						case  -321:	// for kaon-
+							candTag += 1 << 8; nTkIdx = iDau; break;
+						default:
+							break;
+						}
+					}
+					else
+					{	// if pentaQuark->J/psi p+ channel found.
+						for ( unsigned idDau = 0; idDau != daug->numberOfDaughters(); ++idDau )
+						{
+							const reco::GenParticle* ddaug = dynamic_cast<const reco::GenParticle*>(daug->daughter(idDau));
+							switch ( ddaug->pdgId() )
+							{
+							case   443:	// for jpsi
+								candTag += 1 << 2; mumuIdx = idDau; penQIdx = iDau; break;
+							case  2212:	// for proton+
+								candTag += 1 << 5;  pTkIdx = idDau; penQIdx = iDau; break;
+							case -2212:	// for proton-
+								candTag += 1 << 6;  nTkIdx = idDau; penQIdx = iDau; break;
+							default:
+								break;
+							}
+						}
+						switch ( daug->pdgId() )
+						{
+						case  4414:	// for my user assigned pentaQuark, Xi_cc*+ reassignes mass.
+							candTag += 1 << 11; break;
+						case -4414:	// for my user assigned anti-pentaQuark, anti-Xi_cc*- reassignes mass.
+							candTag += 1 << 12; break;
+						}
 					}
 				}
 			}	// check daughter end (for loop)
@@ -1028,22 +1063,25 @@ endOfLbLo:
 			if ( pTkIdx == (unsigned) -1 || nTkIdx == (unsigned) -1 || mumuIdx == (unsigned) -1 )
 				continue;
 
-			const reco::GenParticle* mumuCand = dynamic_cast<const reco::GenParticle*>(mcCand.daughter(mumuIdx));
-			const reco::GenParticle* tktkCand = tktkIdx == (unsigned) -1 ? &mcCand : dynamic_cast<const reco::GenParticle*>(mcCand.daughter(tktkIdx));
+            const reco::GenParticle* mumuMomPtr = penQIdx != (unsigned) -1 ? dynamic_cast<const reco::GenParticle*>(mcCand.daughter(penQIdx)) : &mcCand;
+            const reco::GenParticle* ptkMomPtr  = penQIdx != (unsigned) -1 ? dynamic_cast<const reco::GenParticle*>(mcCand.daughter(penQIdx)) : 
+                                                ( tktkIdx != (unsigned) -1 ? dynamic_cast<const reco::GenParticle*>(mcCand.daughter(tktkIdx)) : &mcCand );
+            const reco::GenParticle* ntkMomPtr  = penQIdx != (unsigned) -1 ? dynamic_cast<const reco::GenParticle*>(mcCand.daughter(penQIdx)) : 
+                                                ( tktkIdx != (unsigned) -1 ? dynamic_cast<const reco::GenParticle*>(mcCand.daughter(tktkIdx)) : &mcCand );
+            
+            const reco::GenParticle* mumuCand = dynamic_cast<const reco::GenParticle*>(mumuMomPtr->daughter(mumuIdx));
 
 			const reco::GenParticle* pMuCand = dynamic_cast<const reco::GenParticle*>(mumuCand->daughter(0));
 			const reco::GenParticle* nMuCand = dynamic_cast<const reco::GenParticle*>(mumuCand->daughter(1));
-			const reco::GenParticle* pTkCand = dynamic_cast<const reco::GenParticle*>(tktkCand->daughter(pTkIdx));
-			const reco::GenParticle* nTkCand = dynamic_cast<const reco::GenParticle*>(tktkCand->daughter(nTkIdx));
+			const reco::GenParticle* pTkCand = dynamic_cast<const reco::GenParticle*>(ptkMomPtr->daughter(pTkIdx));
+			const reco::GenParticle* nTkCand = dynamic_cast<const reco::GenParticle*>(ntkMomPtr->daughter(nTkIdx));
 
 			if ( pMuCand->charge() < 0) std::cout<<"----VertexCompCandAnalyzer::analyze() : pos mu own neg charge\n";
 			if ( nMuCand->charge() > 0) std::cout<<"----VertexCompCandAnalyzer::analyze() : neg mu own pos charge\n";
 
 			GlobalPoint bsVtx2D( bs.x( mcCand.vertex().z() ), bs.y( mcCand.vertex().z() ), 0. );
-			GlobalPoint tktkVtx2D( tktkCand->vertex().x(), tktkCand->vertex().y(), 0. );
 			GlobalPoint mumuVtx2D( mumuCand->vertex().x(), mumuCand->vertex().y(), 0. );
 			GlobalPoint fourTkVtx2D( mcCand.vertex().x(), mcCand.vertex().y(), 0. );
-			GlobalVector tktkMom2D( tktkCand->momentum().x(), tktkCand->momentum().y(), 0. );
 			GlobalVector fourTkMom2D( mcCand.momentum().x(), mcCand.momentum().y(), 0. );
 
 			mc.dataD[MCRecord::candMass] = mcCand.mass();
@@ -1056,6 +1094,9 @@ endOfLbLo:
 
 			if ( tktkIdx != (unsigned) -1 )
 			{
+                const reco::GenParticle* tktkCand = dynamic_cast<const reco::GenParticle*>(mcCand.daughter(tktkIdx));
+                GlobalPoint tktkVtx2D( tktkCand->vertex().x(), tktkCand->vertex().y(), 0. );
+                GlobalVector tktkMom2D( tktkCand->momentum().x(), tktkCand->momentum().y(), 0. );
 				mc.dataD[MCRecord::tktkMass] = tktkCand->mass();
 				mc.dataD[MCRecord::tktkPt] = tktkCand->pt();
 				mc.dataD[MCRecord::tktkEta] = tktkCand->eta();
@@ -1093,11 +1134,13 @@ endOfLbLo:
 			mc.dataI[MCRecord::eventEntry] = entry;
 
 			mcTree->Fill();
+			fillCounter = true;
 		}	// loop all particles end (while loop)
 	}	// MC end }}}
 endOfMC:
 
-	++entry;
+	if ( fillCounter )
+		++entry;
 	return;
 }
 
