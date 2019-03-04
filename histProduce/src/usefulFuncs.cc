@@ -66,6 +66,17 @@ namespace usefulFuncs
         double lxy = displacementFromBeamspot.perp();
         return lxy;
     }
+    double getFlightDistance( const GlobalPoint& c1Pos, const GlobalPoint& c2Pos )
+    {
+        SVector3 distanceVector(c1Pos.x() - c2Pos.x(), c1Pos.y() - c2Pos.y(), c1Pos.z() - c2Pos.z() );
+        return ROOT::Math::Mag(distanceVector);
+    }
+    double getFlightDistanceError( const GlobalPoint& c1Pos, const SMatrixSym3D& c1Err, const GlobalPoint& c2Pos, const SMatrixSym3D& c2Err )
+    {
+        SMatrixSym3D totCov = c1Err + c2Err;
+        SVector3 distanceVector(c1Pos.x() - c2Pos.x(), c1Pos.y() - c2Pos.y(), c1Pos.z() - c2Pos.z() );
+        return sqrt(ROOT::Math::Similarity(totCov, distanceVector)) / ROOT::Math::Mag(distanceVector);
+    }
     double getFlightDistanceSignificance( const pat::CompositeCandidate& cand, const reco::BeamSpot* bs )
     {
         if ( !cand.hasUserData( "fitVertex" ) ) return -999.;
@@ -112,6 +123,13 @@ namespace usefulFuncs
         double lxyerr = sqrt(err.rerr(displacementFromPV));
         return lxy/lxyerr;
     }
+    double getFlightDistanceSignificance( const GlobalPoint& c1Pos, const SMatrixSym3D& c1Err, const GlobalPoint& c2Pos, const SMatrixSym3D& c2Err )
+    {
+        SMatrixSym3D totCov = c1Err + c2Err;
+        SVector3 distanceVector(c1Pos.x() - c2Pos.x(), c1Pos.y() - c2Pos.y(), c1Pos.z() - c2Pos.z() );
+        return ROOT::Math::Mag2(distanceVector) / sqrt(ROOT::Math::Similarity(totCov, distanceVector));
+    }
+
     double getCosa2d( const pat::CompositeCandidate& cand, const reco::Vertex* _pv )
     {
         const GlobalVector* _mom = get<GlobalVector>( cand, "fitMomentum" );
@@ -169,6 +187,13 @@ namespace usefulFuncs
         double cosa3d = (mx*_x + my*_y + mz*_z) / (_mom->mag()*_r);
         return cosa3d;
     }
+    double getCosAngle( const GlobalVector& mom, const GlobalPoint& c1Pos, const GlobalPoint& c2Pos )
+    {
+        reco::Vertex::Point displacement( c1Pos.x()-c2Pos.x(), c1Pos.y()-c2Pos.y(), c1Pos.z()-c2Pos.z() );
+        math::XYZVector momVec( mom.x(), mom.y(), mom.z() );
+        return momVec.Dot(displacement) / momVec.R() / displacement.R();
+    }
+
     double getCosAngleToVtx_PV_BS( const pat::CompositeCandidate& cand, const reco::Vertex& pv, const reco::BeamSpot& bs)
     {
         // use Law of cosines to calculate angle to cand-PV-BS.
