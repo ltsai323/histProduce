@@ -197,8 +197,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 		std::vector < std::pair < double, const reco::VertexCompositeCandidate * > >selectedCandList;
 		selectedCandList.clear();
 		selectedCandList.reserve(pL0BCands->size());
-		handleIter = pL0BCands->begin();
-		handleIend = pL0BCands->end();
 		while (handleIter != handleIend)
 		{
 			const reco::VertexCompositeCandidate & cand = *handleIter++;
@@ -251,9 +249,9 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 
             reco::Particle::LorentzVector revCandP4 = muPosP4+muNegP4+tkPosP4_rev+tkNegP4_rev;
 			reco::Particle::LorentzVector tktkSelP4 = tkPosP4+tkNegP4;
-            reco::Particle::LorentzVector fourTkmom,tktkMom;
+            reco::Particle::LorentzVector fourTkMom,tktkMom;
             double mass1 = selCand.mass();
-            double mass2 = revCandP4.Mag();
+            double mass2 = revCandP4.mass();
             double m1dist = fabs(mass1-5.619);
             double m2dist = fabs(mass2-5.619);
             if ( m1dist<0.015&&m2dist<0.015) continue;
@@ -270,7 +268,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             else
                 continue;
 
-            if ( fourtkMom.mass()<5.4 || fourTkMom.mass() > 5.9 ) continue;
+            if ( fourTkMom.mass()<5.4 || fourTkMom.mass() > 5.9 ) continue;
 
 
 
@@ -289,8 +287,6 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 
 			tkPosP4.SetE(sqrt(tkPosP4.P2()+protonMASS*protonMASS));
 			tkNegP4.SetE(sqrt(tkNegP4.P2()+kaonMASS*kaonMASS));
-			reco::Particle::LorentzVector fourTkMom = selCand.p4();
-			reco::Particle::LorentzVector tktkMom = tkPosP4+tkNegP4;
 
 			//const GlobalVector *twoTk = tktkCand.userData < GlobalVector > ("fitMomentum");
 			//TLorentzVector twoTkMom(twoTk->x(), twoTk->y(), twoTk->z(),
@@ -368,9 +364,9 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 		// preselection {{{
 		if (!pL0BCands.isValid()) goto endOfpL0B;
 
-		std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = pL0BCands->cbegin();
-		std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = pL0BCands->cend  ();
-		std::vector < std::pair < double, const reco::VertexCompositeCandidate * > >selectedCandList;
+		//std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = pL0BCands->cbegin();
+		//std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = pL0BCands->cend  ();
+		//std::vector < std::pair < double, const reco::VertexCompositeCandidate * > >selectedCandList;
 		selectedCandList.clear();
 		selectedCandList.reserve(pL0BCands->size());
 		handleIter = pL0BCands->begin();
@@ -411,7 +407,8 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 
 		// preselection end }}}
 
-		unsigned N = selectedCandList.size();
+		//unsigned N = selectedCandList.size();
+		N = selectedCandList.size();
 		for (unsigned i = 0; i < N; ++i)
 		{
 			pL0B.Clear();
@@ -568,8 +565,6 @@ endOfpL0B:
 		std::vector < std::pair < double, const reco::VertexCompositeCandidate * > >selectedCandList;
 		selectedCandList.clear();
 		selectedCandList.reserve(nL0BCands->size());
-		handleIter = nL0BCands->begin();
-		handleIend = nL0BCands->end();
 		while (handleIter != handleIend)
 		{
 			const reco::VertexCompositeCandidate & cand = *handleIter++;
@@ -757,8 +752,6 @@ endOfnL0B:
 		std::vector < std::pair < double, const reco::VertexCompositeCandidate * > >selectedCandList;
 		selectedCandList.clear();
 		selectedCandList.reserve(LbL0Cands->size());
-		handleIter = LbL0Cands->begin();
-		handleIend = LbL0Cands->end();
 		while (handleIter != handleIend)
 		{
 			const reco::VertexCompositeCandidate & cand = *handleIter++;
@@ -953,8 +946,6 @@ endOfLbL0:
 		std::vector < std::pair < double, const reco::VertexCompositeCandidate * > >selectedCandList;
 		selectedCandList.clear();
 		selectedCandList.reserve(LbLoCands->size());
-		handleIter = LbLoCands->begin();
-		handleIend = LbLoCands->end();
 		while (handleIter != handleIend)
 		{
 			const reco::VertexCompositeCandidate & cand = *handleIter++;
