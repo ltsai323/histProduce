@@ -82,6 +82,7 @@ VertexCompCandAnalyzer::VertexCompCandAnalyzer(const edm::ParameterSet& iConfig)
 	useMC   = (MCReserveLabel != "");
 	useBS   = (  bsPointLabel != "");
 
+    LbTkTree = fs->make < TTree > ("LbTkTot", "LbTkTot");
 	pL0BTree = fs->make < TTree > ("pLbTk", "pLbTk");
 	nL0BTree = fs->make < TTree > ("nLbTk", "nLbTk");
 	LbL0Tree = fs->make < TTree > ("pLbL0", "pLbL0");
@@ -95,6 +96,8 @@ VertexCompCandAnalyzer::VertexCompCandAnalyzer(const edm::ParameterSet& iConfig)
 	nL0B.RegFormatTree(nL0BTree);
 	LbL0.RegFormatTree(LbL0Tree);
 	LbLo.RegFormatTree(LbLoTree);
+    LbTk.RegFormatTree(LbTkTree);
+    LbTk.RegFormatTree(LbTkTree);
 	return;
 }
 
@@ -183,6 +186,184 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 	{
 		edm::Handle < vector < reco::VertexCompositeCandidate > >pL0BCands;
 		ev.getByToken( pL0BCandsToken, pL0BCands );
+
+        // test region {{{
+
+		// preselection {{{
+		if (!pL0BCands.isValid()) goto endOfpL0B;
+
+		std::vector < reco::VertexCompositeCandidate >::const_iterator handleIter = pL0BCands->cbegin();
+		std::vector < reco::VertexCompositeCandidate >::const_iterator handleIend = pL0BCands->cend  ();
+		std::vector < std::pair < double, const reco::VertexCompositeCandidate * > >selectedCandList;
+		selectedCandList.clear();
+		selectedCandList.reserve(pL0BCands->size());
+		handleIter = pL0BCands->begin();
+		handleIend = pL0BCands->end();
+		while (handleIter != handleIend)
+		{
+			const reco::VertexCompositeCandidate & cand = *handleIter++;
+			const reco::VertexCompositeCandidate* mumuCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( cand.daughter("JPsi") );
+			const reco::VertexCompositeCandidate* tktkCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( cand.daughter("TkTk") );
+			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuPos") );
+			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuNeg") );
+			const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( tktkCandPtr->daughter("Proton") );
+			const reco::RecoChargedCandidate* tkNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( tktkCandPtr->daughter("Kaon") );
+
+			reco::Particle::LorentzVector tkPosP4 = tkPosCandPtr->p4(); tkPosP4.SetE(sqrt(tkPosP4.P2()+protonMASS*protonMASS));
+			reco::Particle::LorentzVector tkNegP4 = tkNegCandPtr->p4(); tkNegP4.SetE(sqrt(tkNegP4.P2()+kaonMASS*kaonMASS));
+
+			//reco::Particle::LorentzVector tktkPreSelP4 = tkPosP4+tkNegP4;
+			// preselection
+			if (sqrt(muPosCandPtr->momentum().Perp2()) < 4.0) continue;
+			if (sqrt(muNegCandPtr->momentum().Perp2()) < 4.0) continue;
+			if (sqrt(tkPosCandPtr->momentum().Perp2()) < 0.3) continue;
+			if (sqrt(tkNegCandPtr->momentum().Perp2()) < 0.3) continue;
+
+			double vtxprob = TMath::Prob(cand.vertexChi2(), cand.vertexNdof());
+
+			//if (cos2d < 0.95) continue;
+			if (vtxprob < 0.03) continue;
+			selectedCandList.emplace_back(vtxprob, &cand);
+		}
+
+		// preselection end }}}
+
+		unsigned N = selectedCandList.size();
+		for (unsigned i = 0; i < N; ++i)
+		{
+			LbTk.Clear();
+			const double candVtxprob = selectedCandList[i].first;
+			const reco::VertexCompositeCandidate& selCand = *(selectedCandList[i].second);
+
+			const reco::VertexCompositeCandidate* mumuCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( selCand.daughter("JPsi") );
+			const reco::VertexCompositeCandidate* tktkCandPtr = dynamic_cast<const reco::VertexCompositeCandidate*>( selCand.daughter("TkTk") );
+			const reco::RecoChargedCandidate* muPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuPos") );
+			const reco::RecoChargedCandidate* muNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( mumuCandPtr->daughter("MuNeg") );
+			const reco::RecoChargedCandidate* tkPosCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( tktkCandPtr->daughter("Proton") );
+			const reco::RecoChargedCandidate* tkNegCandPtr = dynamic_cast<const reco::RecoChargedCandidate*>( tktkCandPtr->daughter("Kaon") );
+
+			reco::Particle::LorentzVector muPosP4 = muPosCandPtr->p4(); muPosP4.SetE(sqrt(muPosP4.P2()+muonMASS*muonMASS));
+			reco::Particle::LorentzVector muNegP4 = muNegCandPtr->p4(); muNegP4.SetE(sqrt(muNegP4.P2()+muonMASS*muonMASS));
+			reco::Particle::LorentzVector tkPosP4 = tkPosCandPtr->p4(); tkPosP4.SetE(sqrt(tkPosP4.P2()+protonMASS*protonMASS));
+			reco::Particle::LorentzVector tkNegP4 = tkNegCandPtr->p4(); tkNegP4.SetE(sqrt(tkNegP4.P2()+kaonMASS*kaonMASS));
+			reco::Particle::LorentzVector tkPosP4_rev = tkPosCandPtr->p4(); tkPosP4_rev.SetE(sqrt(tkPosP4.P2()+kaonMASS*kaonMASS));
+			reco::Particle::LorentzVector tkNegP4_rev = tkNegCandPtr->p4(); tkNegP4_rev.SetE(sqrt(tkNegP4.P2()+protonMASS*protonMASS));
+
+            reco::Particle::LorentzVector revCandP4 = muPosP4+muNegP4+tkPosP4_rev+tkNegP4_rev;
+			reco::Particle::LorentzVector tktkSelP4 = tkPosP4+tkNegP4;
+            reco::Particle::LorentzVector fourTkmom,tktkMom;
+            double mass1 = selCand.mass();
+            double mass2 = revCandP4.Mag();
+            double m1dist = fabs(mass1-5.619);
+            double m2dist = fabs(mass2-5.619);
+            if ( m1dist<0.015&&m2dist<0.015) continue;
+            if ( tkPosP4.Pt() > tkNegP4.Pt() && tkPosP4.Pt()>0.8 && m1dist<m2dist )
+            {
+                tktkMom = tkPosP4+tkNegP4;
+                fourTkMom = muPosP4+muNegP4+tkPosP4+tkNegP4;
+            }
+            else if ( tkPosP4.Pt() < tkNegP4.Pt() && tkNegP4.Pt()>0.8 && m1dist>m2dist )
+            {
+                tktkMom = tkPosP4_rev+tkNegP4_rev;
+                fourTkMom = muPosP4+muNegP4+tkPosP4_rev+tkNegP4_rev;
+            }
+            else
+                continue;
+
+            if ( fourtkMom.mass()<5.4 || fourTkMom.mass() > 5.9 ) continue;
+
+
+
+			//reco::Particle::LorentzVector fourTkSelP4 = muPosP4+muNegP4+tkPosP4+tkNegP4;
+
+			GlobalPoint bsVtx2D( bs.x( tktkCandPtr->vertex().z() ), bs.y( tktkCandPtr->vertex().z() ), 0. );
+			GlobalPoint tktkVtx2D( tktkCandPtr->vertex().x(),tktkCandPtr->vertex().y(),  0. );
+			GlobalPoint mumuVtx2D( mumuCandPtr->vertex().x(),mumuCandPtr->vertex().y(),  0. );
+			GlobalPoint fourTkVtx2D( selCand.vertex().x(), selCand.vertex().y(), 0. );
+			GlobalVector tktkMom2D( tktkSelP4.x(), tktkSelP4.y(), 0. );
+			GlobalVector fourTkMom2D( selCand.momentum().x(), selCand.momentum().y(), 0. );
+			const usefulFuncs::SMatrixSym3D& bsCOV = bs.rotatedCovariance3D();
+			const usefulFuncs::SMatrixSym3D& tktkCOV = tktkCandPtr->vertexCovariance();
+			const usefulFuncs::SMatrixSym3D& mumuCOV = mumuCandPtr->vertexCovariance();
+			const usefulFuncs::SMatrixSym3D& fourTkCOV = selCand.vertexCovariance();
+
+			tkPosP4.SetE(sqrt(tkPosP4.P2()+protonMASS*protonMASS));
+			tkNegP4.SetE(sqrt(tkNegP4.P2()+kaonMASS*kaonMASS));
+			reco::Particle::LorentzVector fourTkMom = selCand.p4();
+			reco::Particle::LorentzVector tktkMom = tkPosP4+tkNegP4;
+
+			//const GlobalVector *twoTk = tktkCand.userData < GlobalVector > ("fitMomentum");
+			//TLorentzVector twoTkMom(twoTk->x(), twoTk->y(), twoTk->z(),
+			//                        sqrt(twoTk->x() * twoTk->x() + twoTk->y() * twoTk->y() + twoTk->z() * twoTk->z() +
+			//                             tktkCand.userFloat("fitMass") * tktkCand.userFloat("fitMass")));
+			LbTk.dataD[LbTkRecord::lbtkMass] = fourTkMom.mass();
+			LbTk.dataD[LbTkRecord::lbtkPt] = fourTkMom.Pt();
+			LbTk.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
+			LbTk.dataD[LbTkRecord::lbtkY] = fourTkMom.Rapidity();
+			LbTk.dataD[LbTkRecord::lbtkPhi] = fourTkMom.Phi();
+			LbTk.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
+			LbTk.dataD[LbTkRecord::lbtkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
+			LbTk.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
+			LbTk.dataD[LbTkRecord::lbtkVtxprob] = candVtxprob;
+			LbTk.dataD[LbTkRecord::lbtknChi2] = selCand.vertexChi2() / selCand.vertexNdof();
+
+			LbTk.dataD[LbTkRecord::tktkMass] = tktkMom.mass();
+			LbTk.dataD[LbTkRecord::tktkPt] = tktkMom.Pt();
+			LbTk.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
+			LbTk.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
+			LbTk.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
+			LbTk.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
+			LbTk.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
+			LbTk.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
+			LbTk.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(tkPosCandPtr->vertexChi2(), tkPosCandPtr->vertexNdof());
+			LbTk.dataD[LbTkRecord::tktknChi2] = tkPosCandPtr->vertexChi2() / tkPosCandPtr->vertexNdof();
+
+			//LbTk.dataD[LbTkRecord::pmuPt] = sqrt(muPosP4.Perp2());
+			//LbTk.dataD[LbTkRecord::pmuP0] = muPosP4.E();
+			//LbTk.dataD[LbTkRecord::pmuP1] = muPosP4.Px();
+			//LbTk.dataD[LbTkRecord::pmuP2] = muPosP4.Py();
+			//LbTk.dataD[LbTkRecord::pmuP3] = muPosP4.Pz();
+			//LbTk.dataD[LbTkRecord::nmuPt] = sqrt(muNegP4.Perp2());
+			//LbTk.dataD[LbTkRecord::nmuP0] = muNegP4.E();
+			//LbTk.dataD[LbTkRecord::nmuP1] = muNegP4.Px();
+			//LbTk.dataD[LbTkRecord::nmuP2] = muNegP4.Py();
+			//LbTk.dataD[LbTkRecord::nmuP3] = muNegP4.Pz();
+
+			//LbTk.dataD[LbTkRecord::tk1Pt] = sqrt(tkPosP4.Perp2());
+			//LbTk.dataD[LbTkRecord::tk1P0] = tkPosP4.E();
+			//LbTk.dataD[LbTkRecord::tk1P1] = tkPosP4.Px();
+			//LbTk.dataD[LbTkRecord::tk1P2] = tkPosP4.Py();
+			//LbTk.dataD[LbTkRecord::tk1P3] = tkPosP4.Pz();
+			//LbTk.dataD[LbTkRecord::tk2Pt] = sqrt(tkNegP4.Perp2());
+			//LbTk.dataD[LbTkRecord::tk2P0] = tkNegP4.E();
+			//LbTk.dataD[LbTkRecord::tk2P1] = tkNegP4.Px();
+			//LbTk.dataD[LbTkRecord::tk2P2] = tkNegP4.Py();
+			//LbTk.dataD[LbTkRecord::tk2P3] = tkNegP4.Pz();
+
+			//LbTk.dataD[LbTkRecord::tk1IPt] = selCand.userFloat("TkTk/Proton.IPt");
+			//LbTk.dataD[LbTkRecord::tk2IPt] = selCand.userFloat("TkTk/Kaon.IPt");
+			//LbTk.dataD[LbTkRecord::tk1IPtErr] = selCand.userFloat("TkTk/Proton.IPt.Error");
+			//LbTk.dataD[LbTkRecord::tk2IPtErr] = selCand.userFloat("TkTk/Kaon.IPt.Error");
+			//if (selCand.hasUserFloat("TkTk/Proton.dEdx.pixelHrm"))
+			//    LbTk.dataD[LbTkRecord::tk1DEDX_pixelHrm] = selCand.userFloat("TkTk/Proton.dEdx.pixelHrm");
+			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.pixelHrm"))
+			//    LbTk.dataD[LbTkRecord::tk2DEDX_pixelHrm] = selCand.userFloat("TkTk/Kaon.dEdx.pixelHrm");
+			//if (selCand.hasUserFloat("TkTk/Proton.dEdx.Harmonic"))
+			//    LbTk.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
+			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.Harmonic"))
+			//    LbTk.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
+			LbTk.dataI[LbTkRecord::eventEntry] = entry;
+
+			LbTk.dataI[LbTkRecord::trigVanish]  = hltRec[LbTkRecord::trigVanish];	// the trigger path is not recorded in the event.
+			LbTk.dataI[LbTkRecord::trigNotRun]  = hltRec[LbTkRecord::trigNotRun];	// the trigger was not run in the event.
+			LbTk.dataI[LbTkRecord::trigReject]  = hltRec[LbTkRecord::trigReject];	// the trigger was not accepted in the event.
+			LbTk.dataI[LbTkRecord::trigError]   = hltRec[LbTkRecord::trigError ];	// there is error in the trigger.
+			LbTk.dataI[LbTkRecord::totallyTriggered] = hltRec[LbTkRecord::totallyTriggered];	// pass the HLT
+
+			LbTkTree->Fill();
+			fillCounter = true;
+		}
+        // test region end }}}
 
 		// preselection {{{
 		if (!pL0BCands.isValid()) goto endOfpL0B;
@@ -505,9 +686,9 @@ endOfpL0B:
 			nL0B.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
 			nL0B.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
 			nL0B.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
-			pL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
-			pL0B.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
-			pL0B.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
+			nL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
+			nL0B.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
+			nL0B.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
 			nL0B.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(tkPosCandPtr->vertexChi2(), tkPosCandPtr->vertexNdof());
 			nL0B.dataD[LbTkRecord::tktknChi2] = tkPosCandPtr->vertexChi2() / tkPosCandPtr->vertexNdof();
 

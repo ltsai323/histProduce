@@ -105,12 +105,13 @@ private:
 	bool useMC;
 	bool useBS;
 
-	LbTkRecord pL0B, nL0B;
+	LbTkRecord pL0B, nL0B, LbTk;
 	LbTkRecord LbL0, LbLo;
 	MCRecord mc;
 
 	TTree* pL0BTree;
 	TTree* nL0BTree;
+    TTree* LbTkTree;
 	TTree* LbL0Tree;
 	TTree* LbLoTree;
 	TTree* mcTree;
