@@ -3,8 +3,15 @@
 #include "TTree.h"
 #include <iostream>
 
-// usage:
-// need to be written!
+// this file is to create data structure in TTree when you run EDanalyzer
+// And formatTreeArray is a virtual class.
+// The only way to use this file is to inheritate this class and create
+// two 'enum' : readVarD and readVarI to define the variables.
+//
+// And formatTreeArray store array in event.
+// Ex:
+//	tree->Branch( "trigError", &dataI[trigError], "trigError/I" );
+//	tree->SetBranchAddress( "tk2IPtErr", &readD[tk2IPtErr] );
 
 struct formatTree
 {

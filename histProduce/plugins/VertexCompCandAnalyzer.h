@@ -46,11 +46,11 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 //#include "vertexProducer/vertexProducer/interface/ccLoader.h"
-#include "histProduce/histProduce/interface/formatTreeLbTknew.h"
-#include "histProduce/histProduce/interface/formatTreeMC_fourDaughter.h"
+#include "histProduce/histProduce/interface/formatTreeArrayLbTk.h"
+#include "histProduce/histProduce/interface/formatTreeArrayMC_fourDaughter.h"
 #include "histProduce/histProduce/interface/TriggerBooking.h"
-typedef formatTree_LbTknew LbTkRecord;
-typedef formatTree_MC_fourDaughter MCRecord;
+typedef formatTreeArray_LbTk LbTkRecord;
+typedef formatTreeArray_MC_fourDaughter MCRecord;
 
 namespace
 {
