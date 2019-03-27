@@ -24,8 +24,11 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 #from histProduce.histProduce.data_2016RunG_LbL0_cfi import files
 #process.source = cms.Source("PoolSource",fileNames = files,
 process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring(
+'file:reco_fourTracksVertexing_1.root',
+'file:reco_fourTracksVertexing_2.root',
+'file:reco_fourTracksVertexing_3.root',
+'file:reco_fourTracksVertexing_4.root',
 #'/store/user/ltsai/vertexProducer/20181228revision/Charmonium/2016RunC_vertexProducer/181228_101222/0000/vertexProducer_BdRemoved_9.root'
-'file:a.root',
 #'file:///home/ltsai/ReceivedFile/tmp/vertexProducer_BdRemoved_1-10.root'
 ),
         duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
@@ -38,7 +41,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_2016LegacyRepro_v
 
 
 process.TFileService = cms.Service('TFileService',
-  fileName = cms.string('tree_VCCAnalyzer.root'),
+  fileName = cms.string('tree_VCCAnalyzer_forTest.root'),
   closeFileFast = cms.untracked.bool(True)
 )
 

@@ -1,6 +1,7 @@
 #ifndef __formatTreeArray_H__
 #define __formatTreeArray_H__
 #include "TTree.h"
+#include "TLorentzVector.h"
 #include <iostream>
 #define MAX_CAND_NUM 128
 
@@ -87,6 +88,7 @@ public:
 
 	void SetReadMode()
 	{
+        candIdx = -1;
 		readMode = true;
 		readD = new double*[totNumD];
 		readI = new int*   [totNumI];
@@ -102,9 +104,14 @@ public:
 		return;
 	}
 
+    // functions for reading
+    void atCand(int i) { candIdx = i; return; }
+    double getD(int idx) { if ( candIdx == -1 ) {printf("set cand Idx before you get().\n"); exit(1);} return readD[idx][candIdx]; }
+    int    getI(int idx) { if ( candIdx == -1 ) {printf("set cand Idx before you get().\n"); exit(1);} return readI[idx][candIdx]; }
 private:
 	const int totNumD;
 	const int totNumI;
 	bool readMode;
+    int candIdx;
 };
 #endif
