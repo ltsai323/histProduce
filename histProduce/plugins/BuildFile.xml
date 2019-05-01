@@ -1,5 +1,6 @@
 <use   name="root"/>
 <use   name="histProduce/histProduce"/>
+<use   name="vertexProducer/MCMatchTools"/>
 <use   name="CommonTools/CandUtils"/>
 <use   name="CommonTools/Utils"/>
 <use   name="CommonTools/UtilAlgos"/>
@@ -31,6 +32,7 @@
 <use   name="RecoVertex/KinematicFitPrimitives"/>
 <use   name="TrackingTools/TransientTrack"/>
 <use   name="TrackingTools/IPTools"/>
+<use   name="TrackingTools/Records"/>
 <library   file="*.cc" name="myHistProducePlugins">
   <flags   EDM_PLUGIN="1"/>
 </library>

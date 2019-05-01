@@ -1,4 +1,6 @@
 #!/usr/bin/env cmsRun
+# usage:
+#   cmsRun ./a.py readSource=/wk_cms/ltsai/LbFrame/CMSSW_9_4_0/src/vertexProducer/generalFileList/python/mcPosLb_LbToJPsikP_fileList_cfi.py  outputTag=posLBtoJPsipK_noPreselection
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("analyzer")
@@ -20,28 +22,37 @@ process.load("TrackingTools/TransientTrack/TransientTrackBuilder_cfi")
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
-#from histProduce.histProduce.data_bphOrig_cfi import files
-#from histProduce.histProduce.data_2016RunG_LbL0_cfi import files
-#process.source = cms.Source("PoolSource",fileNames = files,
-process.source = cms.Source("PoolSource",fileNames = cms.untracked.vstring(
-'file:reco_fourTracksVertexing_1.root',
-'file:reco_fourTracksVertexing_2.root',
-'file:reco_fourTracksVertexing_3.root',
-'file:reco_fourTracksVertexing_4.root',
-#'/store/user/ltsai/vertexProducer/20181228revision/Charmonium/2016RunC_vertexProducer/181228_101222/0000/vertexProducer_BdRemoved_9.root'
-#'file:///home/ltsai/ReceivedFile/tmp/vertexProducer_BdRemoved_1-10.root'
-),
+from FWCore.ParameterSet.VarParsing import VarParsing
+options=VarParsing('analysis')
+options.register('readSource', None                 , VarParsing.multiplicity.singleton, VarParsing.varType.string,'input source contains file list to load')
+options.register('outputTag' , 'VCCAnalyzer_forTest', VarParsing.multiplicity.singleton, VarParsing.varType.string,'tag to create outputFileName, "tag" inputed will goes to "tag_(inputFileName)_cfi.py" ')
+options.parseArguments()
+if not options.readSource:
+    print 'select input file list : use [readSource] option'
+    exit(1)
+
+# handle input file path to file name. /a/b/c_cfi.py -> c_cfi
+sepIFName=options.readSource.split('/')
+sepedIFName=sepIFName[ len(sepIFName)-1 ]
+finalIFName=sepedIFName.split('.') [0]
+
+import imp
+myImport=imp.load_source('readFiles', options.readSource)
+#from histProduce.histProduce.data_bphOrig_cfi import readFiles
+process.source = cms.Source("PoolSource",
+        fileNames = myImport.readFiles,
         duplicateCheckMode = cms.untracked.string('noDuplicateCheck')
 )
 
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
-#process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
-process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_2016LegacyRepro_v3', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
+#process.GlobalTag = GlobalTag(process.GlobalTag, '80X_dataRun2_2016LegacyRepro_v3', '')
 #process.GlobalTag = GlobalTag(process.GlobalTag, '94X_dataRun2_ReReco_EOY17_v1', '')
 
 
 process.TFileService = cms.Service('TFileService',
-  fileName = cms.string('tree_VCCAnalyzer_forTest.root'),
+  fileName = cms.string('tree_{}_{}.root'.format(options.outputTag, finalIFName)),
+  #fileName = cms.string('tree_%s.root' % options.outputTag),
   closeFileFast = cms.untracked.bool(True)
 )
 
@@ -58,3 +69,4 @@ process.VertexCompCandAnalyzer = cms.EDAnalyzer('VertexCompCandAnalyzer',
 process.p = cms.Path(
       process.VertexCompCandAnalyzer
 )
+

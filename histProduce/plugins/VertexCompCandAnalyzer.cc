@@ -82,6 +82,7 @@ VertexCompCandAnalyzer::VertexCompCandAnalyzer(const edm::ParameterSet& iConfig)
 	useMC   = (MCReserveLabel != "");
 	useBS   = (  bsPointLabel != "");
 
+    LbTkTree = fs->make < TTree > ("LbTkTot", "LbTkTot");
 	pL0BTree = fs->make < TTree > ("pLbTk", "pLbTk");
 	nL0BTree = fs->make < TTree > ("nLbTk", "nLbTk");
 	LbL0Tree = fs->make < TTree > ("pLbL0", "pLbL0");
@@ -95,6 +96,8 @@ VertexCompCandAnalyzer::VertexCompCandAnalyzer(const edm::ParameterSet& iConfig)
 	nL0B.RegFormatTree(nL0BTree);
 	LbL0.RegFormatTree(LbL0Tree);
 	LbLo.RegFormatTree(LbLoTree);
+    LbTk.RegFormatTree(LbTkTree);
+    LbTk.RegFormatTree(LbTkTree);
 	return;
 }
 
@@ -184,6 +187,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 		edm::Handle < vector < reco::VertexCompositeCandidate > >pL0BCands;
 		ev.getByToken( pL0BCandsToken, pL0BCands );
 
+
 		// preselection {{{
 		if (!pL0BCands.isValid()) goto endOfpL0B;
 
@@ -230,10 +234,11 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 
 		// preselection end }}}
 
+        pL0B.Clear();
 		unsigned N = selectedCandList.size();
+		N = selectedCandList.size();
 		for (unsigned i = 0; i < N; ++i)
 		{
-			pL0B.Clear();
 			const double candVtxprob = selectedCandList[i].first;
 			const reco::VertexCompositeCandidate& selCand = *(selectedCandList[i].second);
 
@@ -260,7 +265,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 //				fourTkSelP4 = muPosP4+muNegP4+tkPosP4+tkNegP4;
 //
 //				if ( fabs( fourTkSelP4.mag() - bdMASS ) < 2.5* bdWIDTH )
-//					pL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<1;
+//					pL0B.dataI[LbTkRecord::mightBeOtherParticle][candSize] += 1<<1;
 //
 //				// bd bar
 //				tkPosP4.SetE(sqrt(tkPosP4.P2()+pionMASS*pionMASS));
@@ -268,7 +273,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 //				fourTkSelP4 = muPosP4+muNegP4+tkPosP4+tkNegP4;
 //
 //				if ( fabs( fourTkSelP4.mag() - bdMASS ) < 2.5* bdWIDTH )
-//					pL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<2;
+//					pL0B.dataI[LbTkRecord::mightBeOtherParticle][candSize] += 1<<2;
 //
 //				// bs
 //				tkPosP4.SetE(sqrt(tkPosP4.P2()+kaonMASS*kaonMASS));
@@ -278,7 +283,7 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 //
 //				if ( fabs( fourTkSelP4.mag() - bsMASS ) < 2.5* bsWIDTH &&
 //                   fabs(   tktkSelP4.mag() -phiMASS ) < 2.5*phiWIDTH )
-//					pL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
+//					pL0B.dataI[LbTkRecord::mightBeOtherParticle][candSize] += 1<<4;
 //			}				// check particles end }}}
 			GlobalPoint bsVtx2D( bs.x( tktkCandPtr->vertex().z() ), bs.y( tktkCandPtr->vertex().z() ), 0. );
 			GlobalPoint tktkVtx2D( tktkCandPtr->vertex().x(),tktkCandPtr->vertex().y(),  0. );
@@ -300,73 +305,75 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 			//TLorentzVector twoTkMom(twoTk->x(), twoTk->y(), twoTk->z(),
 			//                        sqrt(twoTk->x() * twoTk->x() + twoTk->y() * twoTk->y() + twoTk->z() * twoTk->z() +
 			//                             tktkCand.userFloat("fitMass") * tktkCand.userFloat("fitMass")));
-			pL0B.dataD[LbTkRecord::lbtkMass] = selCand.mass();
-			pL0B.dataD[LbTkRecord::lbtkPt] = fourTkMom.Pt();
-			pL0B.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
-			pL0B.dataD[LbTkRecord::lbtkY] = fourTkMom.Rapidity();
-			pL0B.dataD[LbTkRecord::lbtkPhi] = fourTkMom.Phi();
-			pL0B.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
-			pL0B.dataD[LbTkRecord::lbtkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
-			pL0B.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
-			pL0B.dataD[LbTkRecord::lbtkVtxprob] = candVtxprob;
-			pL0B.dataD[LbTkRecord::lbtknChi2] = selCand.vertexChi2() / selCand.vertexNdof();
+			pL0B.dataD[LbTkRecord::lbtkMass][pL0B.candSize] = selCand.mass();
+			pL0B.dataD[LbTkRecord::lbtkPt][pL0B.candSize] = fourTkMom.Pt();
+			pL0B.dataD[LbTkRecord::lbtkEta][pL0B.candSize] = fourTkMom.Eta();
+			pL0B.dataD[LbTkRecord::lbtkY][pL0B.candSize] = fourTkMom.Rapidity();
+			pL0B.dataD[LbTkRecord::lbtkPhi][pL0B.candSize] = fourTkMom.Phi();
+			pL0B.dataD[LbTkRecord::lbtkFlightDistance2d][pL0B.candSize] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
+			pL0B.dataD[LbTkRecord::lbtkFlightDistanceSig][pL0B.candSize] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
+			pL0B.dataD[LbTkRecord::lbtkCosa2d][pL0B.candSize] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
+			pL0B.dataD[LbTkRecord::lbtkVtxprob][pL0B.candSize] = candVtxprob;
+			pL0B.dataD[LbTkRecord::lbtknChi2][pL0B.candSize] = selCand.vertexChi2() / selCand.vertexNdof();
 
-			pL0B.dataD[LbTkRecord::tktkMass] = tktkMom.mass();
-			pL0B.dataD[LbTkRecord::tktkPt] = tktkMom.Pt();
-			pL0B.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
-			pL0B.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
-			pL0B.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
-			pL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
-			pL0B.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
-			pL0B.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
-			pL0B.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(tkPosCandPtr->vertexChi2(), tkPosCandPtr->vertexNdof());
-			pL0B.dataD[LbTkRecord::tktknChi2] = tkPosCandPtr->vertexChi2() / tkPosCandPtr->vertexNdof();
+			pL0B.dataD[LbTkRecord::tktkMass][pL0B.candSize] = tktkMom.mass();
+			pL0B.dataD[LbTkRecord::tktkPt][pL0B.candSize] = tktkMom.Pt();
+			pL0B.dataD[LbTkRecord::tktkEta][pL0B.candSize] = tktkMom.Eta();
+			pL0B.dataD[LbTkRecord::tktkY][pL0B.candSize] = tktkMom.Rapidity();
+			pL0B.dataD[LbTkRecord::tktkPhi][pL0B.candSize] = tktkMom.Phi();
+			pL0B.dataD[LbTkRecord::tktkFlightDistance2d][pL0B.candSize] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
+			pL0B.dataD[LbTkRecord::tktkFlightDistanceSig][pL0B.candSize] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
+			pL0B.dataD[LbTkRecord::tktkCosa2d][pL0B.candSize] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
+			pL0B.dataD[LbTkRecord::tktkVtxprob][pL0B.candSize] = TMath::Prob(tkPosCandPtr->vertexChi2(), tkPosCandPtr->vertexNdof());
+			pL0B.dataD[LbTkRecord::tktknChi2][pL0B.candSize] = tkPosCandPtr->vertexChi2() / tkPosCandPtr->vertexNdof();
 
-			pL0B.dataD[LbTkRecord::pmuPt] = sqrt(muPosP4.Perp2());
-			pL0B.dataD[LbTkRecord::pmuP0] = muPosP4.E();
-			pL0B.dataD[LbTkRecord::pmuP1] = muPosP4.Px();
-			pL0B.dataD[LbTkRecord::pmuP2] = muPosP4.Py();
-			pL0B.dataD[LbTkRecord::pmuP3] = muPosP4.Pz();
-			pL0B.dataD[LbTkRecord::nmuPt] = sqrt(muNegP4.Perp2());
-			pL0B.dataD[LbTkRecord::nmuP0] = muNegP4.E();
-			pL0B.dataD[LbTkRecord::nmuP1] = muNegP4.Px();
-			pL0B.dataD[LbTkRecord::nmuP2] = muNegP4.Py();
-			pL0B.dataD[LbTkRecord::nmuP3] = muNegP4.Pz();
+			pL0B.dataD[LbTkRecord::pmuPt][pL0B.candSize] = sqrt(muPosP4.Perp2());
+			pL0B.dataD[LbTkRecord::pmuP0][pL0B.candSize] = muPosP4.E();
+			pL0B.dataD[LbTkRecord::pmuP1][pL0B.candSize] = muPosP4.Px();
+			pL0B.dataD[LbTkRecord::pmuP2][pL0B.candSize] = muPosP4.Py();
+			pL0B.dataD[LbTkRecord::pmuP3][pL0B.candSize] = muPosP4.Pz();
+			pL0B.dataD[LbTkRecord::nmuPt][pL0B.candSize] = sqrt(muNegP4.Perp2());
+			pL0B.dataD[LbTkRecord::nmuP0][pL0B.candSize] = muNegP4.E();
+			pL0B.dataD[LbTkRecord::nmuP1][pL0B.candSize] = muNegP4.Px();
+			pL0B.dataD[LbTkRecord::nmuP2][pL0B.candSize] = muNegP4.Py();
+			pL0B.dataD[LbTkRecord::nmuP3][pL0B.candSize] = muNegP4.Pz();
 
-			pL0B.dataD[LbTkRecord::tk1Pt] = sqrt(tkPosP4.Perp2());
-			pL0B.dataD[LbTkRecord::tk1P0] = tkPosP4.E();
-			pL0B.dataD[LbTkRecord::tk1P1] = tkPosP4.Px();
-			pL0B.dataD[LbTkRecord::tk1P2] = tkPosP4.Py();
-			pL0B.dataD[LbTkRecord::tk1P3] = tkPosP4.Pz();
-			pL0B.dataD[LbTkRecord::tk2Pt] = sqrt(tkNegP4.Perp2());
-			pL0B.dataD[LbTkRecord::tk2P0] = tkNegP4.E();
-			pL0B.dataD[LbTkRecord::tk2P1] = tkNegP4.Px();
-			pL0B.dataD[LbTkRecord::tk2P2] = tkNegP4.Py();
-			pL0B.dataD[LbTkRecord::tk2P3] = tkNegP4.Pz();
+			pL0B.dataD[LbTkRecord::tk1Pt][pL0B.candSize] = sqrt(tkPosP4.Perp2());
+			pL0B.dataD[LbTkRecord::tk1P0][pL0B.candSize] = tkPosP4.E();
+			pL0B.dataD[LbTkRecord::tk1P1][pL0B.candSize] = tkPosP4.Px();
+			pL0B.dataD[LbTkRecord::tk1P2][pL0B.candSize] = tkPosP4.Py();
+			pL0B.dataD[LbTkRecord::tk1P3][pL0B.candSize] = tkPosP4.Pz();
+			pL0B.dataD[LbTkRecord::tk2Pt][pL0B.candSize] = sqrt(tkNegP4.Perp2());
+			pL0B.dataD[LbTkRecord::tk2P0][pL0B.candSize] = tkNegP4.E();
+			pL0B.dataD[LbTkRecord::tk2P1][pL0B.candSize] = tkNegP4.Px();
+			pL0B.dataD[LbTkRecord::tk2P2][pL0B.candSize] = tkNegP4.Py();
+			pL0B.dataD[LbTkRecord::tk2P3][pL0B.candSize] = tkNegP4.Pz();
 
-			//pL0B.dataD[LbTkRecord::tk1IPt] = selCand.userFloat("TkTk/Proton.IPt");
-			//pL0B.dataD[LbTkRecord::tk2IPt] = selCand.userFloat("TkTk/Kaon.IPt");
-			//pL0B.dataD[LbTkRecord::tk1IPtErr] = selCand.userFloat("TkTk/Proton.IPt.Error");
-			//pL0B.dataD[LbTkRecord::tk2IPtErr] = selCand.userFloat("TkTk/Kaon.IPt.Error");
+			//pL0B.dataD[LbTkRecord::tk1IPt][pL0B.candSize] = selCand.userFloat("TkTk/Proton.IPt");
+			//pL0B.dataD[LbTkRecord::tk2IPt][pL0B.candSize] = selCand.userFloat("TkTk/Kaon.IPt");
+			//pL0B.dataD[LbTkRecord::tk1IPtErr][pL0B.candSize] = selCand.userFloat("TkTk/Proton.IPt.Error");
+			//pL0B.dataD[LbTkRecord::tk2IPtErr][pL0B.candSize] = selCand.userFloat("TkTk/Kaon.IPt.Error");
 			//if (selCand.hasUserFloat("TkTk/Proton.dEdx.pixelHrm"))
-			//    pL0B.dataD[LbTkRecord::tk1DEDX_pixelHrm] = selCand.userFloat("TkTk/Proton.dEdx.pixelHrm");
+			//    pL0B.dataD[LbTkRecord::tk1DEDX_pixelHrm][pL0B.candSize] = selCand.userFloat("TkTk/Proton.dEdx.pixelHrm");
 			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.pixelHrm"))
-			//    pL0B.dataD[LbTkRecord::tk2DEDX_pixelHrm] = selCand.userFloat("TkTk/Kaon.dEdx.pixelHrm");
+			//    pL0B.dataD[LbTkRecord::tk2DEDX_pixelHrm][pL0B.candSize] = selCand.userFloat("TkTk/Kaon.dEdx.pixelHrm");
 			//if (selCand.hasUserFloat("TkTk/Proton.dEdx.Harmonic"))
-			//    pL0B.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
+			//    pL0B.dataD[LbTkRecord::tk1DEDX_Harmonic][pL0B.candSize] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
 			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.Harmonic"))
-			//    pL0B.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
-			pL0B.dataI[LbTkRecord::eventEntry] = entry;
+			//    pL0B.dataD[LbTkRecord::tk2DEDX_Harmonic][pL0B.candSize] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
+			pL0B.dataI[LbTkRecord::eventEntry][pL0B.candSize] = entry;
 
-			pL0B.dataI[LbTkRecord::trigVanish]  = hltRec[LbTkRecord::trigVanish];	// the trigger path is not recorded in the event.
-			pL0B.dataI[LbTkRecord::trigNotRun]  = hltRec[LbTkRecord::trigNotRun];	// the trigger was not run in the event.
-			pL0B.dataI[LbTkRecord::trigReject]  = hltRec[LbTkRecord::trigReject];	// the trigger was not accepted in the event.
-			pL0B.dataI[LbTkRecord::trigError]   = hltRec[LbTkRecord::trigError ];	// there is error in the trigger.
-			pL0B.dataI[LbTkRecord::totallyTriggered] = hltRec[LbTkRecord::totallyTriggered];	// pass the HLT
+			pL0B.dataI[LbTkRecord::trigVanish][pL0B.candSize]  = hltRec[LbTkRecord::trigVanish];	// the trigger path is not recorded in the event.
+			pL0B.dataI[LbTkRecord::trigNotRun][pL0B.candSize]  = hltRec[LbTkRecord::trigNotRun];	// the trigger was not run in the event.
+			pL0B.dataI[LbTkRecord::trigReject][pL0B.candSize]  = hltRec[LbTkRecord::trigReject];	// the trigger was not accepted in the event.
+			pL0B.dataI[LbTkRecord::trigError][pL0B.candSize]   = hltRec[LbTkRecord::trigError ];	// there is error in the trigger.
+			pL0B.dataI[LbTkRecord::totallyTriggered][pL0B.candSize] = hltRec[LbTkRecord::totallyTriggered];	// pass the HLT
 
-			pL0BTree->Fill();
+            ++pL0B.candSize;
 			fillCounter = true;
 		}
+        if ( pL0B.candSize > 0 )
+            pL0BTree->Fill();
 
 		//eventSeparator_pL0B = usefulFuncs::inverter(eventSeparator_pL0B);
 	}							// Lb->Jpsi p K end }}}
@@ -387,8 +394,6 @@ endOfpL0B:
 		std::vector < std::pair < double, const reco::VertexCompositeCandidate * > >selectedCandList;
 		selectedCandList.clear();
 		selectedCandList.reserve(nL0BCands->size());
-		handleIter = nL0BCands->begin();
-		handleIend = nL0BCands->end();
 		while (handleIter != handleIend)
 		{
 			const reco::VertexCompositeCandidate & cand = *handleIter++;
@@ -424,10 +429,10 @@ endOfpL0B:
 
 		// preselection end }}}
 
+        nL0B.Clear();
 		unsigned N = selectedCandList.size();
 		for (unsigned i = 0; i < N; ++i)
 		{
-			nL0B.Clear();
 			const double candVtxprob = selectedCandList[i].first;
 			const reco::VertexCompositeCandidate& selCand = *(selectedCandList[i].second);
 
@@ -454,7 +459,7 @@ endOfpL0B:
 //				fourTkSelP4 = muPosP4+muNegP4+tkPosP4+tkNegP4;
 //
 //				if ( fabs( fourTkSelP4.mag() - bdMASS ) < 2.5* bdWIDTH )
-//					nL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<1;
+//					nL0B.dataI[LbTkRecord::mightBeOtherParticle][candSize] += 1<<1;
 //
 //				// bd bar
 //				tkPosP4.SetE(sqrt(tkPosP4.P2()+pionMASS*pionMASS));
@@ -462,7 +467,7 @@ endOfpL0B:
 //				fourTkSelP4 = muPosP4+muNegP4+tkPosP4+tkNegP4;
 //
 //				if ( fabs( fourTkSelP4.mag() - bdMASS ) < 2.5* bdWIDTH )
-//					nL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<2;
+//					nL0B.dataI[LbTkRecord::mightBeOtherParticle][candSize] += 1<<2;
 //
 //				// bs
 //				tkPosP4.SetE(sqrt(tkPosP4.P2()+kaonMASS*kaonMASS));
@@ -472,7 +477,7 @@ endOfpL0B:
 //
 //				if ( fabs( fourTkSelP4.mag() - bsMASS ) < 2.5* bsWIDTH &&
 //				    fabs(   tktkSelP4.mag() -phiMASS ) < 2.5*phiWIDTH )
-//					nL0B.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
+//					nL0B.dataI[LbTkRecord::mightBeOtherParticle][candSize] += 1<<4;
 //			}				// check particles end }}}
 			GlobalPoint bsVtx2D( bs.x( tktkCandPtr->vertex().z() ), bs.y( tktkCandPtr->vertex().z() ), 0. );
 			GlobalPoint tktkVtx2D( tktkCandPtr->vertex().x(),tktkCandPtr->vertex().y(),  0. );
@@ -489,73 +494,75 @@ endOfpL0B:
 			tkNegP4.SetE(sqrt(tkNegP4.P2()+protonMASS*protonMASS));
 			reco::Particle::LorentzVector fourTkMom = selCand.p4();
 			reco::Particle::LorentzVector tktkMom = tkPosP4+tkNegP4;
-			nL0B.dataD[LbTkRecord::lbtkMass] = selCand.mass();
-			nL0B.dataD[LbTkRecord::lbtkPt] = fourTkMom.Pt();
-			nL0B.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
-			nL0B.dataD[LbTkRecord::lbtkY] = fourTkMom.Rapidity();
-			nL0B.dataD[LbTkRecord::lbtkPhi] = fourTkMom.Phi();
-			nL0B.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
-			nL0B.dataD[LbTkRecord::lbtkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
-			nL0B.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
-			nL0B.dataD[LbTkRecord::lbtkVtxprob] = candVtxprob;
-			nL0B.dataD[LbTkRecord::lbtknChi2] = selCand.vertexChi2() / selCand.vertexNdof();
+			nL0B.dataD[LbTkRecord::lbtkMass][nL0B.candSize] = selCand.mass();
+			nL0B.dataD[LbTkRecord::lbtkPt][nL0B.candSize] = fourTkMom.Pt();
+			nL0B.dataD[LbTkRecord::lbtkEta][nL0B.candSize] = fourTkMom.Eta();
+			nL0B.dataD[LbTkRecord::lbtkY][nL0B.candSize] = fourTkMom.Rapidity();
+			nL0B.dataD[LbTkRecord::lbtkPhi][nL0B.candSize] = fourTkMom.Phi();
+			nL0B.dataD[LbTkRecord::lbtkFlightDistance2d][nL0B.candSize] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
+			nL0B.dataD[LbTkRecord::lbtkFlightDistanceSig][nL0B.candSize] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
+			nL0B.dataD[LbTkRecord::lbtkCosa2d][nL0B.candSize] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
+			nL0B.dataD[LbTkRecord::lbtkVtxprob][nL0B.candSize] = candVtxprob;
+			nL0B.dataD[LbTkRecord::lbtknChi2][nL0B.candSize] = selCand.vertexChi2() / selCand.vertexNdof();
 
-			nL0B.dataD[LbTkRecord::tktkMass] = tktkMom.mass();
-			nL0B.dataD[LbTkRecord::tktkPt] = tktkMom.Pt();
-			nL0B.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
-			nL0B.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
-			nL0B.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
-			pL0B.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
-			pL0B.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
-			pL0B.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
-			nL0B.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(tkPosCandPtr->vertexChi2(), tkPosCandPtr->vertexNdof());
-			nL0B.dataD[LbTkRecord::tktknChi2] = tkPosCandPtr->vertexChi2() / tkPosCandPtr->vertexNdof();
+			nL0B.dataD[LbTkRecord::tktkMass][nL0B.candSize] = tktkMom.mass();
+			nL0B.dataD[LbTkRecord::tktkPt][nL0B.candSize] = tktkMom.Pt();
+			nL0B.dataD[LbTkRecord::tktkEta][nL0B.candSize] = tktkMom.Eta();
+			nL0B.dataD[LbTkRecord::tktkY][nL0B.candSize] = tktkMom.Rapidity();
+			nL0B.dataD[LbTkRecord::tktkPhi][nL0B.candSize] = tktkMom.Phi();
+			nL0B.dataD[LbTkRecord::tktkFlightDistance2d][nL0B.candSize] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
+			nL0B.dataD[LbTkRecord::tktkFlightDistanceSig][nL0B.candSize] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
+			nL0B.dataD[LbTkRecord::tktkCosa2d][nL0B.candSize] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
+			nL0B.dataD[LbTkRecord::tktkVtxprob][nL0B.candSize] = TMath::Prob(tkPosCandPtr->vertexChi2(), tkPosCandPtr->vertexNdof());
+			nL0B.dataD[LbTkRecord::tktknChi2][nL0B.candSize] = tkPosCandPtr->vertexChi2() / tkPosCandPtr->vertexNdof();
 
-			nL0B.dataD[LbTkRecord::pmuPt] = sqrt(muPosP4.Perp2());
-			nL0B.dataD[LbTkRecord::pmuP0] = muPosP4.E();
-			nL0B.dataD[LbTkRecord::pmuP1] = muPosP4.Px();
-			nL0B.dataD[LbTkRecord::pmuP2] = muPosP4.Py();
-			nL0B.dataD[LbTkRecord::pmuP3] = muPosP4.Pz();
-			nL0B.dataD[LbTkRecord::nmuPt] = sqrt(muNegP4.Perp2());
-			nL0B.dataD[LbTkRecord::nmuP0] = muNegP4.E();
-			nL0B.dataD[LbTkRecord::nmuP1] = muNegP4.Px();
-			nL0B.dataD[LbTkRecord::nmuP2] = muNegP4.Py();
-			nL0B.dataD[LbTkRecord::nmuP3] = muNegP4.Pz();
+			nL0B.dataD[LbTkRecord::pmuPt][nL0B.candSize] = sqrt(muPosP4.Perp2());
+			nL0B.dataD[LbTkRecord::pmuP0][nL0B.candSize] = muPosP4.E();
+			nL0B.dataD[LbTkRecord::pmuP1][nL0B.candSize] = muPosP4.Px();
+			nL0B.dataD[LbTkRecord::pmuP2][nL0B.candSize] = muPosP4.Py();
+			nL0B.dataD[LbTkRecord::pmuP3][nL0B.candSize] = muPosP4.Pz();
+			nL0B.dataD[LbTkRecord::nmuPt][nL0B.candSize] = sqrt(muNegP4.Perp2());
+			nL0B.dataD[LbTkRecord::nmuP0][nL0B.candSize] = muNegP4.E();
+			nL0B.dataD[LbTkRecord::nmuP1][nL0B.candSize] = muNegP4.Px();
+			nL0B.dataD[LbTkRecord::nmuP2][nL0B.candSize] = muNegP4.Py();
+			nL0B.dataD[LbTkRecord::nmuP3][nL0B.candSize] = muNegP4.Pz();
 
-			nL0B.dataD[LbTkRecord::tk1Pt] = sqrt(tkPosP4.Perp2());
-			nL0B.dataD[LbTkRecord::tk1P0] = tkPosP4.E();
-			nL0B.dataD[LbTkRecord::tk1P1] = tkPosP4.Px();
-			nL0B.dataD[LbTkRecord::tk1P2] = tkPosP4.Py();
-			nL0B.dataD[LbTkRecord::tk1P3] = tkPosP4.Pz();
-			nL0B.dataD[LbTkRecord::tk2Pt] = sqrt(tkNegP4.Perp2());
-			nL0B.dataD[LbTkRecord::tk2P0] = tkNegP4.E();
-			nL0B.dataD[LbTkRecord::tk2P1] = tkNegP4.Px();
-			nL0B.dataD[LbTkRecord::tk2P2] = tkNegP4.Py();
-			nL0B.dataD[LbTkRecord::tk2P3] = tkNegP4.Pz();
+			nL0B.dataD[LbTkRecord::tk1Pt][nL0B.candSize] = sqrt(tkPosP4.Perp2());
+			nL0B.dataD[LbTkRecord::tk1P0][nL0B.candSize] = tkPosP4.E();
+			nL0B.dataD[LbTkRecord::tk1P1][nL0B.candSize] = tkPosP4.Px();
+			nL0B.dataD[LbTkRecord::tk1P2][nL0B.candSize] = tkPosP4.Py();
+			nL0B.dataD[LbTkRecord::tk1P3][nL0B.candSize] = tkPosP4.Pz();
+			nL0B.dataD[LbTkRecord::tk2Pt][nL0B.candSize] = sqrt(tkNegP4.Perp2());
+			nL0B.dataD[LbTkRecord::tk2P0][nL0B.candSize] = tkNegP4.E();
+			nL0B.dataD[LbTkRecord::tk2P1][nL0B.candSize] = tkNegP4.Px();
+			nL0B.dataD[LbTkRecord::tk2P2][nL0B.candSize] = tkNegP4.Py();
+			nL0B.dataD[LbTkRecord::tk2P3][nL0B.candSize] = tkNegP4.Pz();
 
-			//nL0B.dataD[LbTkRecord::tk1IPt] = selCand.userFloat("TkTk/Proton.IPt");
-			//nL0B.dataD[LbTkRecord::tk2IPt] = selCand.userFloat("TkTk/Kaon.IPt");
-			//nL0B.dataD[LbTkRecord::tk1IPtErr] = selCand.userFloat("TkTk/Proton.IPt.Error");
-			//nL0B.dataD[LbTkRecord::tk2IPtErr] = selCand.userFloat("TkTk/Kaon.IPt.Error");
+			//nL0B.dataD[LbTkRecord::tk1IPt][nL0B.candSize] = selCand.userFloat("TkTk/Proton.IPt");
+			//nL0B.dataD[LbTkRecord::tk2IPt][nL0B.candSize] = selCand.userFloat("TkTk/Kaon.IPt");
+			//nL0B.dataD[LbTkRecord::tk1IPtErr][nL0B.candSize] = selCand.userFloat("TkTk/Proton.IPt.Error");
+			//nL0B.dataD[LbTkRecord::tk2IPtErr][nL0B.candSize] = selCand.userFloat("TkTk/Kaon.IPt.Error");
 			//if (selCand.hasUserFloat("TkTk/Proton.dEdx.pixelHrm"))
-			//    nL0B.dataD[LbTkRecord::tk1DEDX_pixelHrm] = selCand.userFloat("TkTk/Proton.dEdx.pixelHrm");
+			//    nL0B.dataD[LbTkRecord::tk1DEDX_pixelHrm][nL0B.candSize] = selCand.userFloat("TkTk/Proton.dEdx.pixelHrm");
 			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.pixelHrm"))
-			//    nL0B.dataD[LbTkRecord::tk2DEDX_pixelHrm] = selCand.userFloat("TkTk/Kaon.dEdx.pixelHrm");
+			//    nL0B.dataD[LbTkRecord::tk2DEDX_pixelHrm][nL0B.candSize] = selCand.userFloat("TkTk/Kaon.dEdx.pixelHrm");
 			//if (selCand.hasUserFloat("TkTk/Proton.dEdx.Harmonic"))
-			//    nL0B.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
+			//    nL0B.dataD[LbTkRecord::tk1DEDX_Harmonic][nL0B.candSize] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
 			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.Harmonic"))
-			//    nL0B.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
-			nL0B.dataI[LbTkRecord::eventEntry] = entry;
+			//    nL0B.dataD[LbTkRecord::tk2DEDX_Harmonic][nL0B.candSize] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
+			nL0B.dataI[LbTkRecord::eventEntry][nL0B.candSize] = entry;
 
-			nL0B.dataI[LbTkRecord::trigVanish]  = hltRec[LbTkRecord::trigVanish];	// the trigger path is not recorded in the event.
-			nL0B.dataI[LbTkRecord::trigNotRun]  = hltRec[LbTkRecord::trigNotRun];	// the trigger was not run in the event.
-			nL0B.dataI[LbTkRecord::trigReject]  = hltRec[LbTkRecord::trigReject];	// the trigger was not accepted in the event.
-			nL0B.dataI[LbTkRecord::trigError]   = hltRec[LbTkRecord::trigError ];	// there is error in the trigger.
-			nL0B.dataI[LbTkRecord::totallyTriggered] = hltRec[LbTkRecord::totallyTriggered];	// pass the HLT
+			nL0B.dataI[LbTkRecord::trigVanish][nL0B.candSize]  = hltRec[LbTkRecord::trigVanish];	// the trigger path is not recorded in the event.
+			nL0B.dataI[LbTkRecord::trigNotRun][nL0B.candSize]  = hltRec[LbTkRecord::trigNotRun];	// the trigger was not run in the event.
+			nL0B.dataI[LbTkRecord::trigReject][nL0B.candSize]  = hltRec[LbTkRecord::trigReject];	// the trigger was not accepted in the event.
+			nL0B.dataI[LbTkRecord::trigError][nL0B.candSize]   = hltRec[LbTkRecord::trigError ];	// there is error in the trigger.
+			nL0B.dataI[LbTkRecord::totallyTriggered][nL0B.candSize] = hltRec[LbTkRecord::totallyTriggered];	// pass the HLT
 
-			nL0BTree->Fill();
+            ++nL0B.candSize;
 			fillCounter = true;
 		}
+        if ( nL0B.candSize > 0 )
+            nL0BTree->Fill();
 
 		//eventSeparator_nL0B = usefulFuncs::inverter(eventSeparator_nL0B);
 	}							// Lb->Jpsi P k end }}}
@@ -576,8 +583,6 @@ endOfnL0B:
 		std::vector < std::pair < double, const reco::VertexCompositeCandidate * > >selectedCandList;
 		selectedCandList.clear();
 		selectedCandList.reserve(LbL0Cands->size());
-		handleIter = LbL0Cands->begin();
-		handleIend = LbL0Cands->end();
 		while (handleIter != handleIend)
 		{
 			const reco::VertexCompositeCandidate & cand = *handleIter++;
@@ -615,10 +620,10 @@ endOfnL0B:
 
 		// preselection end }}}
 
+        LbL0.Clear();
 		unsigned N = selectedCandList.size();
 		for (unsigned i = 0; i < N; ++i)
 		{
-			LbL0.Clear();
 			const double candVtxprob = selectedCandList[i].first;
 			const reco::VertexCompositeCandidate& selCand = *(selectedCandList[i].second);
 
@@ -646,7 +651,7 @@ endOfnL0B:
 			//    fourTkSelP4 = muPosP4+muNegP4+tkPosP4+tkNegP4;
 
 			//    if ( fabs( fourTkSelP4.mag() - bdMASS ) < 2.5* bdWIDTH )
-			//        LbL0.dataI[LbTkRecord::mightBeOtherParticle] += 1<<1;
+			//        LbL0.dataI[LbTkRecord::mightBeOtherParticle][candSize] += 1<<1;
 
 			//    // bd bar
 			//    tkPosP4.SetE(sqrt(tkPosP4.P2()+pionMASS*pionMASS));
@@ -654,7 +659,7 @@ endOfnL0B:
 			//    fourTkSelP4 = muPosP4+muNegP4+tkPosP4+tkNegP4;
 
 			//    if ( fabs( fourTkSelP4.mag() - bdMASS ) < 2.5* bdWIDTH )
-			//        LbL0.dataI[LbTkRecord::mightBeOtherParticle] += 1<<2;
+			//        LbL0.dataI[LbTkRecord::mightBeOtherParticle][candSize] += 1<<2;
 
 			//    // bs
 			//    tkPosP4.SetE(sqrt(tkPosP4.P2()+kaonMASS*kaonMASS));
@@ -664,7 +669,7 @@ endOfnL0B:
 
 			//    if ( fabs( fourTkSelP4.mag() - bsMASS ) < 2.5* bsWIDTH &&
 			//         fabs(   tktkSelP4.mag() -phiMASS ) < 2.5*phiWIDTH )
-			//        LbL0.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
+			//        LbL0.dataI[LbTkRecord::mightBeOtherParticle][candSize] += 1<<4;
 
 			//} // check particles end }}}
 			GlobalPoint bsVtx2D( bs.x( twoTkCandPtr->vertex().z() ), bs.y( twoTkCandPtr->vertex().z() ), 0. );
@@ -685,73 +690,75 @@ endOfnL0B:
 			//TLorentzVector twoTkMom(twoTk->x(), twoTk->y(), twoTk->z(),
 			//                        sqrt(twoTk->x() * twoTk->x() + twoTk->y() * twoTk->y() + twoTk->z() * twoTk->z() +
 			//                             tktkCand.userFloat("fitMass") * tktkCand.userFloat("fitMass")));
-			LbL0.dataD[LbTkRecord::lbtkMass] = selCand.mass();
-			LbL0.dataD[LbTkRecord::lbtkPt] = fourTkMom.Pt();
-			LbL0.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
-			LbL0.dataD[LbTkRecord::lbtkY] = fourTkMom.Rapidity();
-			LbL0.dataD[LbTkRecord::lbtkPhi] = fourTkMom.Phi();
-			LbL0.dataD[LbTkRecord::lbtkVtxprob] = candVtxprob;
-			LbL0.dataD[LbTkRecord::lbtknChi2] = selCand.vertexChi2() / selCand.vertexNdof();
-			nL0B.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
-			nL0B.dataD[LbTkRecord::lbtkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
-			nL0B.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
+			LbL0.dataD[LbTkRecord::lbtkMass][LbL0.candSize] = selCand.mass();
+			LbL0.dataD[LbTkRecord::lbtkPt][LbL0.candSize] = fourTkMom.Pt();
+			LbL0.dataD[LbTkRecord::lbtkEta][LbL0.candSize] = fourTkMom.Eta();
+			LbL0.dataD[LbTkRecord::lbtkY][LbL0.candSize] = fourTkMom.Rapidity();
+			LbL0.dataD[LbTkRecord::lbtkPhi][LbL0.candSize] = fourTkMom.Phi();
+			LbL0.dataD[LbTkRecord::lbtkVtxprob][LbL0.candSize] = candVtxprob;
+			LbL0.dataD[LbTkRecord::lbtknChi2][LbL0.candSize] = selCand.vertexChi2() / selCand.vertexNdof();
+			nL0B.dataD[LbTkRecord::lbtkFlightDistance2d][LbL0.candSize] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
+			nL0B.dataD[LbTkRecord::lbtkFlightDistanceSig][LbL0.candSize] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
+			nL0B.dataD[LbTkRecord::lbtkCosa2d][LbL0.candSize] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
 
-			LbL0.dataD[LbTkRecord::tktkMass] = tktkMom.mass();
-			LbL0.dataD[LbTkRecord::tktkPt] = tktkMom.Pt();
-			LbL0.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
-			LbL0.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
-			LbL0.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
-			LbL0.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
-			LbL0.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
-			LbL0.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
-			LbL0.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(twoTkCandPtr->vertexChi2(), twoTkCandPtr->vertexNdof());
-			LbL0.dataD[LbTkRecord::tktknChi2] = twoTkCandPtr->vertexChi2() / twoTkCandPtr->vertexNdof();
+			LbL0.dataD[LbTkRecord::tktkMass][LbL0.candSize] = tktkMom.mass();
+			LbL0.dataD[LbTkRecord::tktkPt][LbL0.candSize] = tktkMom.Pt();
+			LbL0.dataD[LbTkRecord::tktkEta][LbL0.candSize] = tktkMom.Eta();
+			LbL0.dataD[LbTkRecord::tktkY][LbL0.candSize] = tktkMom.Rapidity();
+			LbL0.dataD[LbTkRecord::tktkPhi][LbL0.candSize] = tktkMom.Phi();
+			LbL0.dataD[LbTkRecord::tktkFlightDistance2d][LbL0.candSize] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
+			LbL0.dataD[LbTkRecord::tktkFlightDistanceSig][LbL0.candSize] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
+			LbL0.dataD[LbTkRecord::tktkCosa2d][LbL0.candSize] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
+			LbL0.dataD[LbTkRecord::tktkVtxprob][LbL0.candSize] = TMath::Prob(twoTkCandPtr->vertexChi2(), twoTkCandPtr->vertexNdof());
+			LbL0.dataD[LbTkRecord::tktknChi2][LbL0.candSize] = twoTkCandPtr->vertexChi2() / twoTkCandPtr->vertexNdof();
 
-			LbL0.dataD[LbTkRecord::pmuPt] = sqrt(muPosP4.Perp2());
-			LbL0.dataD[LbTkRecord::pmuP0] = muPosP4.E();
-			LbL0.dataD[LbTkRecord::pmuP1] = muPosP4.Px();
-			LbL0.dataD[LbTkRecord::pmuP2] = muPosP4.Py();
-			LbL0.dataD[LbTkRecord::pmuP3] = muPosP4.Pz();
-			LbL0.dataD[LbTkRecord::nmuPt] = sqrt(muNegP4.Perp2());
-			LbL0.dataD[LbTkRecord::nmuP0] = muNegP4.E();
-			LbL0.dataD[LbTkRecord::nmuP1] = muNegP4.Px();
-			LbL0.dataD[LbTkRecord::nmuP2] = muNegP4.Py();
-			LbL0.dataD[LbTkRecord::nmuP3] = muNegP4.Pz();
+			LbL0.dataD[LbTkRecord::pmuPt][LbL0.candSize] = sqrt(muPosP4.Perp2());
+			LbL0.dataD[LbTkRecord::pmuP0][LbL0.candSize] = muPosP4.E();
+			LbL0.dataD[LbTkRecord::pmuP1][LbL0.candSize] = muPosP4.Px();
+			LbL0.dataD[LbTkRecord::pmuP2][LbL0.candSize] = muPosP4.Py();
+			LbL0.dataD[LbTkRecord::pmuP3][LbL0.candSize] = muPosP4.Pz();
+			LbL0.dataD[LbTkRecord::nmuPt][LbL0.candSize] = sqrt(muNegP4.Perp2());
+			LbL0.dataD[LbTkRecord::nmuP0][LbL0.candSize] = muNegP4.E();
+			LbL0.dataD[LbTkRecord::nmuP1][LbL0.candSize] = muNegP4.Px();
+			LbL0.dataD[LbTkRecord::nmuP2][LbL0.candSize] = muNegP4.Py();
+			LbL0.dataD[LbTkRecord::nmuP3][LbL0.candSize] = muNegP4.Pz();
 
-			//LbL0.dataD[LbTkRecord::tk1Pt] = sqrt(tkPosP4.Perp2());
-			//LbL0.dataD[LbTkRecord::tk1P0] = tkPosP4.E();
-			//LbL0.dataD[LbTkRecord::tk1P1] = tkPosP4.Px();
-			//LbL0.dataD[LbTkRecord::tk1P2] = tkPosP4.Py();
-			//LbL0.dataD[LbTkRecord::tk1P3] = tkPosP4.Pz();
-			//LbL0.dataD[LbTkRecord::tk2Pt] = sqrt(tkNegP4.Perp2());
-			//LbL0.dataD[LbTkRecord::tk2P0] = tkNegP4.E();
-			//LbL0.dataD[LbTkRecord::tk2P1] = tkNegP4.Px();
-			//LbL0.dataD[LbTkRecord::tk2P2] = tkNegP4.Py();
-			//LbL0.dataD[LbTkRecord::tk2P3] = tkNegP4.Pz();
+			//LbL0.dataD[LbTkRecord::tk1Pt][LbL0.candSize] = sqrt(tkPosP4.Perp2());
+			//LbL0.dataD[LbTkRecord::tk1P0][LbL0.candSize] = tkPosP4.E();
+			//LbL0.dataD[LbTkRecord::tk1P1][LbL0.candSize] = tkPosP4.Px();
+			//LbL0.dataD[LbTkRecord::tk1P2][LbL0.candSize] = tkPosP4.Py();
+			//LbL0.dataD[LbTkRecord::tk1P3][LbL0.candSize] = tkPosP4.Pz();
+			//LbL0.dataD[LbTkRecord::tk2Pt][LbL0.candSize] = sqrt(tkNegP4.Perp2());
+			//LbL0.dataD[LbTkRecord::tk2P0][LbL0.candSize] = tkNegP4.E();
+			//LbL0.dataD[LbTkRecord::tk2P1][LbL0.candSize] = tkNegP4.Px();
+			//LbL0.dataD[LbTkRecord::tk2P2][LbL0.candSize] = tkNegP4.Py();
+			//LbL0.dataD[LbTkRecord::tk2P3][LbL0.candSize] = tkNegP4.Pz();
 
-			//LbL0.dataD[LbTkRecord::tk1IPt] = selCand.userFloat("TkTk/Proton.IPt");
-			//LbL0.dataD[LbTkRecord::tk2IPt] = selCand.userFloat("TkTk/Kaon.IPt");
-			//LbL0.dataD[LbTkRecord::tk1IPtErr] = selCand.userFloat("TkTk/Proton.IPt.Error");
-			//LbL0.dataD[LbTkRecord::tk2IPtErr] = selCand.userFloat("TkTk/Kaon.IPt.Error");
+			//LbL0.dataD[LbTkRecord::tk1IPt][LbL0.candSize] = selCand.userFloat("TkTk/Proton.IPt");
+			//LbL0.dataD[LbTkRecord::tk2IPt][LbL0.candSize] = selCand.userFloat("TkTk/Kaon.IPt");
+			//LbL0.dataD[LbTkRecord::tk1IPtErr][LbL0.candSize] = selCand.userFloat("TkTk/Proton.IPt.Error");
+			//LbL0.dataD[LbTkRecord::tk2IPtErr][LbL0.candSize] = selCand.userFloat("TkTk/Kaon.IPt.Error");
 			//if (selCand.hasUserFloat("TkTk/Proton.dEdx.pixelHrm"))
-			//    LbL0.dataD[LbTkRecord::tk1DEDX_pixelHrm] = selCand.userFloat("TkTk/Proton.dEdx.pixelHrm");
+			//    LbL0.dataD[LbTkRecord::tk1DEDX_pixelHrm][LbL0.candSize] = selCand.userFloat("TkTk/Proton.dEdx.pixelHrm");
 			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.pixelHrm"))
-			//    LbL0.dataD[LbTkRecord::tk2DEDX_pixelHrm] = selCand.userFloat("TkTk/Kaon.dEdx.pixelHrm");
+			//    LbL0.dataD[LbTkRecord::tk2DEDX_pixelHrm][LbL0.candSize] = selCand.userFloat("TkTk/Kaon.dEdx.pixelHrm");
 			//if (selCand.hasUserFloat("TkTk/Proton.dEdx.Harmonic"))
-			//    LbL0.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
+			//    LbL0.dataD[LbTkRecord::tk1DEDX_Harmonic][LbL0.candSize] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
 			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.Harmonic"))
-			//    LbL0.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
-			LbL0.dataI[LbTkRecord::eventEntry] = entry;
+			//    LbL0.dataD[LbTkRecord::tk2DEDX_Harmonic][LbL0.candSize] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
+			LbL0.dataI[LbTkRecord::eventEntry][LbL0.candSize] = entry;
 
-			LbL0.dataI[LbTkRecord::trigVanish]  = hltRec[LbTkRecord::trigVanish];	// the trigger path is not recorded in the event.
-			LbL0.dataI[LbTkRecord::trigNotRun]  = hltRec[LbTkRecord::trigNotRun];	// the trigger was not run in the event.
-			LbL0.dataI[LbTkRecord::trigReject]  = hltRec[LbTkRecord::trigReject];	// the trigger was not accepted in the event.
-			LbL0.dataI[LbTkRecord::trigError]   = hltRec[LbTkRecord::trigError ];	// there is error in the trigger.
-			LbL0.dataI[LbTkRecord::totallyTriggered] = hltRec[LbTkRecord::totallyTriggered];	// pass the HLT
+			LbL0.dataI[LbTkRecord::trigVanish][LbL0.candSize]  = hltRec[LbTkRecord::trigVanish];	// the trigger path is not recorded in the event.
+			LbL0.dataI[LbTkRecord::trigNotRun][LbL0.candSize]  = hltRec[LbTkRecord::trigNotRun];	// the trigger was not run in the event.
+			LbL0.dataI[LbTkRecord::trigReject][LbL0.candSize]  = hltRec[LbTkRecord::trigReject];	// the trigger was not accepted in the event.
+			LbL0.dataI[LbTkRecord::trigError][LbL0.candSize]   = hltRec[LbTkRecord::trigError ];	// there is error in the trigger.
+			LbL0.dataI[LbTkRecord::totallyTriggered][LbL0.candSize] = hltRec[LbTkRecord::totallyTriggered];	// pass the HLT
 
-			LbL0Tree->Fill();
+            ++LbL0.candSize;
 			fillCounter = true;
 		}
+        if ( LbL0.candSize > 0 )
+            LbL0Tree->Fill();
 
 		//eventSeparator_LbL0 = usefulFuncs::inverter(eventSeparator_LbL0);
 	}							// Lb->Jpsi Lam0 end }}}
@@ -772,8 +779,6 @@ endOfLbL0:
 		std::vector < std::pair < double, const reco::VertexCompositeCandidate * > >selectedCandList;
 		selectedCandList.clear();
 		selectedCandList.reserve(LbLoCands->size());
-		handleIter = LbLoCands->begin();
-		handleIend = LbLoCands->end();
 		while (handleIter != handleIend)
 		{
 			const reco::VertexCompositeCandidate & cand = *handleIter++;
@@ -812,10 +817,10 @@ endOfLbL0:
 
 		// preselection end }}}
 
+        LbLo.Clear();
 		unsigned N = selectedCandList.size();
 		for (unsigned i = 0; i < N; ++i)
 		{
-			LbLo.Clear();
 			const double candVtxprob = selectedCandList[i].first;
 			const reco::VertexCompositeCandidate& selCand = *(selectedCandList[i].second);
 
@@ -843,7 +848,7 @@ endOfLbL0:
 			//    fourTkSelP4 = muPosP4+muNegP4+tkPosP4+tkNegP4;
 
 			//    if ( fabs( fourTkSelP4.mag() - bdMASS ) < 2.5* bdWIDTH )
-			//        LbLo.dataI[LbTkRecord::mightBeOtherParticle] += 1<<1;
+			//        LbLo.dataI[LbTkRecord::mightBeOtherParticle][candSize] += 1<<1;
 
 			//    // bd bar
 			//    tkPosP4.SetE(sqrt(tkPosP4.P2()+pionMASS*pionMASS));
@@ -851,7 +856,7 @@ endOfLbL0:
 			//    fourTkSelP4 = muPosP4+muNegP4+tkPosP4+tkNegP4;
 
 			//    if ( fabs( fourTkSelP4.mag() - bdMASS ) < 2.5* bdWIDTH )
-			//        LbLo.dataI[LbTkRecord::mightBeOtherParticle] += 1<<2;
+			//        LbLo.dataI[LbTkRecord::mightBeOtherParticle][candSize] += 1<<2;
 
 			//    // bs
 			//    tkPosP4.SetE(sqrt(tkPosP4.P2()+kaonMASS*kaonMASS));
@@ -861,7 +866,7 @@ endOfLbL0:
 
 			//    if ( fabs( fourTkSelP4.mag() - bsMASS ) < 2.5* bsWIDTH &&
 			//         fabs(   tktkSelP4.mag() -phiMASS ) < 2.5*phiWIDTH )
-			//        LbLo.dataI[LbTkRecord::mightBeOtherParticle] += 1<<4;
+			//        LbLo.dataI[LbTkRecord::mightBeOtherParticle][candSize] += 1<<4;
 
 			//} // check particles end }}}
 			GlobalPoint bsVtx2D( bs.x( twoTkCandPtr->vertex().z() ), bs.y( twoTkCandPtr->vertex().z() ), 0. );
@@ -878,73 +883,75 @@ endOfLbL0:
 			reco::Particle::LorentzVector fourTkMom = selCand.p4();
 			reco::Particle::LorentzVector tktkMom = twoTkP4;
 
-			LbLo.dataD[LbTkRecord::lbtkMass] = selCand.mass();
-			LbLo.dataD[LbTkRecord::lbtkPt] = fourTkMom.Pt();
-			LbLo.dataD[LbTkRecord::lbtkEta] = fourTkMom.Eta();
-			LbLo.dataD[LbTkRecord::lbtkY] = fourTkMom.Rapidity();
-			LbLo.dataD[LbTkRecord::lbtkPhi] = fourTkMom.Phi();
-			LbLo.dataD[LbTkRecord::lbtkFlightDistance2d] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
-			LbLo.dataD[LbTkRecord::lbtkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
-			LbLo.dataD[LbTkRecord::lbtkCosa2d] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
-			LbLo.dataD[LbTkRecord::lbtkVtxprob] = candVtxprob;
-			LbLo.dataD[LbTkRecord::lbtknChi2] = selCand.vertexChi2() / selCand.vertexNdof();
+			LbLo.dataD[LbTkRecord::lbtkMass][LbLo.candSize] = selCand.mass();
+			LbLo.dataD[LbTkRecord::lbtkPt][LbLo.candSize] = fourTkMom.Pt();
+			LbLo.dataD[LbTkRecord::lbtkEta][LbLo.candSize] = fourTkMom.Eta();
+			LbLo.dataD[LbTkRecord::lbtkY][LbLo.candSize] = fourTkMom.Rapidity();
+			LbLo.dataD[LbTkRecord::lbtkPhi][LbLo.candSize] = fourTkMom.Phi();
+			LbLo.dataD[LbTkRecord::lbtkFlightDistance2d][LbLo.candSize] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
+			LbLo.dataD[LbTkRecord::lbtkFlightDistanceSig][LbLo.candSize] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
+			LbLo.dataD[LbTkRecord::lbtkCosa2d][LbLo.candSize] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
+			LbLo.dataD[LbTkRecord::lbtkVtxprob][LbLo.candSize] = candVtxprob;
+			LbLo.dataD[LbTkRecord::lbtknChi2][LbLo.candSize] = selCand.vertexChi2() / selCand.vertexNdof();
 
-			LbLo.dataD[LbTkRecord::tktkMass] = tktkMom.mass();
-			LbLo.dataD[LbTkRecord::tktkPt] = tktkMom.Pt();
-			LbLo.dataD[LbTkRecord::tktkEta] = tktkMom.Eta();
-			LbLo.dataD[LbTkRecord::tktkY] = tktkMom.Rapidity();
-			LbLo.dataD[LbTkRecord::tktkPhi] = tktkMom.Phi();
-			LbLo.dataD[LbTkRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
-			LbLo.dataD[LbTkRecord::tktkFlightDistanceSig] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
-			LbLo.dataD[LbTkRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
-			LbLo.dataD[LbTkRecord::tktkVtxprob] = TMath::Prob(twoTkCandPtr->vertexChi2(), twoTkCandPtr->vertexNdof());
-			LbLo.dataD[LbTkRecord::tktknChi2] = twoTkCandPtr->vertexChi2() / twoTkCandPtr->vertexNdof();
+			LbLo.dataD[LbTkRecord::tktkMass][LbLo.candSize] = tktkMom.mass();
+			LbLo.dataD[LbTkRecord::tktkPt][LbLo.candSize] = tktkMom.Pt();
+			LbLo.dataD[LbTkRecord::tktkEta][LbLo.candSize] = tktkMom.Eta();
+			LbLo.dataD[LbTkRecord::tktkY][LbLo.candSize] = tktkMom.Rapidity();
+			LbLo.dataD[LbTkRecord::tktkPhi][LbLo.candSize] = tktkMom.Phi();
+			LbLo.dataD[LbTkRecord::tktkFlightDistance2d][LbLo.candSize] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
+			LbLo.dataD[LbTkRecord::tktkFlightDistanceSig][LbLo.candSize] = usefulFuncs::getFlightDistanceSignificance(tktkVtx2D, tktkCOV, mumuVtx2D, mumuCOV);
+			LbLo.dataD[LbTkRecord::tktkCosa2d][LbLo.candSize] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
+			LbLo.dataD[LbTkRecord::tktkVtxprob][LbLo.candSize] = TMath::Prob(twoTkCandPtr->vertexChi2(), twoTkCandPtr->vertexNdof());
+			LbLo.dataD[LbTkRecord::tktknChi2][LbLo.candSize] = twoTkCandPtr->vertexChi2() / twoTkCandPtr->vertexNdof();
 
-			LbLo.dataD[LbTkRecord::pmuPt] = sqrt(muPosP4.Perp2());
-			LbLo.dataD[LbTkRecord::pmuP0] = muPosP4.E();
-			LbLo.dataD[LbTkRecord::pmuP1] = muPosP4.Px();
-			LbLo.dataD[LbTkRecord::pmuP2] = muPosP4.Py();
-			LbLo.dataD[LbTkRecord::pmuP3] = muPosP4.Pz();
-			LbLo.dataD[LbTkRecord::nmuPt] = sqrt(muNegP4.Perp2());
-			LbLo.dataD[LbTkRecord::nmuP0] = muNegP4.E();
-			LbLo.dataD[LbTkRecord::nmuP1] = muNegP4.Px();
-			LbLo.dataD[LbTkRecord::nmuP2] = muNegP4.Py();
-			LbLo.dataD[LbTkRecord::nmuP3] = muNegP4.Pz();
+			LbLo.dataD[LbTkRecord::pmuPt][LbLo.candSize] = sqrt(muPosP4.Perp2());
+			LbLo.dataD[LbTkRecord::pmuP0][LbLo.candSize] = muPosP4.E();
+			LbLo.dataD[LbTkRecord::pmuP1][LbLo.candSize] = muPosP4.Px();
+			LbLo.dataD[LbTkRecord::pmuP2][LbLo.candSize] = muPosP4.Py();
+			LbLo.dataD[LbTkRecord::pmuP3][LbLo.candSize] = muPosP4.Pz();
+			LbLo.dataD[LbTkRecord::nmuPt][LbLo.candSize] = sqrt(muNegP4.Perp2());
+			LbLo.dataD[LbTkRecord::nmuP0][LbLo.candSize] = muNegP4.E();
+			LbLo.dataD[LbTkRecord::nmuP1][LbLo.candSize] = muNegP4.Px();
+			LbLo.dataD[LbTkRecord::nmuP2][LbLo.candSize] = muNegP4.Py();
+			LbLo.dataD[LbTkRecord::nmuP3][LbLo.candSize] = muNegP4.Pz();
 
-			//LbLo.dataD[LbTkRecord::tk1Pt] = sqrt(tkPosP4.Perp2());
-			//LbLo.dataD[LbTkRecord::tk1P0] = tkPosP4.E();
-			//LbLo.dataD[LbTkRecord::tk1P1] = tkPosP4.Px();
-			//LbLo.dataD[LbTkRecord::tk1P2] = tkPosP4.Py();
-			//LbLo.dataD[LbTkRecord::tk1P3] = tkPosP4.Pz();
-			//LbLo.dataD[LbTkRecord::tk2Pt] = sqrt(tkNegP4.Perp2());
-			//LbLo.dataD[LbTkRecord::tk2P0] = tkNegP4.E();
-			//LbLo.dataD[LbTkRecord::tk2P1] = tkNegP4.Px();
-			//LbLo.dataD[LbTkRecord::tk2P2] = tkNegP4.Py();
-			//LbLo.dataD[LbTkRecord::tk2P3] = tkNegP4.Pz();
+			//LbLo.dataD[LbTkRecord::tk1Pt][LbLo.candSize] = sqrt(tkPosP4.Perp2());
+			//LbLo.dataD[LbTkRecord::tk1P0][LbLo.candSize] = tkPosP4.E();
+			//LbLo.dataD[LbTkRecord::tk1P1][LbLo.candSize] = tkPosP4.Px();
+			//LbLo.dataD[LbTkRecord::tk1P2][LbLo.candSize] = tkPosP4.Py();
+			//LbLo.dataD[LbTkRecord::tk1P3][LbLo.candSize] = tkPosP4.Pz();
+			//LbLo.dataD[LbTkRecord::tk2Pt][LbLo.candSize] = sqrt(tkNegP4.Perp2());
+			//LbLo.dataD[LbTkRecord::tk2P0][LbLo.candSize] = tkNegP4.E();
+			//LbLo.dataD[LbTkRecord::tk2P1][LbLo.candSize] = tkNegP4.Px();
+			//LbLo.dataD[LbTkRecord::tk2P2][LbLo.candSize] = tkNegP4.Py();
+			//LbLo.dataD[LbTkRecord::tk2P3][LbLo.candSize] = tkNegP4.Pz();
 
-			//LbLo.dataD[LbTkRecord::tk1IPt] = selCand.userFloat("TkTk/Proton.IPt");
-			//LbLo.dataD[LbTkRecord::tk2IPt] = selCand.userFloat("TkTk/Kaon.IPt");
-			//LbLo.dataD[LbTkRecord::tk1IPtErr] = selCand.userFloat("TkTk/Proton.IPt.Error");
-			//LbLo.dataD[LbTkRecord::tk2IPtErr] = selCand.userFloat("TkTk/Kaon.IPt.Error");
+			//LbLo.dataD[LbTkRecord::tk1IPt][LbLo.candSize] = selCand.userFloat("TkTk/Proton.IPt");
+			//LbLo.dataD[LbTkRecord::tk2IPt][LbLo.candSize] = selCand.userFloat("TkTk/Kaon.IPt");
+			//LbLo.dataD[LbTkRecord::tk1IPtErr][LbLo.candSize] = selCand.userFloat("TkTk/Proton.IPt.Error");
+			//LbLo.dataD[LbTkRecord::tk2IPtErr][LbLo.candSize] = selCand.userFloat("TkTk/Kaon.IPt.Error");
 			//if (selCand.hasUserFloat("TkTk/Proton.dEdx.pixelHrm"))
-			//    LbLo.dataD[LbTkRecord::tk1DEDX_pixelHrm] = selCand.userFloat("TkTk/Proton.dEdx.pixelHrm");
+			//    LbLo.dataD[LbTkRecord::tk1DEDX_pixelHrm][LbLo.candSize] = selCand.userFloat("TkTk/Proton.dEdx.pixelHrm");
 			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.pixelHrm"))
-			//    LbLo.dataD[LbTkRecord::tk2DEDX_pixelHrm] = selCand.userFloat("TkTk/Kaon.dEdx.pixelHrm");
+			//    LbLo.dataD[LbTkRecord::tk2DEDX_pixelHrm][LbLo.candSize] = selCand.userFloat("TkTk/Kaon.dEdx.pixelHrm");
 			//if (selCand.hasUserFloat("TkTk/Proton.dEdx.Harmonic"))
-			//    LbLo.dataD[LbTkRecord::tk1DEDX_Harmonic] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
+			//    LbLo.dataD[LbTkRecord::tk1DEDX_Harmonic][LbLo.candSize] = selCand.userFloat("TkTk/Proton.dEdx.Harmonic");
 			//if (selCand.hasUserFloat("TkTk/Kaon.dEdx.Harmonic"))
-			//    LbLo.dataD[LbTkRecord::tk2DEDX_Harmonic] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
-			LbLo.dataI[LbTkRecord::eventEntry] = entry;
+			//    LbLo.dataD[LbTkRecord::tk2DEDX_Harmonic][LbLo.candSize] = selCand.userFloat("TkTk/Kaon.dEdx.Harmonic");
+			LbLo.dataI[LbTkRecord::eventEntry][LbLo.candSize] = entry;
 
-			LbLo.dataI[LbTkRecord::trigVanish]  = hltRec[LbTkRecord::trigVanish];	// the trigger path is not recorded in the event.
-			LbLo.dataI[LbTkRecord::trigNotRun]  = hltRec[LbTkRecord::trigNotRun];	// the trigger was not run in the event.
-			LbLo.dataI[LbTkRecord::trigReject]  = hltRec[LbTkRecord::trigReject];	// the trigger was not accepted in the event.
-			LbLo.dataI[LbTkRecord::trigError]   = hltRec[LbTkRecord::trigError ];	// there is error in the trigger.
-			LbLo.dataI[LbTkRecord::totallyTriggered] = hltRec[LbTkRecord::totallyTriggered];	// pass the HLT
+			LbLo.dataI[LbTkRecord::trigVanish][LbLo.candSize]  = hltRec[LbTkRecord::trigVanish];	// the trigger path is not recorded in the event.
+			LbLo.dataI[LbTkRecord::trigNotRun][LbLo.candSize]  = hltRec[LbTkRecord::trigNotRun];	// the trigger was not run in the event.
+			LbLo.dataI[LbTkRecord::trigReject][LbLo.candSize]  = hltRec[LbTkRecord::trigReject];	// the trigger was not accepted in the event.
+			LbLo.dataI[LbTkRecord::trigError][LbLo.candSize]   = hltRec[LbTkRecord::trigError ];	// there is error in the trigger.
+			LbLo.dataI[LbTkRecord::totallyTriggered][LbLo.candSize] = hltRec[LbTkRecord::totallyTriggered];	// pass the HLT
 
-			LbLoTree->Fill();
+            ++LbLo.candSize;
 			fillCounter = true;
 		}
+        if ( LbLo.candSize > 0 )
+            LbLoTree->Fill();
 	}							// Lb->Jpsi anti Lam0 end }}}
 
 endOfLbLo:
@@ -954,6 +961,7 @@ endOfLbLo:
 		ev.getByToken( MCReserveToken, mcCands );
 		if (!mcCands.isValid()) goto endOfMC;
 
+        mc.Clear();
 		std::vector<reco::GenParticle>::const_iterator iter = mcCands->cbegin();
 		std::vector<reco::GenParticle>::const_iterator iend = mcCands->cend  ();
 		while ( iter != iend )
@@ -1076,66 +1084,68 @@ endOfLbLo:
 			const reco::GenParticle* pTkCand = dynamic_cast<const reco::GenParticle*>(ptkMomPtr->daughter(pTkIdx));
 			const reco::GenParticle* nTkCand = dynamic_cast<const reco::GenParticle*>(ntkMomPtr->daughter(nTkIdx));
 
-			if ( pMuCand->charge() < 0) std::cout<<"----VertexCompCandAnalyzer::analyze() : pos mu own neg charge\n";
-			if ( nMuCand->charge() > 0) std::cout<<"----VertexCompCandAnalyzer::analyze() : neg mu own pos charge\n";
+			if ( pMuCand->charge() < 0) printf("----VertexCompCandAnalyzer::analyze() : pos mu own neg charge\n");
+			if ( nMuCand->charge() > 0) printf("----VertexCompCandAnalyzer::analyze() : neg mu own pos charge\n");
 
 			GlobalPoint bsVtx2D( bs.x( mcCand.vertex().z() ), bs.y( mcCand.vertex().z() ), 0. );
 			GlobalPoint mumuVtx2D( mumuCand->vertex().x(), mumuCand->vertex().y(), 0. );
 			GlobalPoint fourTkVtx2D( mcCand.vertex().x(), mcCand.vertex().y(), 0. );
 			GlobalVector fourTkMom2D( mcCand.momentum().x(), mcCand.momentum().y(), 0. );
 
-			mc.dataD[MCRecord::candMass] = mcCand.mass();
-			mc.dataD[MCRecord::candPt] = mcCand.pt();
-			mc.dataD[MCRecord::candEta] = mcCand.eta();
-			mc.dataD[MCRecord::candY] = mcCand.rapidity();
-			mc.dataD[MCRecord::candPhi] = mcCand.phi();
-			mc.dataD[MCRecord::candFlightDistance2d] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
-			mc.dataD[MCRecord::candCosa2d] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
+			mc.dataD[MCRecord::candMass][mc.candSize] = mcCand.mass();
+			mc.dataD[MCRecord::candPt][mc.candSize] = mcCand.pt();
+			mc.dataD[MCRecord::candEta][mc.candSize] = mcCand.eta();
+			mc.dataD[MCRecord::candY][mc.candSize] = mcCand.rapidity();
+			mc.dataD[MCRecord::candPhi][mc.candSize] = mcCand.phi();
+			mc.dataD[MCRecord::candFlightDistance2d][mc.candSize] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
+			mc.dataD[MCRecord::candCosa2d][mc.candSize] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
 
 			if ( tktkIdx != (unsigned) -1 )
 			{
                 const reco::GenParticle* tktkCand = dynamic_cast<const reco::GenParticle*>(mcCand.daughter(tktkIdx));
                 GlobalPoint tktkVtx2D( tktkCand->vertex().x(), tktkCand->vertex().y(), 0. );
                 GlobalVector tktkMom2D( tktkCand->momentum().x(), tktkCand->momentum().y(), 0. );
-				mc.dataD[MCRecord::tktkMass] = tktkCand->mass();
-				mc.dataD[MCRecord::tktkPt] = tktkCand->pt();
-				mc.dataD[MCRecord::tktkEta] = tktkCand->eta();
-				mc.dataD[MCRecord::tktkY] = tktkCand->rapidity();
-				mc.dataD[MCRecord::tktkPhi] = tktkCand->phi();
-				mc.dataD[MCRecord::tktkFlightDistance2d] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
-				mc.dataD[MCRecord::tktkCosa2d] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
+				mc.dataD[MCRecord::tktkMass][mc.candSize] = tktkCand->mass();
+				mc.dataD[MCRecord::tktkPt][mc.candSize] = tktkCand->pt();
+				mc.dataD[MCRecord::tktkEta][mc.candSize] = tktkCand->eta();
+				mc.dataD[MCRecord::tktkY][mc.candSize] = tktkCand->rapidity();
+				mc.dataD[MCRecord::tktkPhi][mc.candSize] = tktkCand->phi();
+				mc.dataD[MCRecord::tktkFlightDistance2d][mc.candSize] = usefulFuncs::getFlightDistance(tktkVtx2D, mumuVtx2D);
+				mc.dataD[MCRecord::tktkCosa2d][mc.candSize] = usefulFuncs::getCosAngle(tktkMom2D, tktkVtx2D, mumuVtx2D);
 			}
 
-			mc.dataD[MCRecord::muPosPt]  = pMuCand->pt();
-			mc.dataD[MCRecord::muPosEta] = pMuCand->eta();
-			mc.dataD[MCRecord::muPosPhi] = pMuCand->phi();
-			mc.dataD[MCRecord::muPosY]   = pMuCand->rapidity();
+			mc.dataD[MCRecord::muPosPt][mc.candSize]  = pMuCand->pt();
+			mc.dataD[MCRecord::muPosEta][mc.candSize] = pMuCand->eta();
+			mc.dataD[MCRecord::muPosPhi][mc.candSize] = pMuCand->phi();
+			mc.dataD[MCRecord::muPosY][mc.candSize]   = pMuCand->rapidity();
 
-			mc.dataD[MCRecord::muNegPt]  = nMuCand->pt();
-			mc.dataD[MCRecord::muNegEta] = nMuCand->eta();
-			mc.dataD[MCRecord::muNegPhi] = nMuCand->phi();
-			mc.dataD[MCRecord::muNegY]   = nMuCand->rapidity();
+			mc.dataD[MCRecord::muNegPt][mc.candSize]  = nMuCand->pt();
+			mc.dataD[MCRecord::muNegEta][mc.candSize] = nMuCand->eta();
+			mc.dataD[MCRecord::muNegPhi][mc.candSize] = nMuCand->phi();
+			mc.dataD[MCRecord::muNegY][mc.candSize]   = nMuCand->rapidity();
 
-			mc.dataD[MCRecord::tkPosPt]  = pTkCand->pt();
-			mc.dataD[MCRecord::tkPosEta] = pTkCand->eta();
-			mc.dataD[MCRecord::tkPosPhi] = pTkCand->phi();
-			mc.dataD[MCRecord::tkPosY]   = pTkCand->rapidity();
+			mc.dataD[MCRecord::tkPosPt][mc.candSize]  = pTkCand->pt();
+			mc.dataD[MCRecord::tkPosEta][mc.candSize] = pTkCand->eta();
+			mc.dataD[MCRecord::tkPosPhi][mc.candSize] = pTkCand->phi();
+			mc.dataD[MCRecord::tkPosY][mc.candSize]   = pTkCand->rapidity();
 
-			mc.dataD[MCRecord::tkNegPt]  = nTkCand->pt();
-			mc.dataD[MCRecord::tkNegEta] = nTkCand->eta();
-			mc.dataD[MCRecord::tkNegPhi] = nTkCand->phi();
-			mc.dataD[MCRecord::tkNegY]   = nTkCand->rapidity();
+			mc.dataD[MCRecord::tkNegPt][mc.candSize]  = nTkCand->pt();
+			mc.dataD[MCRecord::tkNegEta][mc.candSize] = nTkCand->eta();
+			mc.dataD[MCRecord::tkNegPhi][mc.candSize] = nTkCand->phi();
+			mc.dataD[MCRecord::tkNegY][mc.candSize]   = nTkCand->rapidity();
 
-			mc.dataI[MCRecord::candPID] = mcCand.pdgId();
-			mc.dataI[MCRecord::muPosPID] = pMuCand->pdgId();
-			mc.dataI[MCRecord::muNegPID] = nMuCand->pdgId();
-			mc.dataI[MCRecord::tkPosPID] = pTkCand->pdgId();
-			mc.dataI[MCRecord::tkNegPID] = nTkCand->pdgId();
-			mc.dataI[MCRecord::eventEntry] = entry;
+			mc.dataI[MCRecord::candPID][mc.candSize] = mcCand.pdgId();
+			mc.dataI[MCRecord::muPosPID][mc.candSize] = pMuCand->pdgId();
+			mc.dataI[MCRecord::muNegPID][mc.candSize] = nMuCand->pdgId();
+			mc.dataI[MCRecord::tkPosPID][mc.candSize] = pTkCand->pdgId();
+			mc.dataI[MCRecord::tkNegPID][mc.candSize] = nTkCand->pdgId();
+			mc.dataI[MCRecord::eventEntry][mc.candSize] = entry;
 
-			mcTree->Fill();
+            ++mc.candSize;
 			fillCounter = true;
 		}	// loop all particles end (while loop)
+        if ( mc.candSize > 0 )
+            mcTree->Fill();
 	}	// MC end }}}
 endOfMC:
 

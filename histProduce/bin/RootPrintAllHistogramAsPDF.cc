@@ -75,9 +75,9 @@ void readDirAndPrintHisto( TDirectory* dir, TCanvas* c1, const string& outputFil
         }
         TClass* cl = gROOT->GetClass( key->GetClassName() );
         if ( !cl->InheritsFrom("TH1") ) continue;
-        TH1* h = (TH1*)key->ReadObj();
+        TCanvas* h = (TCanvas*)key->ReadObj();
 
         h->Draw();
-        c1->Print( outputFileName.c_str() );
+        h->Print( outputFileName.c_str() );
     }
 }
