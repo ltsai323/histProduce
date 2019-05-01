@@ -234,11 +234,11 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
 
 		// preselection end }}}
 
+        pL0B.Clear();
 		unsigned N = selectedCandList.size();
 		N = selectedCandList.size();
 		for (unsigned i = 0; i < N; ++i)
 		{
-			pL0B.Clear();
 			const double candVtxprob = selectedCandList[i].first;
 			const reco::VertexCompositeCandidate& selCand = *(selectedCandList[i].second);
 
@@ -372,7 +372,8 @@ void VertexCompCandAnalyzer::analyze(const edm::Event& ev, const edm::EventSetup
             ++pL0B.candSize;
 			fillCounter = true;
 		}
-        pL0BTree->Fill();
+        if ( pL0B.candSize > 0 )
+            pL0BTree->Fill();
 
 		//eventSeparator_pL0B = usefulFuncs::inverter(eventSeparator_pL0B);
 	}							// Lb->Jpsi p K end }}}
@@ -428,10 +429,10 @@ endOfpL0B:
 
 		// preselection end }}}
 
+        nL0B.Clear();
 		unsigned N = selectedCandList.size();
 		for (unsigned i = 0; i < N; ++i)
 		{
-			nL0B.Clear();
 			const double candVtxprob = selectedCandList[i].first;
 			const reco::VertexCompositeCandidate& selCand = *(selectedCandList[i].second);
 
@@ -560,7 +561,8 @@ endOfpL0B:
             ++nL0B.candSize;
 			fillCounter = true;
 		}
-        nL0BTree->Fill();
+        if ( nL0B.candSize > 0 )
+            nL0BTree->Fill();
 
 		//eventSeparator_nL0B = usefulFuncs::inverter(eventSeparator_nL0B);
 	}							// Lb->Jpsi P k end }}}
@@ -618,10 +620,10 @@ endOfnL0B:
 
 		// preselection end }}}
 
+        LbL0.Clear();
 		unsigned N = selectedCandList.size();
 		for (unsigned i = 0; i < N; ++i)
 		{
-			LbL0.Clear();
 			const double candVtxprob = selectedCandList[i].first;
 			const reco::VertexCompositeCandidate& selCand = *(selectedCandList[i].second);
 
@@ -755,7 +757,8 @@ endOfnL0B:
             ++LbL0.candSize;
 			fillCounter = true;
 		}
-        LbL0Tree->Fill();
+        if ( LbL0.candSize > 0 )
+            LbL0Tree->Fill();
 
 		//eventSeparator_LbL0 = usefulFuncs::inverter(eventSeparator_LbL0);
 	}							// Lb->Jpsi Lam0 end }}}
@@ -814,10 +817,10 @@ endOfLbL0:
 
 		// preselection end }}}
 
+        LbLo.Clear();
 		unsigned N = selectedCandList.size();
 		for (unsigned i = 0; i < N; ++i)
 		{
-			LbLo.Clear();
 			const double candVtxprob = selectedCandList[i].first;
 			const reco::VertexCompositeCandidate& selCand = *(selectedCandList[i].second);
 
@@ -947,7 +950,8 @@ endOfLbL0:
             ++LbLo.candSize;
 			fillCounter = true;
 		}
-        LbLoTree->Fill();
+        if ( LbLo.candSize > 0 )
+            LbLoTree->Fill();
 	}							// Lb->Jpsi anti Lam0 end }}}
 
 endOfLbLo:
@@ -957,6 +961,7 @@ endOfLbLo:
 		ev.getByToken( MCReserveToken, mcCands );
 		if (!mcCands.isValid()) goto endOfMC;
 
+        mc.Clear();
 		std::vector<reco::GenParticle>::const_iterator iter = mcCands->cbegin();
 		std::vector<reco::GenParticle>::const_iterator iend = mcCands->cend  ();
 		while ( iter != iend )
@@ -1079,8 +1084,8 @@ endOfLbLo:
 			const reco::GenParticle* pTkCand = dynamic_cast<const reco::GenParticle*>(ptkMomPtr->daughter(pTkIdx));
 			const reco::GenParticle* nTkCand = dynamic_cast<const reco::GenParticle*>(ntkMomPtr->daughter(nTkIdx));
 
-			if ( pMuCand->charge() < 0) std::cout<<"----VertexCompCandAnalyzer::analyze() : pos mu own neg charge\n";
-			if ( nMuCand->charge() > 0) std::cout<<"----VertexCompCandAnalyzer::analyze() : neg mu own pos charge\n";
+			if ( pMuCand->charge() < 0) printf("----VertexCompCandAnalyzer::analyze() : pos mu own neg charge\n");
+			if ( nMuCand->charge() > 0) printf("----VertexCompCandAnalyzer::analyze() : neg mu own pos charge\n");
 
 			GlobalPoint bsVtx2D( bs.x( mcCand.vertex().z() ), bs.y( mcCand.vertex().z() ), 0. );
 			GlobalPoint mumuVtx2D( mumuCand->vertex().x(), mumuCand->vertex().y(), 0. );
@@ -1139,7 +1144,8 @@ endOfLbLo:
             ++mc.candSize;
 			fillCounter = true;
 		}	// loop all particles end (while loop)
-        mcTree->Fill();
+        if ( mc.candSize > 0 )
+            mcTree->Fill();
 	}	// MC end }}}
 endOfMC:
 

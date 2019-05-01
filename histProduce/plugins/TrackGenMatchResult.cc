@@ -118,6 +118,17 @@ void TrackGenMatchResult::analyze( const edm::Event& iEvent, const edm::EventSet
     iEvent.getByToken(_mcMatchToken, _mcMatchHandle);
 
     _nTracks = _tkHandle->size();
+    if ( _nTracks > MAX_TRACKS )
+    { printf("-------ERROR-------- number of tracks exceeds the MAX_TRACKS limit!\n"); exit(1); }
+
+
+    int kkk=0;
+    for ( const auto& mc : *(_mcMatchHandle.product()) )
+        if ( fabs(mc.pdgId()) == 5122 )
+            if ( _mcDaugDetail->isTargetGenParticleInDecayChannel(mc) )
+                kkk+=1;
+    if ( kkk > 1 ) return;
+
     
 
 
