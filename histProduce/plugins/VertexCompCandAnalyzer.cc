@@ -697,9 +697,9 @@ endOfnL0B:
 			LbL0.dataD[LbTkRecord::lbtkPhi][LbL0.candSize] = fourTkMom.Phi();
 			LbL0.dataD[LbTkRecord::lbtkVtxprob][LbL0.candSize] = candVtxprob;
 			LbL0.dataD[LbTkRecord::lbtknChi2][LbL0.candSize] = selCand.vertexChi2() / selCand.vertexNdof();
-			nL0B.dataD[LbTkRecord::lbtkFlightDistance2d][LbL0.candSize] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
-			nL0B.dataD[LbTkRecord::lbtkFlightDistanceSig][LbL0.candSize] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
-			nL0B.dataD[LbTkRecord::lbtkCosa2d][LbL0.candSize] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
+			LbL0.dataD[LbTkRecord::lbtkFlightDistance2d][LbL0.candSize] = usefulFuncs::getFlightDistance(fourTkVtx2D, bsVtx2D);
+			LbL0.dataD[LbTkRecord::lbtkFlightDistanceSig][LbL0.candSize] = usefulFuncs::getFlightDistanceSignificance(fourTkVtx2D, fourTkCOV, bsVtx2D, bsCOV);
+			LbL0.dataD[LbTkRecord::lbtkCosa2d][LbL0.candSize] = usefulFuncs::getCosAngle(fourTkMom2D, fourTkVtx2D, bsVtx2D);
 
 			LbL0.dataD[LbTkRecord::tktkMass][LbL0.candSize] = tktkMom.mass();
 			LbL0.dataD[LbTkRecord::tktkPt][LbL0.candSize] = tktkMom.Pt();
