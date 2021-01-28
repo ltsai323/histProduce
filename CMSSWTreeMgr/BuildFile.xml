@@ -1,0 +1,19 @@
+<use   name="root"/>
+<use   name="roofit"/>
+<use   name="boost"/>
+<use   name="FWCore/FWLite"/>
+<use   name="DataFormats/FWLite"/>
+<use   name="DataFormats/Luminosity"/>
+<use   name="FWCore/PythonParameterSet"/>
+<use   name="CommonTools/Utils"/>
+<use   name="CommonTools/UtilAlgos"/>
+<use   name="PhysicsTools/FWLite"/>
+<use   name="PhysicsTools/Utilities"/>
+<use   name="PhysicsTools/SelectorUtils"/>
+<use   name="PhysicsTools/UtilAlgos"/>
+<use   name="FWCore/ServiceRegistry"/>
+<use   name="histProduce/treeFormat"/>
+<use   name="histProduce/tools"/>
+<export>
+  <lib   name="1"/>
+</export>
